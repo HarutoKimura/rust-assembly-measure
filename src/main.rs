@@ -29,6 +29,10 @@ mod curve25519_dalek {
         pub fn curve25519_dalek_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn curve25519_dalek_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn curve25519_dalek_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        // Square functions
+        pub fn curve25519_dalek_square(arg0: *mut u64, arg1: *const u64);
+        pub fn curve25519_dalek_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn curve25519_dalek_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
 
@@ -85,6 +89,11 @@ mod rust_ec_secp256k1 {
         pub fn rust_ec_secp256k1_mul_inner(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn rust_ec_secp256k1_mul_inner_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn rust_ec_secp256k1_mul_inner_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+
+        // Square functions
+        pub fn rust_ec_secp256k1_square(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_ec_secp256k1_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_ec_secp256k1_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
 
@@ -223,7 +232,17 @@ impl CurveType {
                 secp256k1_dettman::rust_fiat_secp256k1_dettman_square_nasm,
                 secp256k1_dettman::rust_fiat_secp256k1_dettman_square_CryptOpt
             ),
-            &CurveType::Curve25519Dalek | &CurveType::P448 | &CurveType::Bls12 | &CurveType::Secp256k1RustEc => todo!(),
+            CurveType::Curve25519Dalek => Function::U64Square(
+                curve25519_dalek::curve25519_dalek_square,
+                curve25519_dalek::curve25519_dalek_square_nasm,
+                curve25519_dalek::curve25519_dalek_square_CryptOpt
+            ),
+            CurveType::Secp256k1RustEc => Function::U64Square(
+                rust_ec_secp256k1::rust_ec_secp256k1_square,
+                rust_ec_secp256k1::rust_ec_secp256k1_square_nasm,
+                rust_ec_secp256k1::rust_ec_secp256k1_square_CryptOpt
+            ),
+            &CurveType::P448 | &CurveType::Bls12 => todo!(),
             // CurveType::Bls12 => Function::UsizeSquare(
             //     bls12::bls12_square,
             //     bls12::bls12_square_nasm,

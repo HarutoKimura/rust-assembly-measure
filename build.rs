@@ -197,6 +197,71 @@ fn build_curve25519_dalek() {
         .status()
         .unwrap()
         .success());
+
+    // ---------- SQUARE ----------
+    // LLC version (square) - Assuming file exists
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/curve25519-dalek/llc/square/curve25519_dalek_square.asm", // Assumed path
+            "-o",
+            "src/curve25519-dalek/llc/square/curve25519_dalek_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/curve25519-dalek/llc/square/libcurve25519_dalek_square.a",
+            "src/curve25519-dalek/llc/square/curve25519_dalek_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/curve25519-dalek/llc-nasm/square/curve25519_dalek_square_nasm.asm",
+            "-o",
+            "src/curve25519-dalek/llc-nasm/square/curve25519_dalek_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/curve25519-dalek/llc-nasm/square/libcurve25519_dalek_square_nasm.a",
+            "src/curve25519-dalek/llc-nasm/square/curve25519_dalek_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/curve25519-dalek/cryptopt/square/seed0001744701020405_ratio09946.asm",
+            "-o",
+            "src/curve25519-dalek/cryptopt/square/seed0001744701020405_ratio09946.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/curve25519-dalek/cryptopt/square/libcurve25519_dalek_square_CryptOpt.a",
+            "src/curve25519-dalek/cryptopt/square/seed0001744701020405_ratio09946.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
 }
 
 fn build_p448() {
@@ -597,9 +662,9 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/rust_ec_secp256k1/llc/rust_ec_secp256k1_mul_inner.asm",
+            "src/rust_ec_secp256k1/llc/mul/rust_ec_secp256k1_mul_inner.asm",
             "-o",
-            "src/rust_ec_secp256k1/llc/rust_ec_secp256k1_mul_inner.o"
+            "src/rust_ec_secp256k1/llc/mul/rust_ec_secp256k1_mul_inner.o"
         ])
         .status()
         .unwrap()
@@ -607,8 +672,8 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust_ec_secp256k1/llc/librust_ec_secp256k1_mul_inner.a",
-            "src/rust_ec_secp256k1/llc/rust_ec_secp256k1_mul_inner.o"
+            "src/rust_ec_secp256k1/llc/mul/librust_ec_secp256k1_mul_inner.a",
+            "src/rust_ec_secp256k1/llc/mul/rust_ec_secp256k1_mul_inner.o"
         ])
         .status()
         .unwrap()
@@ -618,9 +683,9 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/rust_ec_secp256k1/llc-nasm/rust_ec_secp256k1_mul_inner_nasm.asm",
+            "src/rust_ec_secp256k1/llc-nasm/mul/rust_ec_secp256k1_mul_inner_nasm.asm",
             "-o",
-            "src/rust_ec_secp256k1/llc-nasm/rust_ec_secp256k1_mul_inner_nasm.o"
+            "src/rust_ec_secp256k1/llc-nasm/mul/rust_ec_secp256k1_mul_inner_nasm.o"
         ])
         .status()
         .unwrap()
@@ -628,8 +693,8 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust_ec_secp256k1/llc-nasm/librust_ec_secp256k1_mul_inner_nasm.a",
-            "src/rust_ec_secp256k1/llc-nasm/rust_ec_secp256k1_mul_inner_nasm.o"
+            "src/rust_ec_secp256k1/llc-nasm/mul/librust_ec_secp256k1_mul_inner_nasm.a",
+            "src/rust_ec_secp256k1/llc-nasm/mul/rust_ec_secp256k1_mul_inner_nasm.o"
         ])
         .status()
         .unwrap()
@@ -651,6 +716,70 @@ fn build_rust_ec_secp256k1(){
             "rcs",
             "src/rust_ec_secp256k1/cryptopt/mul/librust_ec_secp256k1_mul_inner_CryptOpt.a",
             "src/rust_ec_secp256k1/cryptopt/mul/seed0001744091596612_ratio10493.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // ---------- SQUARE ----------
+    // LLC version (square)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/rust_ec_secp256k1/llc/square/rust_ec_secp256k1_square.asm",
+            "-o",
+            "src/rust_ec_secp256k1/llc/square/rust_ec_secp256k1_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/rust_ec_secp256k1/llc/square/librust_ec_secp256k1_square.a",
+            "src/rust_ec_secp256k1/llc/square/rust_ec_secp256k1_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/rust_ec_secp256k1/llc-nasm/square/rust_ec_secp256k1_square_nasm.asm",
+            "-o",
+            "src/rust_ec_secp256k1/llc-nasm/square/rust_ec_secp256k1_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/rust_ec_secp256k1/llc-nasm/square/librust_ec_secp256k1_square_nasm.a",
+            "src/rust_ec_secp256k1/llc-nasm/square/rust_ec_secp256k1_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/rust_ec_secp256k1/cryptopt/square/seed0001744939348890_ratio08357.asm",
+            "-o",
+            "src/rust_ec_secp256k1/cryptopt/square/seed0001744939348890_ratio08357.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/rust_ec_secp256k1/cryptopt/square/librust_ec_secp256k1_square_CryptOpt.a",
+            "src/rust_ec_secp256k1/cryptopt/square/seed0001744939348890_ratio08357.o"
         ])
         .status()
         .unwrap()
@@ -682,6 +811,9 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/curve25519-dalek/llc/mul");
     println!("cargo:rustc-link-search=native=src/curve25519-dalek/llc-nasm/mul");
     println!("cargo:rustc-link-search=native=src/curve25519-dalek/cryptopt/mul");
+    println!("cargo:rustc-link-search=native=src/curve25519-dalek/llc/square");
+    println!("cargo:rustc-link-search=native=src/curve25519-dalek/llc-nasm/square");
+    println!("cargo:rustc-link-search=native=src/curve25519-dalek/cryptopt/square");
 
     // P448 (only mul)
     println!("cargo:rustc-link-search=native=src/p448/llc");
@@ -710,9 +842,12 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/secp256k1_dettman/cryptopt/square");
 
     // Rust EC Secp256k1
-    println!("cargo:rustc-link-search=native=src/rust_ec_secp256k1/llc");
-    println!("cargo:rustc-link-search=native=src/rust_ec_secp256k1/llc-nasm");
+    println!("cargo:rustc-link-search=native=src/rust_ec_secp256k1/llc/mul");
+    println!("cargo:rustc-link-search=native=src/rust_ec_secp256k1/llc-nasm/mul");
     println!("cargo:rustc-link-search=native=src/rust_ec_secp256k1/cryptopt/mul");
+    println!("cargo:rustc-link-search=native=src/rust_ec_secp256k1/llc/square");
+    println!("cargo:rustc-link-search=native=src/rust_ec_secp256k1/llc-nasm/square");
+    println!("cargo:rustc-link-search=native=src/rust_ec_secp256k1/cryptopt/square");
 
 
     // -------------------------------------------------------------------------
@@ -731,6 +866,10 @@ fn main() {
     println!("cargo:rustc-link-lib=static=curve25519_dalek_mul");
     println!("cargo:rustc-link-lib=static=curve25519_dalek_mul_nasm");
     println!("cargo:rustc-link-lib=static=curve25519_dalek_mul_CryptOpt");
+    // Curve25519-dalek (square)
+    println!("cargo:rustc-link-lib=static=curve25519_dalek_square");
+    println!("cargo:rustc-link-lib=static=curve25519_dalek_square_nasm");
+    println!("cargo:rustc-link-lib=static=curve25519_dalek_square_CryptOpt");
 
     // P448 (mul only)
     println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_mul");
@@ -766,11 +905,18 @@ fn main() {
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_mul_inner_nasm");
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_mul_inner_CryptOpt");
 
+    // Rust EC Secp256k1 (square)
+    println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square");
+    println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square_nasm");
+    println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square_CryptOpt");
+
     // -------------------------------------------------------------------------
     // Re-run build.rs if any assembly files change
     println!("cargo:rerun-if-changed=src/curve25519");
+    println!("cargo:rerun-if-changed=src/curve25519-dalek");
     println!("cargo:rerun-if-changed=src/p448");
     println!("cargo:rerun-if-changed=src/poly1305");
     println!("cargo:rerun-if-changed=src/bls12");
     println!("cargo:rerun-if-changed=src/secp256k1_dettman");
+    println!("cargo:rerun-if-changed=src/rust_ec_secp256k1");
 }
