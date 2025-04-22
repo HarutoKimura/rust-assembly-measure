@@ -44,6 +44,7 @@ mod p448 {
         pub fn rust_fiat_p448_solinas_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn rust_fiat_p448_solinas_carry_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn rust_fiat_p448_solinas_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_p448_solinas_carry_mul_c(arg0: *mut u64, arg1: *const u64, arg2: *const u64);
         // // Square functions
         // pub fn rust_fiat_p448_solinas_carry_square(arg0: *mut u64, arg1: *const u64);
         // pub fn rust_fiat_p448_solinas_carry_square_nasm(arg0: *mut u64, arg1: *const u64);
