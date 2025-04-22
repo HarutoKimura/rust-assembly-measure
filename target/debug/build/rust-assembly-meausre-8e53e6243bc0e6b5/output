@@ -34,6 +34,9 @@ cargo:rustc-link-search=native=src/rust/rust_ec_secp256k1/cryptopt/mul
 cargo:rustc-link-search=native=src/rust/rust_ec_secp256k1/llc/square
 cargo:rustc-link-search=native=src/rust/rust_ec_secp256k1/llc-nasm/square
 cargo:rustc-link-search=native=src/rust/rust_ec_secp256k1/cryptopt/square
+cargo:rustc-link-search=native=src/c/fiat-curve25519/llc/mul
+cargo:rustc-link-search=native=src/c/fiat-curve25519/llc-nasm/mul
+cargo:rustc-link-search=native=src/c/fiat-curve25519/cryptopt/mul
 cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_mul
 cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_mul_nasm
 cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_mul_CryptOpt
@@ -70,6 +73,9 @@ cargo:rustc-link-lib=static=rust_ec_secp256k1_mul_inner_CryptOpt
 cargo:rustc-link-lib=static=rust_ec_secp256k1_square
 cargo:rustc-link-lib=static=rust_ec_secp256k1_square_nasm
 cargo:rustc-link-lib=static=rust_ec_secp256k1_square_CryptOpt
+cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul
+cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_nasm
+cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_CryptOpt
 cargo:rerun-if-changed=src/rust/curve25519
 cargo:rerun-if-changed=src/rust/curve25519-dalek
 cargo:rerun-if-changed=src/rust/p448
@@ -77,3 +83,4 @@ cargo:rerun-if-changed=src/rust/poly1305
 cargo:rerun-if-changed=src/rust/bls12
 cargo:rerun-if-changed=src/rust/secp256k1_dettman
 cargo:rerun-if-changed=src/rust/rust_ec_secp256k1
+cargo:rerun-if-changed=src/c/fiat-curve25519

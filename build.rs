@@ -785,6 +785,72 @@ fn build_rust_ec_secp256k1(){
         .unwrap()
         .success());
 }
+// -------------------------------------------------------------------------
+fn build_fiat_c_curve25519(){
+    // ---------- MUL ----------
+    // LLC version (mul)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/fiat-curve25519/llc/mul/fiat_c_curve25519_carry_mul.asm",
+            "-o",
+            "src/c/fiat-curve25519/llc/mul/fiat_c_curve25519_carry_mul.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-curve25519/llc/mul/libfiat_c_curve25519_carry_mul.a",
+            "src/c/fiat-curve25519/llc/mul/fiat_c_curve25519_carry_mul.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-curve25519/llc-nasm/mul/fiat_c_curve25519_carry_mul_nasm.asm",
+            "-o",
+                    "src/c/fiat-curve25519/llc-nasm/mul/fiat_c_curve25519_carry_mul_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-curve25519/llc-nasm/mul/libfiat_c_curve25519_carry_mul_nasm.a",
+            "src/c/fiat-curve25519/llc-nasm/mul/fiat_c_curve25519_carry_mul_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-curve25519/cryptopt/mul/seed0001745286179155_ratio10096.asm",
+            "-o",
+            "src/c/fiat-curve25519/cryptopt/mul/seed0001745286179155_ratio10096.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-curve25519/cryptopt/mul/libfiat_c_curve25519_carry_mul_CryptOpt.a",
+            "src/c/fiat-curve25519/cryptopt/mul/seed0001745286179155_ratio10096.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+}
 
 fn main() {
     // Build all curves (both mul and square, if available)
@@ -795,7 +861,7 @@ fn main() {
     build_secp256k1_dettman();
     build_curve25519_dalek();
     build_rust_ec_secp256k1();
-
+    build_fiat_c_curve25519();
     // -------------------------------------------------------------------------
     // Add link-search paths for all curves and both operations
 
@@ -848,6 +914,12 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/rust/rust_ec_secp256k1/llc/square");
     println!("cargo:rustc-link-search=native=src/rust/rust_ec_secp256k1/llc-nasm/square");
     println!("cargo:rustc-link-search=native=src/rust/rust_ec_secp256k1/cryptopt/square");
+
+
+    // Fiat C Curve25519
+    println!("cargo:rustc-link-search=native=src/c/fiat-curve25519/llc/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-curve25519/llc-nasm/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-curve25519/cryptopt/mul");
 
 
     // -------------------------------------------------------------------------
@@ -910,13 +982,19 @@ fn main() {
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square_nasm");
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square_CryptOpt");
 
+    // Fiat C Curve25519 (mul)
+    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul");
+    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_CryptOpt");
+
     // -------------------------------------------------------------------------
     // Re-run build.rs if any assembly files change
-    println!("cargo:rerun-if-changed=src/rust/curve25519");
+    println!("cargo:rerun-if-changed=src/rust/curve25519"); 
     println!("cargo:rerun-if-changed=src/rust/curve25519-dalek");
     println!("cargo:rerun-if-changed=src/rust/p448");
     println!("cargo:rerun-if-changed=src/rust/poly1305");
     println!("cargo:rerun-if-changed=src/rust/bls12");
     println!("cargo:rerun-if-changed=src/rust/secp256k1_dettman");
     println!("cargo:rerun-if-changed=src/rust/rust_ec_secp256k1");
+    println!("cargo:rerun-if-changed=src/c/fiat-curve25519");
 }
