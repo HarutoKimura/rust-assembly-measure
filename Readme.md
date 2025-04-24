@@ -17,7 +17,7 @@ The goal is to benchmark these assembly variants across various cryptographic cu
 - Includes basic correctness checks by comparing outputs (though not the primary focus).
 - Supports benchmarking for the following curves/implementations:
     - Curve25519 (Fiat-Rust)
-    - Curve25519-Dalek (Fiat-Rust)
+    - Curve25519-Dalek (Rust)
     - P448 (Fiat-Rust, mul only)
     - Poly1305 (Fiat-Rust)
     - Secp256k1-Dettman (Fiat-Rust)
