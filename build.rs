@@ -850,7 +850,462 @@ fn build_fiat_c_curve25519(){
         .status()
         .unwrap()
         .success());
+    
+    // ---------- SQUARE ----------
+    // LLC version (square)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/fiat-curve25519/llc/square/fiat_c_curve25519_carry_square.asm",
+            "-o",
+            "src/c/fiat-curve25519/llc/square/fiat_c_curve25519_carry_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-curve25519/llc/square/libfiat_c_curve25519_carry_square.a",
+            "src/c/fiat-curve25519/llc/square/fiat_c_curve25519_carry_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-curve25519/llc-nasm/square/fiat_c_curve25519_carry_square_nasm.asm",
+            "-o",
+            "src/c/fiat-curve25519/llc-nasm/square/fiat_c_curve25519_carry_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-curve25519/llc-nasm/square/libfiat_c_curve25519_carry_square_nasm.a",
+            "src/c/fiat-curve25519/llc-nasm/square/fiat_c_curve25519_carry_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-curve25519/cryptopt/square/seed0001745298841019_ratio11286.asm",
+            "-o",
+            "src/c/fiat-curve25519/cryptopt/square/seed0001745298841019_ratio11286.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-curve25519/cryptopt/square/libfiat_c_curve25519_carry_square_CryptOpt.a",
+            "src/c/fiat-curve25519/cryptopt/square/seed0001745298841019_ratio11286.o"
+        ])
+        .status()
+        .unwrap()
+        .success()); 
 }
+
+fn build_fiat_c_secp256k1_dettman(){
+    // ---------- MUL ----------
+    // LLC version (mul)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/fiat-secp256k1_dettman/llc/mul/fiat_c_secp256k1_dettman_mul.asm",
+            "-o",
+            "src/c/fiat-secp256k1_dettman/llc/mul/fiat_c_secp256k1_dettman_mul.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-secp256k1_dettman/llc/mul/libfiat_c_secp256k1_dettman_mul.a",
+            "src/c/fiat-secp256k1_dettman/llc/mul/fiat_c_secp256k1_dettman_mul.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/fiat_c_secp256k1_dettman_mul_nasm.asm",
+            "-o",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/fiat_c_secp256k1_dettman_mul_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/libfiat_c_secp256k1_dettman_mul_nasm.a",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/fiat_c_secp256k1_dettman_mul_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-secp256k1_dettman/cryptopt/mul/seed0001745366316741_ratio10360.asm",
+            "-o",
+            "src/c/fiat-secp256k1_dettman/cryptopt/mul/seed0001745366316741_ratio10360.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-secp256k1_dettman/cryptopt/mul/libfiat_c_secp256k1_dettman_mul_CryptOpt.a",
+            "src/c/fiat-secp256k1_dettman/cryptopt/mul/seed0001745366316741_ratio10360.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // ---------- SQUARE ----------
+    // LLC version (square)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/fiat-secp256k1_dettman/llc/square/fiat_c_secp256k1_dettman_square.asm",
+            "-o",
+            "src/c/fiat-secp256k1_dettman/llc/square/fiat_c_secp256k1_dettman_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-secp256k1_dettman/llc/square/libfiat_c_secp256k1_dettman_square.a",
+            "src/c/fiat-secp256k1_dettman/llc/square/fiat_c_secp256k1_dettman_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/square/fiat_c_secp256k1_dettman_square_nasm.asm",
+            "-o",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/square/fiat_c_secp256k1_dettman_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/square/libfiat_c_secp256k1_dettman_square_nasm.a",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/square/fiat_c_secp256k1_dettman_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-secp256k1_dettman/cryptopt/square/seed0001745367348868_ratio10117.asm",
+            "-o",
+            "src/c/fiat-secp256k1_dettman/cryptopt/square/seed0001745367348868_ratio10117.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-secp256k1_dettman/cryptopt/square/libfiat_c_secp256k1_dettman_square_CryptOpt.a",
+            "src/c/fiat-secp256k1_dettman/cryptopt/square/seed0001745367348868_ratio10117.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+}
+
+fn build_fiat_c_poly1305(){
+    // ---------- MUL ----------
+    // LLC version (mul)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/fiat-poly1305/llc/mul/fiat_c_poly1305_carry_mul.asm",
+            "-o",
+            "src/c/fiat-poly1305/llc/mul/fiat_c_poly1305_carry_mul.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-poly1305/llc/mul/libfiat_c_poly1305_carry_mul.a",
+            "src/c/fiat-poly1305/llc/mul/fiat_c_poly1305_carry_mul.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-poly1305/llc-nasm/mul/fiat_c_poly1305_carry_mul_nasm.asm",
+            "-o",
+            "src/c/fiat-poly1305/llc-nasm/mul/fiat_c_poly1305_carry_mul_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-poly1305/llc-nasm/mul/libfiat_c_poly1305_carry_mul_nasm.a",
+            "src/c/fiat-poly1305/llc-nasm/mul/fiat_c_poly1305_carry_mul_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-poly1305/cryptopt/mul/seed0001745369151669_ratio10741.asm",
+            "-o",
+            "src/c/fiat-poly1305/cryptopt/mul/seed0001745369151669_ratio10741.o"
+        ])
+        .status()
+        .unwrap()
+        .success());    
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-poly1305/cryptopt/mul/libfiat_c_poly1305_carry_mul_CryptOpt.a",
+            "src/c/fiat-poly1305/cryptopt/mul/seed0001745369151669_ratio10741.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // ---------- SQUARE ----------
+    // LLC version (square)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/fiat-poly1305/llc/square/fiat_c_poly1305_carry_square.asm",
+            "-o",
+            "src/c/fiat-poly1305/llc/square/fiat_c_poly1305_carry_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar") 
+        .args(&[
+            "rcs",
+            "src/c/fiat-poly1305/llc/square/libfiat_c_poly1305_carry_square.a",
+            "src/c/fiat-poly1305/llc/square/fiat_c_poly1305_carry_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-poly1305/llc-nasm/square/fiat_c_poly1305_carry_square_nasm.asm",
+            "-o",
+            "src/c/fiat-poly1305/llc-nasm/square/fiat_c_poly1305_carry_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-poly1305/llc-nasm/square/libfiat_c_poly1305_carry_square_nasm.a",
+            "src/c/fiat-poly1305/llc-nasm/square/fiat_c_poly1305_carry_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-poly1305/cryptopt/square/seed0001745369756938_ratio11157.asm",
+            "-o",
+            "src/c/fiat-poly1305/cryptopt/square/seed0001745369756938_ratio11157.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-poly1305/cryptopt/square/libfiat_c_poly1305_carry_square_CryptOpt.a",
+            "src/c/fiat-poly1305/cryptopt/square/seed0001745369756938_ratio11157.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+}
+
+fn build_fiat_c_p448(){
+    // ---------- MUL ----------
+    // LLC version (mul)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/fiat-p448/llc/mul/fiat_c_p448_solinas_carry_mul.asm",
+            "-o",
+            "src/c/fiat-p448/llc/mul/fiat_c_p448_solinas_carry_mul.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-p448/llc/mul/libfiat_c_p448_solinas_carry_mul.a",
+            "src/c/fiat-p448/llc/mul/fiat_c_p448_solinas_carry_mul.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-p448/llc-nasm/mul/fiat_c_p448_solinas_carry_mul_nasm.asm",
+            "-o",
+            "src/c/fiat-p448/llc-nasm/mul/fiat_c_p448_solinas_carry_mul_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-p448/llc-nasm/mul/libfiat_c_p448_solinas_carry_mul_nasm.a",
+            "src/c/fiat-p448/llc-nasm/mul/fiat_c_p448_solinas_carry_mul_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-p448/cryptopt/mul/seed0001745370775298_ratio09330.asm",
+            "-o",
+            "src/c/fiat-p448/cryptopt/mul/seed0001745370775298_ratio09330.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-p448/cryptopt/mul/libfiat_c_p448_solinas_carry_mul_CryptOpt.a",
+            "src/c/fiat-p448/cryptopt/mul/seed0001745370775298_ratio09330.o"
+        ])
+        .status()   
+        .unwrap()
+        .success());
+    
+    // Square
+    // LLC version (square)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/fiat-p448/llc/square/fiat_c_p448_solinas_carry_square.asm",
+            "-o",
+            "src/c/fiat-p448/llc/square/fiat_c_p448_solinas_carry_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-p448/llc/square/libfiat_c_p448_solinas_carry_square.a",
+            "src/c/fiat-p448/llc/square/fiat_c_p448_solinas_carry_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    
+    // NASM version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-p448/llc-nasm/square/fiat_c_p448_solinas_carry_square_nasm.asm",
+            "-o",
+            "src/c/fiat-p448/llc-nasm/square/fiat_c_p448_solinas_carry_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-p448/llc-nasm/square/libfiat_c_p448_solinas_carry_square_nasm.a",
+            "src/c/fiat-p448/llc-nasm/square/fiat_c_p448_solinas_carry_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+        
+    // CryptOpt version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/fiat-p448/cryptopt/square/seed0001745398667315_ratio10358.asm",
+            "-o",
+            "src/c/fiat-p448/cryptopt/square/seed0001745398667315_ratio10358.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/fiat-p448/cryptopt/square/libfiat_c_p448_solinas_carry_square_CryptOpt.a",
+            "src/c/fiat-p448/cryptopt/square/seed0001745398667315_ratio10358.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+}   
 
 fn main() {
     // Build all curves (both mul and square, if available)
@@ -862,6 +1317,9 @@ fn main() {
     build_curve25519_dalek();
     build_rust_ec_secp256k1();
     build_fiat_c_curve25519();
+    build_fiat_c_secp256k1_dettman();
+    build_fiat_c_poly1305();
+    build_fiat_c_p448();
     // -------------------------------------------------------------------------
     // Add link-search paths for all curves and both operations
 
@@ -920,6 +1378,33 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/c/fiat-curve25519/llc/mul");
     println!("cargo:rustc-link-search=native=src/c/fiat-curve25519/llc-nasm/mul");
     println!("cargo:rustc-link-search=native=src/c/fiat-curve25519/cryptopt/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-curve25519/llc/square");
+    println!("cargo:rustc-link-search=native=src/c/fiat-curve25519/llc-nasm/square");
+    println!("cargo:rustc-link-search=native=src/c/fiat-curve25519/cryptopt/square");
+
+    // Fiat C Secp256k1 Dettman
+    println!("cargo:rustc-link-search=native=src/c/fiat-secp256k1_dettman/llc/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-secp256k1_dettman/llc-nasm/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-secp256k1_dettman/cryptopt/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-secp256k1_dettman/llc/square");
+    println!("cargo:rustc-link-search=native=src/c/fiat-secp256k1_dettman/llc-nasm/square");
+    println!("cargo:rustc-link-search=native=src/c/fiat-secp256k1_dettman/cryptopt/square");
+
+    // Fiat C Poly1305
+    println!("cargo:rustc-link-search=native=src/c/fiat-poly1305/llc/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-poly1305/llc-nasm/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-poly1305/cryptopt/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-poly1305/llc/square");
+    println!("cargo:rustc-link-search=native=src/c/fiat-poly1305/llc-nasm/square");
+    println!("cargo:rustc-link-search=native=src/c/fiat-poly1305/cryptopt/square");
+
+    // Fiat C P448
+    println!("cargo:rustc-link-search=native=src/c/fiat-p448/llc/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-p448/llc-nasm/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-p448/cryptopt/mul");
+    println!("cargo:rustc-link-search=native=src/c/fiat-p448/llc/square");
+    println!("cargo:rustc-link-search=native=src/c/fiat-p448/llc-nasm/square");
+    println!("cargo:rustc-link-search=native=src/c/fiat-p448/cryptopt/square");
 
 
     // -------------------------------------------------------------------------
@@ -987,6 +1472,41 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_CryptOpt");
 
+    // Fiat C Curve25519 (square)
+    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_square");
+    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_square_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_square_CryptOpt");
+
+    // Fiat C Secp256k1 Dettman (mul)
+    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_mul");
+    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_mul_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_mul_CryptOpt");
+
+    // Fiat C Secp256k1 Dettman (square)
+    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_square");
+    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_square_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_square_CryptOpt");
+
+    // Fiat C Poly1305 (mul)
+    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_mul");
+    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_mul_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_mul_CryptOpt");
+
+    // Fiat C Poly1305 (square)
+    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_square");
+    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_square_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_square_CryptOpt");
+
+    // Fiat C P448 (mul)
+    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul");
+    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul_CryptOpt");
+
+    // Fiat C P448 (square)
+    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square");
+    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_CryptOpt");
+
     // -------------------------------------------------------------------------
     // Re-run build.rs if any assembly files change
     println!("cargo:rerun-if-changed=src/rust/curve25519"); 
@@ -997,4 +1517,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/rust/secp256k1_dettman");
     println!("cargo:rerun-if-changed=src/rust/rust_ec_secp256k1");
     println!("cargo:rerun-if-changed=src/c/fiat-curve25519");
+    println!("cargo:rerun-if-changed=src/c/fiat-secp256k1_dettman");
+    println!("cargo:rerun-if-changed=src/c/fiat-poly1305");
+    println!("cargo:rerun-if-changed=src/c/fiat-p448");
 }

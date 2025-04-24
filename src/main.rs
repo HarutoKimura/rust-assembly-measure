@@ -52,6 +52,21 @@ mod p448 {
     }
 }
 
+mod fiat_c_p448 {
+    pub const LOOSE_BOUND: u64 = 0x300000000000000;
+    pub const SIZE: usize = 8;
+    extern "C" {
+        // Multiply functions
+        pub fn fiat_c_p448_solinas_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_p448_solinas_carry_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_p448_solinas_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        // Square functions
+        pub fn fiat_c_p448_solinas_carry_square(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_p448_solinas_carry_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_p448_solinas_carry_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
+    }
+}
+
 mod fiat_c_curve25519 {
     pub const LOOSE_BOUND: u64 = 0x18000000000000;
     pub const SIZE: usize = 4;
@@ -60,6 +75,10 @@ mod fiat_c_curve25519 {
         pub fn fiat_c_curve25519_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn fiat_c_curve25519_carry_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn fiat_c_curve25519_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        // Square functions
+        pub fn fiat_c_curve25519_carry_square(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_curve25519_carry_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_curve25519_carry_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
 
@@ -77,6 +96,22 @@ mod poly1305 {
         pub fn rust_fiat_poly1305_carry_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
+
+mod fiat_c_poly1305 {
+    pub const LOOSE_BOUND: u64 = 0x180000000000;
+    pub const SIZE: usize = 3;
+    extern "C" {
+        // Multiply functions
+        pub fn fiat_c_poly1305_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_poly1305_carry_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_poly1305_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        // Square functions
+        pub fn fiat_c_poly1305_carry_square(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_poly1305_carry_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_poly1305_carry_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
+    }
+}
+
 
 mod secp256k1_dettman {
     pub const LOOSE_BOUND: u64 = 0x1ffffffffffffe;
@@ -108,6 +143,25 @@ mod rust_ec_secp256k1 {
         pub fn rust_ec_secp256k1_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
+
+mod fiat_c_secp256k1_dettman {
+    pub const LOOSE_BOUND: u64 = 0x1ffffffffffffe;
+    pub const SIZE: usize = 5;
+    extern "C" {
+        // Multiply functions
+        pub fn fiat_c_secp256k1_dettman_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_secp256k1_dettman_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_secp256k1_dettman_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+
+        // Square functions
+        pub fn fiat_c_secp256k1_dettman_square(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_secp256k1_dettman_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_secp256k1_dettman_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
+    }
+}
+
+
+
 
 mod bls12 {
     pub const LOOSE_BOUND: u64 = 0x10000000000000;
@@ -145,6 +199,9 @@ enum CurveType {
     Secp256k1RustEc,
     Bls12,
     FiatCCurve25519,
+    FiatCSecp256k1Dettman,
+    FiatCPoly1305,
+    FiatCP448,
 }
 
 enum Function {
@@ -181,6 +238,9 @@ impl CurveType {
             CurveType::Secp256k1RustEc => (rust_ec_secp256k1::LOOSE_BOUND, rust_ec_secp256k1::SIZE),
             CurveType::Bls12 => (bls12::LOOSE_BOUND, bls12::SIZE),
             CurveType::FiatCCurve25519 => (fiat_c_curve25519::LOOSE_BOUND, fiat_c_curve25519::SIZE),
+            CurveType::FiatCSecp256k1Dettman => (fiat_c_secp256k1_dettman::LOOSE_BOUND, fiat_c_secp256k1_dettman::SIZE),
+            CurveType::FiatCPoly1305 => (fiat_c_poly1305::LOOSE_BOUND, fiat_c_poly1305::SIZE),
+            CurveType::FiatCP448 => (fiat_c_p448::LOOSE_BOUND, fiat_c_p448::SIZE),
         }
     }
 
@@ -226,6 +286,21 @@ impl CurveType {
                 fiat_c_curve25519::fiat_c_curve25519_carry_mul_nasm,
                 fiat_c_curve25519::fiat_c_curve25519_carry_mul_CryptOpt
             ),
+            CurveType::FiatCSecp256k1Dettman => Function::U64Mul(
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul,
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul_nasm,
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul_CryptOpt
+            ),
+            CurveType::FiatCPoly1305 => Function::U64Mul(
+                fiat_c_poly1305::fiat_c_poly1305_carry_mul,
+                fiat_c_poly1305::fiat_c_poly1305_carry_mul_nasm,
+                fiat_c_poly1305::fiat_c_poly1305_carry_mul_CryptOpt
+            ),
+            CurveType::FiatCP448 => Function::U64Mul(
+                fiat_c_p448::fiat_c_p448_solinas_carry_mul,
+                fiat_c_p448::fiat_c_p448_solinas_carry_mul_nasm,
+                fiat_c_p448::fiat_c_p448_solinas_carry_mul_CryptOpt
+            ),
         }
     }
 
@@ -261,7 +336,28 @@ impl CurveType {
                 rust_ec_secp256k1::rust_ec_secp256k1_square_nasm,
                 rust_ec_secp256k1::rust_ec_secp256k1_square_CryptOpt
             ),
-            &CurveType::P448 | &CurveType::Bls12 | &CurveType::FiatCCurve25519 => todo!(),
+            CurveType::FiatCCurve25519 => Function::U64Square(
+                fiat_c_curve25519::fiat_c_curve25519_carry_square,
+                fiat_c_curve25519::fiat_c_curve25519_carry_square_nasm,
+                fiat_c_curve25519::fiat_c_curve25519_carry_square_CryptOpt
+            ),
+            CurveType::FiatCSecp256k1Dettman => Function::U64Square(
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square,
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_nasm,
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_CryptOpt
+            ),
+            CurveType::FiatCPoly1305 => Function::U64Square(
+                fiat_c_poly1305::fiat_c_poly1305_carry_square,
+                fiat_c_poly1305::fiat_c_poly1305_carry_square_nasm,
+                fiat_c_poly1305::fiat_c_poly1305_carry_square_CryptOpt
+            ),
+            CurveType::FiatCP448 => Function::U64Square(
+                fiat_c_p448::fiat_c_p448_solinas_carry_square,
+                fiat_c_p448::fiat_c_p448_solinas_carry_square_nasm,
+                fiat_c_p448::fiat_c_p448_solinas_carry_square_CryptOpt
+            ),
+
+            &CurveType::P448 | &CurveType::Bls12  => todo!(),
             // CurveType::Bls12 => Function::UsizeSquare(
             //     bls12::bls12_square,
             //     bls12::bls12_square_nasm,
@@ -528,7 +624,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 || args.len() > 4 {
         println!("Usage: cargo run <curve_name> <operation> [repeat_count]");
-        println!("Available curves: curve25519, curve25519_dalek, fiat_c_curve25519, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12");
+        println!("Available curves: curve25519, curve25519_dalek, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12");
         println!("Available operations: mul, square");
         return;
     }
@@ -542,8 +638,11 @@ fn main() {
         "secp256k1_rust_ec" => CurveType::Secp256k1RustEc,
         "bls12" => CurveType::Bls12, 
         "fiat_c_curve25519" => CurveType::FiatCCurve25519,
+        "fiat_c_secp256k1_dettman" => CurveType::FiatCSecp256k1Dettman,
+        "fiat_c_poly1305" => CurveType::FiatCPoly1305,
+        "fiat_c_p448" => CurveType::FiatCP448,
         other => {
-            println!("Unknown curve: {}. Available curves: curve25519, curve25519_dalek, FiatCCurve25519, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12", other);
+            println!("Unknown curve: {}. Available curves: curve25519, curve25519_dalek, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12", other);
             return;
         }
     };
