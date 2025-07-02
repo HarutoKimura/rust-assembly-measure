@@ -1345,25 +1345,25 @@ fn build_openssl_curve25519(){
             "Missing {}, fetch it from OpenSSL's crypto/perlasm/", xlate_script);
 
         fs::create_dir_all("target").unwrap();
-        let generated = "target/openssl_x25519_fe51.s";
+        let generated = "target/openssl_x25519_fe51.asm";
         assert!(Command::new("perl")
             .args(&[perl_script, "gas"])
             .stdout(File::create(generated).unwrap())
             .status().unwrap().success());
 
-        let final_s = "target/openssl_x25519_with_alias.s";
+        let final_asm = "target/openssl_x25519_with_alias.asm";
         {
-            let mut out = File::create(final_s).unwrap();
+            let mut out = File::create(final_asm).unwrap();
             writeln!(out,
-                ".globl open_ssl_curve25519_hand_optmised_fe51_mul\n.set open_ssl_curve25519_hand_optmised_fe51_mul, x25519_fe51_mul").unwrap();
+                ".globl open_ssl_curve25519_hand_optmised_fe51_mul\n.set open_ssl_curve25519_hand_optmised_fe51_mul,x25519_fe51_mul").unwrap();
             writeln!(out,
-                ".globl open_ssl_curve25519_hand_optmised_fe51_square\n.set open_ssl_curve25519_hand_optmised_fe51_square, x25519_fe51_sqr").unwrap();
+                ".globl open_ssl_curve25519_hand_optmised_fe51_square\n.set open_ssl_curve25519_hand_optmised_fe51_square,x25519_fe51_sqr").unwrap();
             out.write_all(&fs::read(generated).unwrap()).unwrap();
         }
 
         let obj = "target/openssl_x25519_hand_opt.o";
-        assert!(Command::new("gcc")
-            .args(&["-c", "-x", "assembler", final_s, "-o", obj])
+        assert!(Command::new("clang")
+            .args(&["-c", final_asm, "-o", obj])
             .status().unwrap().success());
 
         fs::create_dir_all("src/c/openssl-curve25519/hand-optimised/mul").unwrap();
