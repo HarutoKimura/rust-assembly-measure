@@ -1691,6 +1691,136 @@ fn build_fiat_c_p448(){
         .success());
 }   
 
+fn build_openssl_curve25519(){
+    // ---------- MUL ----------
+    // LLC version (mul)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/openssl-curve25519/llc/mul/open_ssl_curve25519_fe51_mul_ssa.asm",
+            "-o",
+            "src/c/openssl-curve25519/llc/mul/open_ssl_curve25519_fe51_mul_ssa.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-curve25519/llc/mul/libopenssl_curve25519_fe51_mul.a",
+            "src/c/openssl-curve25519/llc/mul/open_ssl_curve25519_fe51_mul_ssa.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-curve25519/llc-nasm/mul/open_ssl_curve25519_fe51_mul_ssa_nasm.asm",
+            "-o",
+            "src/c/openssl-curve25519/llc-nasm/mul/open_ssl_curve25519_fe51_mul_ssa_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-curve25519/llc-nasm/mul/libopenssl_curve25519_fe51_mul_nasm.a",
+            "src/c/openssl-curve25519/llc-nasm/mul/open_ssl_curve25519_fe51_mul_ssa_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-curve25519/cryptopt/mul/seed0001751441780944_ratio11932.asm",
+            "-o",
+            "src/c/openssl-curve25519/cryptopt/mul/seed0001751441780944_ratio11932.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-curve25519/cryptopt/mul/libopenssl_curve25519_fe51_mul_CryptOpt.a",
+            "src/c/openssl-curve25519/cryptopt/mul/seed0001751441780944_ratio11932.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // ---------- SQUARE ----------
+    // LLC version (square)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa.asm",
+            "-o",
+            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-curve25519/llc/square/libopenssl_curve25519_fe51_square.a",
+            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_nasm.asm",
+            "-o",
+            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-curve25519/llc-nasm/square/libopenssl_curve25519_fe51_square_nasm.a",
+            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-curve25519/cryptopt/square/seed0001751442665031_ratio11816.asm",
+            "-o",
+            "src/c/openssl-curve25519/cryptopt/square/seed0001751442665031_ratio11816.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-curve25519/cryptopt/square/libopenssl_curve25519_fe51_square_CryptOpt.a",
+            "src/c/openssl-curve25519/cryptopt/square/seed0001751442665031_ratio11816.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+}
+
 fn main() {
     // Build all curves (both mul and square, if available)
     build_curve25519();
@@ -1704,6 +1834,7 @@ fn main() {
     build_fiat_c_secp256k1_dettman();
     build_fiat_c_poly1305();
     build_fiat_c_p448();
+    build_openssl_curve25519();
     // -------------------------------------------------------------------------
     // Add link-search paths for all curves and both operations
 
@@ -1789,6 +1920,14 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/c/fiat-p448/llc/square");
     println!("cargo:rustc-link-search=native=src/c/fiat-p448/llc-nasm/square");
     println!("cargo:rustc-link-search=native=src/c/fiat-p448/cryptopt/square");
+
+    // OpenSSL Curve25519
+    println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/llc/mul");
+    println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/llc-nasm/mul");
+    println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/cryptopt/mul");
+    println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/llc/square");
+    println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/llc-nasm/square");
+    println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/cryptopt/square");
 
 
     // -------------------------------------------------------------------------
@@ -1891,6 +2030,16 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_CryptOpt");
 
+    // OpenSSL Curve25519 (mul)
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul");
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_nasm");
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_CryptOpt");
+
+    // OpenSSL Curve25519 (square)
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square");
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_nasm");
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_CryptOpt");
+
     // -------------------------------------------------------------------------
     // Re-run build.rs if any assembly files change
     println!("cargo:rerun-if-changed=src/rust/curve25519"); 
@@ -1904,4 +2053,5 @@ fn main() {
     println!("cargo:rerun-if-changed=src/c/fiat-secp256k1_dettman");
     println!("cargo:rerun-if-changed=src/c/fiat-poly1305");
     println!("cargo:rerun-if-changed=src/c/fiat-p448");
+    println!("cargo:rerun-if-changed=src/c/openssl-curve25519");
 }
