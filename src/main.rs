@@ -75,11 +75,13 @@ mod openssl_curve25519 {
         pub fn open_ssl_curve25519_fe51_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn open_ssl_curve25519_fe51_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn open_ssl_curve25519_hand_optmised_fe51_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn open_ssl_curve25519_hand_optmised_fe51_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn open_ssl_curve25519_fe51_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
         pub fn open_ssl_curve25519_fe51_square(arg0: *mut u64, arg1: *const u64);
         pub fn open_ssl_curve25519_fe51_square_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn open_ssl_curve25519_hand_optmised_fe51_square(arg0: *mut u64, arg1: *const u64);
+        pub fn open_ssl_curve25519_hand_optmised_fe51_square_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn open_ssl_curve25519_fe51_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
@@ -250,6 +252,20 @@ enum Function {
         unsafe extern "C" fn(*mut u64, *const u64),
         unsafe extern "C" fn(*mut u64, *const u64)
     ),
+    U64MulFive(
+        unsafe extern "C" fn(*const u64, *const u64, *const u64),
+        unsafe extern "C" fn(*const u64, *const u64, *const u64),
+        unsafe extern "C" fn(*const u64, *const u64, *const u64),
+        unsafe extern "C" fn(*const u64, *const u64, *const u64),
+        unsafe extern "C" fn(*const u64, *const u64, *const u64)
+    ),
+    U64SquareFive(
+        unsafe extern "C" fn(*mut u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64)
+    ),
     // UsizeSquare(
     //     unsafe extern "C" fn(*mut usize, usize, *const usize, usize),
     //     unsafe extern "C" fn(*mut usize, usize, *const usize, usize),
@@ -332,10 +348,11 @@ impl CurveType {
                 fiat_c_p448::fiat_c_p448_solinas_carry_mul_nasm,
                 fiat_c_p448::fiat_c_p448_solinas_carry_mul_CryptOpt
             ),
-            CurveType::OpenSSLCurve25519 => Function::U64MulFour(
+            CurveType::OpenSSLCurve25519 => Function::U64MulFive(
                 openssl_curve25519::open_ssl_curve25519_fe51_mul,
                 openssl_curve25519::open_ssl_curve25519_fe51_mul_nasm,
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_mul,
+                openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_mul_nasm,
                 openssl_curve25519::open_ssl_curve25519_fe51_mul_CryptOpt
             ),
         }
@@ -393,10 +410,11 @@ impl CurveType {
                 fiat_c_p448::fiat_c_p448_solinas_carry_square_nasm,
                 fiat_c_p448::fiat_c_p448_solinas_carry_square_CryptOpt
             ),
-            CurveType::OpenSSLCurve25519 => Function::U64SquareFour(
+            CurveType::OpenSSLCurve25519 => Function::U64SquareFive(
                 openssl_curve25519::open_ssl_curve25519_fe51_square,
                 openssl_curve25519::open_ssl_curve25519_fe51_square_nasm,
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_square,
+                openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_square_nasm,
                 openssl_curve25519::open_ssl_curve25519_fe51_square_CryptOpt
             ),
 
@@ -510,6 +528,40 @@ fn measure_four_functions_u64_mul(
     (median(&cycles_llc), median(&cycles_nasm), median(&cycles_hand_optmised), median(&cycles_cryptopt))
 }
 
+fn measure_five_functions_u64_mul(
+    bound: u64,
+    size: usize,
+    llc_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    nasm_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    hand_optmised_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    hand_optmised_nasm_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    cryptopt_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    batch_size: usize,
+    nob: usize,
+) -> (u64, u64, u64, u64, u64) {
+    let mut cycles_llc = Vec::with_capacity(nob);
+    let mut cycles_nasm = Vec::with_capacity(nob);
+    let mut cycles_hand_optmised = Vec::with_capacity(nob);
+    let mut cycles_hand_optmised_nasm = Vec::with_capacity(nob);
+    let mut cycles_cryptopt = Vec::with_capacity(nob);
+    let mut out = vec![0u64; size];
+    for _ in 0..nob {
+        let in0 = generate_random_loose_input_u64(bound, size);
+        let in1 = generate_random_loose_input_u64(bound, size);
+        let c_llc = measure_one_batch_u64_mul(llc_func, &mut out, &in0, &in1, batch_size);
+        let c_nasm = measure_one_batch_u64_mul(nasm_func, &mut out, &in0, &in1, batch_size);
+        let c_hand_optmised = measure_one_batch_u64_mul(hand_optmised_func, &mut out, &in0, &in1, batch_size);
+        let c_hand_optmised_nasm = measure_one_batch_u64_mul(hand_optmised_nasm_func, &mut out, &in0, &in1, batch_size);
+        let c_cryptopt = measure_one_batch_u64_mul(cryptopt_func, &mut out, &in0, &in1, batch_size);
+        cycles_llc.push(c_llc);
+        cycles_nasm.push(c_nasm);
+        cycles_hand_optmised.push(c_hand_optmised);
+        cycles_hand_optmised_nasm.push(c_hand_optmised_nasm);
+        cycles_cryptopt.push(c_cryptopt);
+    }
+    (median(&cycles_llc), median(&cycles_nasm), median(&cycles_hand_optmised), median(&cycles_hand_optmised_nasm), median(&cycles_cryptopt))
+}
+
 // -----------------------------------------------------------------------------
 // Measurement functions for U64 square
 fn measure_one_batch_u64_square(
@@ -583,6 +635,39 @@ fn measure_four_functions_u64_square(
     (median(&cycles_llc), median(&cycles_nasm), median(&cycles_hand_optmised), median(&cycles_cryptopt))
 }
 
+fn measure_five_functions_u64_square(
+    bound: u64,
+    size: usize,
+    llc_func: unsafe extern "C" fn(*mut u64, *const u64),
+    nasm_func: unsafe extern "C" fn(*mut u64, *const u64),
+    hand_optmised_func: unsafe extern "C" fn(*mut u64, *const u64),
+    hand_optmised_nasm_func: unsafe extern "C" fn(*mut u64, *const u64),
+    cryptopt_func: unsafe extern "C" fn(*mut u64, *const u64),
+    batch_size: usize,
+    nob: usize,
+) -> (u64, u64, u64, u64, u64) {
+    let mut cycles_llc = Vec::with_capacity(nob);
+    let mut cycles_nasm = Vec::with_capacity(nob);
+    let mut cycles_hand_optmised = Vec::with_capacity(nob);
+    let mut cycles_hand_optmised_nasm = Vec::with_capacity(nob);
+    let mut cycles_cryptopt = Vec::with_capacity(nob);
+    let mut out = vec![0u64; size];
+    for _ in 0..nob {
+        let input = generate_random_loose_input_u64(bound, size);
+        let c_llc = measure_one_batch_u64_square(llc_func, &mut out, &input, batch_size);
+        let c_nasm = measure_one_batch_u64_square(nasm_func, &mut out, &input, batch_size);
+        let c_hand_optmised = measure_one_batch_u64_square(hand_optmised_func, &mut out, &input, batch_size);
+        let c_hand_optmised_nasm = measure_one_batch_u64_square(hand_optmised_nasm_func, &mut out, &input, batch_size);
+        let c_cryptopt = measure_one_batch_u64_square(cryptopt_func, &mut out, &input, batch_size);
+        cycles_llc.push(c_llc);
+        cycles_nasm.push(c_nasm);
+        cycles_hand_optmised.push(c_hand_optmised);
+        cycles_hand_optmised_nasm.push(c_hand_optmised_nasm);
+        cycles_cryptopt.push(c_cryptopt);
+    }
+    (median(&cycles_llc), median(&cycles_nasm), median(&cycles_hand_optmised), median(&cycles_hand_optmised_nasm), median(&cycles_cryptopt))
+}
+
 // -----------------------------------------------------------------------------
 // Measurement functions for Usize multiplication (used by Bls12)
 fn measure_one_batch_usize_mul(
@@ -631,7 +716,7 @@ fn measure_three_functions_usize_mul(
 
 // -----------------------------------------------------------------------------
 // Top-level measurement functions for a single run (multiply version)
-fn measure_cryptopt_once_mul(curve: &CurveType) -> Result<(u64, u64, u64), (u64, u64, u64, u64)> {
+fn measure_cryptopt_once_mul(curve: &CurveType) -> Result<(u64, u64, u64), Result<(u64, u64, u64, u64), (u64, u64, u64, u64, u64)>> {
     let batch_size = 200;
     let nob = 31;
     let (bound, size) = curve.get_params();
@@ -644,14 +729,17 @@ fn measure_cryptopt_once_mul(curve: &CurveType) -> Result<(u64, u64, u64), (u64,
             Ok(measure_three_functions_usize_mul(bound, size, llc_func, nasm_func, cryptopt_func, batch_size, nob))
         },
         Function::U64MulFour(llc_func, nasm_func, hand_optmised_func, cryptopt_func) => {
-            Err(measure_four_functions_u64_mul(bound, size, llc_func, nasm_func, hand_optmised_func, cryptopt_func, batch_size, nob))
+            Err(Ok(measure_four_functions_u64_mul(bound, size, llc_func, nasm_func, hand_optmised_func, cryptopt_func, batch_size, nob)))
+        },
+        Function::U64MulFive(llc_func, nasm_func, hand_optmised_func, hand_optmised_nasm_func, cryptopt_func) => {
+            Err(Err(measure_five_functions_u64_mul(bound, size, llc_func, nasm_func, hand_optmised_func, hand_optmised_nasm_func, cryptopt_func, batch_size, nob)))
         },
         _ => panic!("Multiply function not implemented for this curve"),
     }
 }
 
 // Top-level measurement function for a single run (square version)
-fn measure_cryptopt_once_square(curve: &CurveType) -> Result<(u64, u64, u64), (u64, u64, u64, u64)> {
+fn measure_cryptopt_once_square(curve: &CurveType) -> Result<(u64, u64, u64), Result<(u64, u64, u64, u64), (u64, u64, u64, u64, u64)>> {
     let batch_size = 200;
     let nob = 31;
     let (bound, size) = curve.get_params();
@@ -661,7 +749,10 @@ fn measure_cryptopt_once_square(curve: &CurveType) -> Result<(u64, u64, u64), (u
             Ok(measure_three_functions_u64_square(bound, size, llc_func, nasm_func, cryptopt_func, batch_size, nob))
         },
         Function::U64SquareFour(llc_func, nasm_func, hand_optmised_func, cryptopt_func) => {
-            Err(measure_four_functions_u64_square(bound, size, llc_func, nasm_func, hand_optmised_func, cryptopt_func, batch_size, nob))
+            Err(Ok(measure_four_functions_u64_square(bound, size, llc_func, nasm_func, hand_optmised_func, cryptopt_func, batch_size, nob)))
+        },
+        Function::U64SquareFive(llc_func, nasm_func, hand_optmised_func, hand_optmised_nasm_func, cryptopt_func) => {
+            Err(Err(measure_five_functions_u64_square(bound, size, llc_func, nasm_func, hand_optmised_func, hand_optmised_nasm_func, cryptopt_func, batch_size, nob)))
         },
         // Function::UsizeSquare(_llc_func, _nasm_func, _cryptopt_func) => {
         //     // Implement a UsizeSquare measurement if needed.
@@ -674,7 +765,7 @@ fn measure_cryptopt_once_square(curve: &CurveType) -> Result<(u64, u64, u64), (u
 // -----------------------------------------------------------------------------
 // Run repeated measurements for multiplication
 fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
-    // Check if this is OpenSSL with 4 functions
+    // Check if this is a 3, 4, or 5-function case
     match measure_cryptopt_once_mul(curve) {
         Ok(_) => {
             // Regular 3-function case
@@ -708,14 +799,14 @@ fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
                 println!("CryptOpt is {:.2}% slower than NASM (median-of-medians).", diff_cryptopt_nasm.abs());
             }
         },
-        Err(_) => {
-            // OpenSSL 4-function case
+        Err(Ok(_)) => {
+            // 4-function case
             let mut llc_results = Vec::with_capacity(repeats);
             let mut nasm_results = Vec::with_capacity(repeats);
             let mut hand_optmised_results = Vec::with_capacity(repeats);
             let mut cryptopt_results = Vec::with_capacity(repeats);
             for _ in 0..repeats {
-                if let Err((llc, nasm, hand_optmised, cryptopt)) = measure_cryptopt_once_mul(curve) {
+                if let Err(Ok((llc, nasm, hand_optmised, cryptopt))) = measure_cryptopt_once_mul(curve) {
                     llc_results.push(llc);
                     nasm_results.push(nasm);
                     hand_optmised_results.push(hand_optmised);
@@ -754,13 +845,71 @@ fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
             } else {
                 println!("CryptOpt is {:.2}% slower than Hand-optimised (median-of-medians).", diff_cryptopt_hand.abs());
             }
+        },
+        Err(Err(_)) => {
+            // 5-function case
+            let mut llc_results = Vec::with_capacity(repeats);
+            let mut nasm_results = Vec::with_capacity(repeats);
+            let mut hand_optmised_results = Vec::with_capacity(repeats);
+            let mut hand_optmised_nasm_results = Vec::with_capacity(repeats);
+            let mut cryptopt_results = Vec::with_capacity(repeats);
+            for _ in 0..repeats {
+                if let Err(Err((llc, nasm, hand_optmised, hand_optmised_nasm, cryptopt))) = measure_cryptopt_once_mul(curve) {
+                    llc_results.push(llc);
+                    nasm_results.push(nasm);
+                    hand_optmised_results.push(hand_optmised);
+                    hand_optmised_nasm_results.push(hand_optmised_nasm);
+                    cryptopt_results.push(cryptopt);
+                }
+            }
+            let llc_mom = median(&llc_results);
+            let nasm_mom = median(&nasm_results);
+            let hand_optmised_mom = median(&hand_optmised_results);
+            let hand_optmised_nasm_mom = median(&hand_optmised_nasm_results);
+            let cryptopt_mom = median(&cryptopt_results);
+            println!("\n=== Final 'Median of Medians' (multiply) after {} runs ===", repeats);
+            println!("GAS format ASM: {:?}", llc_mom);
+            println!("NASM format ASM: {:?}", nasm_mom);
+            println!("Hand-optimised ASM: {:?}", hand_optmised_mom);
+            println!("Hand-optimised NASM ASM: {:?}", hand_optmised_nasm_mom);
+            println!("CryptOpt format ASM: {:?}", cryptopt_mom);
+            
+            // Compare all relative to CryptOpt
+            let diff_cryptopt_llc = ((llc_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            let diff_cryptopt_nasm = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            let diff_cryptopt_hand = ((hand_optmised_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            let diff_cryptopt_hand_nasm = ((hand_optmised_nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            
+            if diff_cryptopt_llc > 0.0 {
+                println!("CryptOpt is {:.2}% faster than GAS (median-of-medians).", diff_cryptopt_llc);
+            } else {
+                println!("CryptOpt is {:.2}% slower than GAS (median-of-medians).", diff_cryptopt_llc.abs());
+            }
+            
+            if diff_cryptopt_nasm > 0.0 {
+                println!("CryptOpt is {:.2}% faster than NASM (median-of-medians).", diff_cryptopt_nasm);
+            } else {
+                println!("CryptOpt is {:.2}% slower than NASM (median-of-medians).", diff_cryptopt_nasm.abs());
+            }
+            
+            if diff_cryptopt_hand > 0.0 {
+                println!("CryptOpt is {:.2}% faster than Hand-optimised (median-of-medians).", diff_cryptopt_hand);
+            } else {
+                println!("CryptOpt is {:.2}% slower than Hand-optimised (median-of-medians).", diff_cryptopt_hand.abs());
+            }
+            
+            if diff_cryptopt_hand_nasm > 0.0 {
+                println!("CryptOpt is {:.2}% faster than Hand-optimised NASM (median-of-medians).", diff_cryptopt_hand_nasm);
+            } else {
+                println!("CryptOpt is {:.2}% slower than Hand-optimised NASM (median-of-medians).", diff_cryptopt_hand_nasm.abs());
+            }
         }
     }
 }
 
 // Run repeated measurements for square
 fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
-    // Check if this is OpenSSL with 4 functions
+    // Check if this is a 3, 4, or 5-function case
     match measure_cryptopt_once_square(curve) {
         Ok(_) => {
             // Regular 3-function case
@@ -794,14 +943,14 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
                 println!("CryptOpt is {:.2}% slower than NASM (median-of-medians).", diff_cryptopt_nasm.abs());
             }
         },
-        Err(_) => {
-            // OpenSSL 4-function case
+        Err(Ok(_)) => {
+            // 4-function case
             let mut llc_results = Vec::with_capacity(repeats);
             let mut nasm_results = Vec::with_capacity(repeats);
             let mut hand_optmised_results = Vec::with_capacity(repeats);
             let mut cryptopt_results = Vec::with_capacity(repeats);
             for _ in 0..repeats {
-                if let Err((llc, nasm, hand_optmised, cryptopt)) = measure_cryptopt_once_square(curve) {
+                if let Err(Ok((llc, nasm, hand_optmised, cryptopt))) = measure_cryptopt_once_square(curve) {
                     llc_results.push(llc);
                     nasm_results.push(nasm);
                     hand_optmised_results.push(hand_optmised);
@@ -839,6 +988,64 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
                 println!("CryptOpt is {:.2}% faster than Hand-optimised (median-of-medians).", diff_cryptopt_hand);
             } else {
                 println!("CryptOpt is {:.2}% slower than Hand-optimised (median-of-medians).", diff_cryptopt_hand.abs());
+            }
+        },
+        Err(Err(_)) => {
+            // 5-function case
+            let mut llc_results = Vec::with_capacity(repeats);
+            let mut nasm_results = Vec::with_capacity(repeats);
+            let mut hand_optmised_results = Vec::with_capacity(repeats);
+            let mut hand_optmised_nasm_results = Vec::with_capacity(repeats);
+            let mut cryptopt_results = Vec::with_capacity(repeats);
+            for _ in 0..repeats {
+                if let Err(Err((llc, nasm, hand_optmised, hand_optmised_nasm, cryptopt))) = measure_cryptopt_once_square(curve) {
+                    llc_results.push(llc);
+                    nasm_results.push(nasm);
+                    hand_optmised_results.push(hand_optmised);
+                    hand_optmised_nasm_results.push(hand_optmised_nasm);
+                    cryptopt_results.push(cryptopt);
+                }
+            }
+            let llc_mom = median(&llc_results);
+            let nasm_mom = median(&nasm_results);
+            let hand_optmised_mom = median(&hand_optmised_results);
+            let hand_optmised_nasm_mom = median(&hand_optmised_nasm_results);
+            let cryptopt_mom = median(&cryptopt_results);
+            println!("\n=== Final 'Median of Medians' (square) after {} runs ===", repeats);
+            println!("GAS format ASM: {:?}", llc_mom);
+            println!("NASM format ASM: {:?}", nasm_mom);
+            println!("Hand-optimised ASM: {:?}", hand_optmised_mom);
+            println!("Hand-optimised NASM ASM: {:?}", hand_optmised_nasm_mom);
+            println!("CryptOpt format ASM: {:?}", cryptopt_mom);
+            
+            // Compare all relative to CryptOpt
+            let diff_cryptopt_llc = ((llc_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            let diff_cryptopt_nasm = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            let diff_cryptopt_hand = ((hand_optmised_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            let diff_cryptopt_hand_nasm = ((hand_optmised_nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            
+            if diff_cryptopt_llc > 0.0 {
+                println!("CryptOpt is {:.2}% faster than GAS (median-of-medians).", diff_cryptopt_llc);
+            } else {
+                println!("CryptOpt is {:.2}% slower than GAS (median-of-medians).", diff_cryptopt_llc.abs());
+            }
+            
+            if diff_cryptopt_nasm > 0.0 {
+                println!("CryptOpt is {:.2}% faster than NASM (median-of-medians).", diff_cryptopt_nasm);
+            } else {
+                println!("CryptOpt is {:.2}% slower than NASM (median-of-medians).", diff_cryptopt_nasm.abs());
+            }
+            
+            if diff_cryptopt_hand > 0.0 {
+                println!("CryptOpt is {:.2}% faster than Hand-optimised (median-of-medians).", diff_cryptopt_hand);
+            } else {
+                println!("CryptOpt is {:.2}% slower than Hand-optimised (median-of-medians).", diff_cryptopt_hand.abs());
+            }
+            
+            if diff_cryptopt_hand_nasm > 0.0 {
+                println!("CryptOpt is {:.2}% faster than Hand-optimised NASM (median-of-medians).", diff_cryptopt_hand_nasm);
+            } else {
+                println!("CryptOpt is {:.2}% slower than Hand-optimised NASM (median-of-medians).", diff_cryptopt_hand_nasm.abs());
             }
         }
     }

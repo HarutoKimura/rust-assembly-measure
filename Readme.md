@@ -27,6 +27,7 @@ The goal is to benchmark these assembly variants across various cryptographic cu
     - P448 (Fiat-C)
     - Poly1305 (Fiat-C)
     - Secp256k1-Dettman (Fiat-C)
+    - OpenSSL Curve25519 fe51 (51-bit field element representation)
 
 ## How It Works
 
@@ -71,6 +72,7 @@ cargo run <curve_name> <operation> [repeat_count]
     *   `fiat_c_p448`
     *   `fiat_c_poly1305`
     *   `fiat_c_secp256k1_dettman`
+    *   `openssl_curve25519`
 *   `<operation>`: The operation to benchmark. Available options:
     *   `mul`
     *   `square` (Note: Not available for all curves, e.g., `p448`, `bls12`)
@@ -85,4 +87,120 @@ cargo run curve25519 mul 5
 # Benchmark Fiat-C P448 squaring (default 1 repeat)
 cargo run fiat_c_p448 square
 ```
+
+## Assembly Format Conversion Tool
+
+The project includes a Python script `asm-cleaner2.py` that converts assembly files from AT&T syntax (GAS format) to NASM format. This tool is essential when integrating assembly code from sources that output AT&T syntax, such as LLVM or hand-optimized assembly from OpenSSL.
+
+### Location
+
+The script is located at: `src/asm-cleaner2.py`
+
+### Usage
+
+```bash
+python3 src/asm-cleaner2.py <input_asm_file> <output_asm_file>
+```
+
+**Arguments:**
+- `<input_asm_file>`: Path to the input assembly file in AT&T syntax
+- `<output_asm_file>`: Path where the converted NASM format file will be saved
+
+### Key Transformations
+
+The script performs the following conversions:
+
+1. **Register Prefixes**: Removes `%` prefix from registers (e.g., `%rax` → `rax`)
+2. **Immediate Values**: Removes `$` prefix from immediate values (e.g., `$19` → `19`)
+3. **Instruction Suffixes**: Removes size suffixes from instructions (e.g., `movq` → `mov`, `addl` → `add`)
+4. **Memory Operands**: Converts AT&T style `offset(base,index,scale)` to NASM style `[base+index*scale+offset]`
+5. **Operand Order**: Swaps operands from AT&T order (source, destination) to Intel order (destination, source)
+6. **Directives**: Converts directives (e.g., `.globl` → `global`, `.align` → `ALIGN`)
+7. **Local Labels**: Converts local labels to use function prefix (e.g., `.Lreduce51` → `function.Lreduce51`)
+8. **Special Instructions**: Handles special cases like 3-operand `imul` instructions
+9. **NASM Header**: Adds required NASM header with `default rel` and section declarations
+10. **Function Naming**: Can append `_nasm` suffix to function names when needed for linking
+
+### Example: Converting OpenSSL Hand-Optimized Assembly
+
+To convert OpenSSL's hand-optimized curve25519 assembly files:
+
+```bash
+# Convert multiplication assembly
+python3 src/asm-cleaner2.py \
+    src/c/openssl-curve25519/hand-optimised/mul/hand_optimised_x86_64_mul.asm \
+    src/c/openssl-curve25519/hand-optimised-nasm/mul/hand_optimised_x86_64_mul_nasm.asm
+
+# Convert square assembly
+python3 src/asm-cleaner2.py \
+    src/c/openssl-curve25519/hand-optimised/square/hand_optimised_x86_64_square.asm \
+    src/c/openssl-curve25519/hand-optimised-nasm/square/hand_optimised_x86_64_square_nasm.asm
+```
+
+### When to Use This Tool
+
+Use `asm-cleaner2.py` when:
+- Integrating assembly code that uses AT&T syntax
+- Converting LLVM output (which typically uses GAS format) to NASM
+- Adapting hand-written assembly from projects like OpenSSL
+- The assembly file uses syntax incompatible with NASM
+
+The converted files can then be compiled with NASM and linked into the project as part of the build process managed by `build.rs`.
+
+## OpenSSL Curve25519 fe51 Support
+
+The project includes support for OpenSSL's Curve25519 implementation using the fe51 (51-bit field element) representation. This provides an industry-standard baseline for comparing the performance of other implementations.
+
+### What is fe51?
+
+The fe51 representation uses a 51-bit radix to represent field elements in Curve25519. This means:
+- Field elements are represented as 5 limbs of 51 bits each (stored in 64-bit words)
+- This representation allows for efficient arithmetic on 64-bit processors
+- OpenSSL's implementation includes both compiler-generated and hand-optimized assembly versions
+
+### Available OpenSSL Implementations
+
+The project benchmarks multiple variants of OpenSSL's fe51 implementation:
+
+1. **LLVM-compiled versions**:
+   - `open_ssl_curve25519_fe51_mul` - GAS format multiplication
+   - `open_ssl_curve25519_fe51_mul_nasm` - NASM format multiplication
+   - `open_ssl_curve25519_fe51_square` - GAS format squaring
+   - `open_ssl_curve25519_fe51_square_nasm` - NASM format squaring
+
+2. **Hand-optimized assembly versions**:
+   - `open_ssl_curve25519_hand_optmised_fe51_mul` - Hand-optimized multiplication (converted from AT&T syntax)
+   - `open_ssl_curve25519_hand_optmised_fe51_mul_nasm` - NASM version of hand-optimized multiplication
+   - `open_ssl_curve25519_hand_optmised_fe51_square` - Hand-optimized squaring (converted from AT&T syntax)
+   - `open_ssl_curve25519_hand_optmised_fe51_square_nasm` - NASM version of hand-optimized squaring
+
+3. **CryptOpt-optimized version**:
+   - `open_ssl_curve25519_fe51_mul_CryptOpt` - CryptOpt-optimized multiplication
+   - `open_ssl_curve25519_fe51_square_CryptOpt` - CryptOpt-optimized squaring
+
+### Running OpenSSL Benchmarks
+
+To benchmark OpenSSL's Curve25519 fe51 implementation:
+
+```bash
+# Benchmark OpenSSL Curve25519 multiplication
+cargo run openssl_curve25519 mul
+
+# Benchmark OpenSSL Curve25519 squaring with 5 repetitions
+cargo run openssl_curve25519 square 5
+```
+
+### Performance Comparison
+
+The OpenSSL fe51 implementation serves as an excellent baseline because:
+- It's widely deployed in production systems
+- The hand-optimized assembly has been carefully tuned by cryptography experts
+- It uses the same 51-bit representation as many other high-performance implementations
+
+This allows for meaningful comparisons between:
+- OpenSSL's hand-optimized assembly vs. compiler-generated code
+- OpenSSL's implementation vs. Fiat-generated code
+- OpenSSL's implementation vs. CryptOpt optimizations
+
+The benchmarking results will show the cycle counts for each variant, helping identify which optimizations provide the most benefit.
 

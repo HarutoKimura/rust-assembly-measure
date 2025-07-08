@@ -61,10 +61,12 @@ cargo:rustc-link-search=native=src/c/fiat-p448/cryptopt/square
 cargo:rustc-link-search=native=src/c/openssl-curve25519/llc/mul
 cargo:rustc-link-search=native=src/c/openssl-curve25519/llc-nasm/mul
 cargo:rustc-link-search=native=src/c/openssl-curve25519/hand-optimised/mul
+cargo:rustc-link-search=native=src/c/openssl-curve25519/hand-optimised-nasm/mul
 cargo:rustc-link-search=native=src/c/openssl-curve25519/cryptopt/mul
 cargo:rustc-link-search=native=src/c/openssl-curve25519/llc/square
 cargo:rustc-link-search=native=src/c/openssl-curve25519/llc-nasm/square
 cargo:rustc-link-search=native=src/c/openssl-curve25519/hand-optimised/square
+cargo:rustc-link-search=native=src/c/openssl-curve25519/hand-optimised-nasm/square
 cargo:rustc-link-search=native=src/c/openssl-curve25519/cryptopt/square
 cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_mul
 cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_mul_nasm
@@ -129,10 +131,12 @@ cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_CryptOpt
 cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul
 cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_nasm
 cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_hand_optimised
+cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_hand_optimised_nasm
 cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_CryptOpt
 cargo:rustc-link-lib=static=openssl_curve25519_fe51_square
 cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_nasm
 cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_hand_optimised
+cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_hand_optimised_nasm
 cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_CryptOpt
 cargo:rerun-if-changed=src/rust/curve25519
 cargo:rerun-if-changed=src/rust/curve25519-dalek

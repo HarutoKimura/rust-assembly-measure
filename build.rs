@@ -1418,6 +1418,27 @@ fn build_openssl_curve25519(){
         .unwrap()
         .success());
 
+    // Hand-optimised NASM version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-curve25519/hand-optimised-nasm/mul/hand_optimised_x86_64_mul_nasm.asm",
+            "-o",
+            "src/c/openssl-curve25519/hand-optimised-nasm/mul/hand_optimised_x86_64_mul_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-curve25519/hand-optimised-nasm/mul/libopenssl_curve25519_fe51_mul_hand_optimised_nasm.a",
+            "src/c/openssl-curve25519/hand-optimised-nasm/mul/hand_optimised_x86_64_mul_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
     // CryptOpt version (mul)
     assert!(Command::new("nasm")
         .args(&[
@@ -1441,6 +1462,27 @@ fn build_openssl_curve25519(){
 
     // ---------- SQUARE ----------
     // Hand-optimised square handled in the generated block above.
+
+    // Hand-optimised NASM version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-curve25519/hand-optimised-nasm/square/hand_optimised_x86_64_square_nasm.asm",
+            "-o",
+            "src/c/openssl-curve25519/hand-optimised-nasm/square/hand_optimised_x86_64_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-curve25519/hand-optimised-nasm/square/libopenssl_curve25519_fe51_square_hand_optimised_nasm.a",
+            "src/c/openssl-curve25519/hand-optimised-nasm/square/hand_optimised_x86_64_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
     assert!(Command::new("nasm")
@@ -1568,10 +1610,12 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/llc/mul");
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/llc-nasm/mul");
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/hand-optimised/mul");
+    println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/hand-optimised-nasm/mul");
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/cryptopt/mul");
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/llc/square");
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/llc-nasm/square");
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/hand-optimised/square");
+    println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/hand-optimised-nasm/square");
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/cryptopt/square");
 
 
@@ -1679,12 +1723,14 @@ fn main() {
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_hand_optimised");
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_hand_optimised_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_CryptOpt");
 
     // OpenSSL Curve25519 (square)
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_hand_optimised");
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_hand_optimised_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_CryptOpt");
 
     // -------------------------------------------------------------------------

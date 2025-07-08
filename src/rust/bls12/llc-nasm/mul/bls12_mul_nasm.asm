@@ -1,4 +1,6 @@
-SECTION .text
+; src/rust/bls12/llc-nasm/mul/bls12_mul_nasm.asm
+SECTION .bls12_nasm  progbits alloc exec  align=32
+ALIGN   32
 GLOBAL bls12_mul_nasm
 bls12_mul_nasm:
 	push rbp
