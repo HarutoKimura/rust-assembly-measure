@@ -1,0 +1,3 @@
+[env]
+# Enable dudect constant-time validation during build
+CARGO_DUDECT_VALIDATE = "1"

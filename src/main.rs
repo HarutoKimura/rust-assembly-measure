@@ -224,6 +224,7 @@ enum CurveType {
     OpenSSLCurve25519,
 }
 
+#[allow(dead_code)]
 enum Function {
     U64Mul(
         unsafe extern "C" fn(*const u64, *const u64, *const u64),

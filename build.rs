@@ -3,94 +3,66 @@ use std::fs::{self, File};
 use std::io::Write;
 
 // -----------------------------------------------------------------------------
+// Dudect constant-time validation integration
+include!("dudect_integration.rs");
+
+// -----------------------------------------------------------------------------
 // Build functions for each curve
 
 fn build_curve25519() {
     // ---------- MUL ----------
     // LLC version (mul)
-    assert!(Command::new("clang")
-        .args(&[
-            "-c",
-            "src/rust/curve25519/llc/mul/rust_fiat_curve25519_carry_mul.asm",
-            "-o",
-            "src/rust/curve25519/llc/mul/rust_fiat_curve25519_carry_mul.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/curve25519/llc/mul/librust_fiat_curve25519_carry_mul.a",
-            "src/rust/curve25519/llc/mul/rust_fiat_curve25519_carry_mul.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/curve25519/llc/mul/rust_fiat_curve25519_carry_mul.asm",
+        "src/rust/curve25519/llc/mul/rust_fiat_curve25519_carry_mul.o",
+        "src/rust/curve25519/llc/mul/librust_fiat_curve25519_carry_mul.a",
+        "rust_fiat_curve25519_carry_mul",
+        false,  // not NASM
+        "curve25519",
+        "mul",
+        4,      // field size
+        "0x18000000000000"  // loose bound
+    );
 
     // NASM version (mul)
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/curve25519/llc-nasm/mul/rust_fiat_curve25519_carry_mul_nasm.asm",
-            "-o",
-            "src/rust/curve25519/llc-nasm/mul/rust_fiat_curve25519_carry_mul_nasm.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/curve25519/llc-nasm/mul/librust_fiat_curve25519_carry_mul_nasm.a",
-            "src/rust/curve25519/llc-nasm/mul/rust_fiat_curve25519_carry_mul_nasm.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/curve25519/llc-nasm/mul/rust_fiat_curve25519_carry_mul_nasm.asm",
+        "src/rust/curve25519/llc-nasm/mul/rust_fiat_curve25519_carry_mul_nasm.o",
+        "src/rust/curve25519/llc-nasm/mul/librust_fiat_curve25519_carry_mul_nasm.a",
+        "rust_fiat_curve25519_carry_mul_nasm",
+        true,   // NASM
+        "curve25519",
+        "mul",
+        4,      // field size
+        "0x18000000000000"  // loose bound
+    );
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/curve25519/cryptopt/mul/seed0001746533729338_ratio12461.asm",
-            "-o",
-            "src/rust/curve25519/cryptopt/mul/seed0001746533729338_ratio12461.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/curve25519/cryptopt/mul/librust_fiat_curve25519_carry_mul_CryptOpt.a",
-            "src/rust/curve25519/cryptopt/mul/seed0001746533729338_ratio12461.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/curve25519/cryptopt/mul/seed0001746533729338_ratio12461.asm",
+        "src/rust/curve25519/cryptopt/mul/seed0001746533729338_ratio12461.o",
+        "src/rust/curve25519/cryptopt/mul/librust_fiat_curve25519_carry_mul_CryptOpt.a",
+        "rust_fiat_curve25519_carry_mul_CryptOpt",
+        true,   // NASM
+        "curve25519",
+        "mul",
+        4,      // field size
+        "0x18000000000000"  // loose bound
+    );
 
     // ---------- SQUARE ----------
     // LLC version (square)
-    assert!(Command::new("clang")
-        .args(&[
-            "-c",
-            "src/rust/curve25519/llc/square/rust_fiat_curve25519_carry_square.asm",
-            "-o",
-            "src/rust/curve25519/llc/square/rust_fiat_curve25519_carry_square.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/curve25519/llc/square/librust_fiat_curve25519_carry_square.a",
-            "src/rust/curve25519/llc/square/rust_fiat_curve25519_carry_square.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/curve25519/llc/square/rust_fiat_curve25519_carry_square.asm",
+        "src/rust/curve25519/llc/square/rust_fiat_curve25519_carry_square.o",
+        "src/rust/curve25519/llc/square/librust_fiat_curve25519_carry_square.a",
+        "rust_fiat_curve25519_carry_square",
+        false,  // not NASM
+        "curve25519",
+        "square",
+        4,      // field size
+        "0x18000000000000"  // loose bound
+    );
 
     // NASM version (square)
     assert!(Command::new("nasm")

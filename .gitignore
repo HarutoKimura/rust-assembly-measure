@@ -1,2 +1,13 @@
-.o
-.a
+*.o
+*.a
+target/
+
+# Dudect validation files
+dudect-validation/runtime-tests/
+dudect-validation/demo/
+build_output.txt
+
+# Backup files
+*.backup
+
+COMMIT_READY.md

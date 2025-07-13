@@ -2,9 +2,7 @@
 name = "rust-assembly-meausre"
 version = "0.1.0"
 edition = "2021"
+build = "build.rs"
 
 [dependencies]
 rand = "0.8.5"
-
-[build]
-rustflags = ["-C", "target-cpu=native"]
