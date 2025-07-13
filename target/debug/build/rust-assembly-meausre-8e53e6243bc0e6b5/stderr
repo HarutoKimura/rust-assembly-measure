@@ -1,3 +1,0 @@
-src/c/fiat-secp256k1_dettman/cryptopt/mul/seed0001746590060287_ratio10115.asm:2: warning: label alone on a line without a colon might be in error [-w+label-orphan]
-sh: 0: Illegal option --
-sh: 0: Illegal option - 
