@@ -86,25 +86,17 @@ fn build_curve25519() {
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/curve25519/cryptopt/square/seed0001746532817891_ratio10523.asm",
-            "-o",
-            "src/rust/curve25519/cryptopt/square/seed0001746532817891_ratio10523.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/curve25519/cryptopt/square/librust_fiat_curve25519_carry_square_CryptOpt.a",
-            "src/rust/curve25519/cryptopt/square/seed0001746532817891_ratio10523.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/curve25519/cryptopt/square/seed0001746532817891_ratio10523.asm",
+        "src/rust/curve25519/cryptopt/square/seed0001746532817891_ratio10523.o",
+        "src/rust/curve25519/cryptopt/square/librust_fiat_curve25519_carry_square_CryptOpt.a",
+        "rust_fiat_curve25519_carry_square_CryptOpt",
+        true,   // NASM
+        "curve25519",
+        "square",
+        4,      // field size
+        "0x18000000000000"  // loose bound
+    );
     
 }
 
@@ -153,25 +145,17 @@ fn build_curve25519_dalek() {
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/curve25519-dalek/cryptopt/mul/seed0001746569406075_ratio12273.asm",
-            "-o",
-            "src/rust/curve25519-dalek/cryptopt/mul/seed0001746569406075_ratio12273.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/curve25519-dalek/cryptopt/mul/libcurve25519_dalek_mul_CryptOpt.a",
-            "src/rust/curve25519-dalek/cryptopt/mul/seed0001746569406075_ratio12273.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/curve25519-dalek/cryptopt/mul/seed0001746569406075_ratio12273.asm",
+        "src/rust/curve25519-dalek/cryptopt/mul/seed0001746569406075_ratio12273.o",
+        "src/rust/curve25519-dalek/cryptopt/mul/libcurve25519_dalek_mul_CryptOpt.a",
+        "curve25519_dalek_mul_CryptOpt",
+        true,   // NASM
+        "curve25519",
+        "mul",
+        4,      // field size
+        "0x18000000000000"  // loose bound
+    );
 
     // ---------- SQUARE ----------
     // LLC version (square) - Assuming file exists
@@ -217,26 +201,17 @@ fn build_curve25519_dalek() {
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/curve25519-dalek/cryptopt/square/seed0001746572411863_ratio09431.asm",
-            "-o",
-            "src/rust/curve25519-dalek/cryptopt/square/seed0001746572411863_ratio09431.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/curve25519-dalek/cryptopt/square/libcurve25519_dalek_square_CryptOpt.a",
-            "src/rust/curve25519-dalek/cryptopt/square/seed0001746572411863_ratio09431.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/curve25519-dalek/cryptopt/square/seed0001746572411863_ratio09431.asm",
+        "src/rust/curve25519-dalek/cryptopt/square/seed0001746572411863_ratio09431.o",
+        "src/rust/curve25519-dalek/cryptopt/square/libcurve25519_dalek_square_CryptOpt.a",
+        "curve25519_dalek_square_CryptOpt",
+        true,   // NASM
+        "curve25519",
+        "square",
+        4,      // field size
+        "0x18000000000000"  // loose bound
+    );
 }
 
 fn build_p448() {
@@ -284,25 +259,17 @@ fn build_p448() {
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/p448/cryptopt/seed0001746580882393_ratio14028.asm",
-            "-o",
-            "src/rust/p448/cryptopt/seed0001746580882393_ratio14028.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/p448/cryptopt/librust_fiat_p448_solinas_carry_mul_CryptOpt.a",
-            "src/rust/p448/cryptopt/seed0001746580882393_ratio14028.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/p448/cryptopt/seed0001746580882393_ratio14028.asm",
+        "src/rust/p448/cryptopt/seed0001746580882393_ratio14028.o",
+        "src/rust/p448/cryptopt/librust_fiat_p448_solinas_carry_mul_CryptOpt.a",
+        "rust_fiat_p448_solinas_carry_mul_CryptOpt",
+        true,   // NASM
+        "p448",
+        "mul",
+        8,      // field size
+        "0x300000000000000"  // loose bound
+    );
 }
 
 fn build_poly1305() {
@@ -350,25 +317,17 @@ fn build_poly1305() {
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/poly1305/cryptopt/mul/seed0001746568049762_ratio10480.asm",
-            "-o",
-            "src/rust/poly1305/cryptopt/mul/seed0001746568049762_ratio10480.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/poly1305/cryptopt/mul/librust_fiat_poly1305_carry_mul_CryptOpt.a",
-            "src/rust/poly1305/cryptopt/mul/seed0001746568049762_ratio10480.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/poly1305/cryptopt/mul/seed0001746568049762_ratio10480.asm",
+        "src/rust/poly1305/cryptopt/mul/seed0001746568049762_ratio10480.o",
+        "src/rust/poly1305/cryptopt/mul/librust_fiat_poly1305_carry_mul_CryptOpt.a",
+        "rust_fiat_poly1305_carry_mul_CryptOpt",
+        true,   // NASM
+        "poly1305",
+        "mul",
+        3,      // field size
+        "0x300000000"  // loose bound
+    );
 
     // ---------- SQUARE ----------
     // LLC version (square)
@@ -414,25 +373,17 @@ fn build_poly1305() {
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/poly1305/cryptopt/square/seed0001746568793896_ratio10366.asm",
-            "-o",
-            "src/rust/poly1305/cryptopt/square/seed0001746568793896_ratio10366.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/poly1305/cryptopt/square/librust_fiat_poly1305_carry_square_CryptOpt.a",
-            "src/rust/poly1305/cryptopt/square/seed0001746568793896_ratio10366.o"
-        ])  
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/poly1305/cryptopt/square/seed0001746568793896_ratio10366.asm",
+        "src/rust/poly1305/cryptopt/square/seed0001746568793896_ratio10366.o",
+        "src/rust/poly1305/cryptopt/square/librust_fiat_poly1305_carry_square_CryptOpt.a",
+        "rust_fiat_poly1305_carry_square_CryptOpt",
+        true,   // NASM
+        "poly1305",
+        "square",
+        3,      // field size
+        "0x300000000"  // loose bound
+    );
 }
 
 fn build_bls12(){
@@ -480,25 +431,17 @@ fn build_bls12(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/bls12/cryptopt/mul/seed0001746613146277_ratio06057.asm",
-            "-o",
-            "src/rust/bls12/cryptopt/mul/seed0001746613146277_ratio06057.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/bls12/cryptopt/mul/libbls12_mul_CryptOpt.a",
-            "src/rust/bls12/cryptopt/mul/seed0001746613146277_ratio06057.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/bls12/cryptopt/mul/seed0001746613146277_ratio06057.asm",
+        "src/rust/bls12/cryptopt/mul/seed0001746613146277_ratio06057.o",
+        "src/rust/bls12/cryptopt/mul/libbls12_mul_CryptOpt.a",
+        "bls12_mul_CryptOpt",
+        true,   // NASM
+        "bls12",
+        "mul",
+        6,      // field size
+        "0xffffffffffffffff"  // loose bound
+    );
 }
 
 fn build_secp256k1_dettman(){
@@ -546,25 +489,17 @@ fn build_secp256k1_dettman(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/secp256k1_dettman/cryptopt/mul/seed0001746535350242_ratio10550.asm",
-            "-o",
-            "src/rust/secp256k1_dettman/cryptopt/mul/seed0001746535350242_ratio10550.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/secp256k1_dettman/cryptopt/mul/librust_fiat_secp256k1_dettman_mul_CryptOpt.a",
-            "src/rust/secp256k1_dettman/cryptopt/mul/seed0001746535350242_ratio10550.o"
-        ])
-       .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/secp256k1_dettman/cryptopt/mul/seed0001746535350242_ratio10550.asm",
+        "src/rust/secp256k1_dettman/cryptopt/mul/seed0001746535350242_ratio10550.o",
+        "src/rust/secp256k1_dettman/cryptopt/mul/librust_fiat_secp256k1_dettman_mul_CryptOpt.a",
+        "rust_fiat_secp256k1_dettman_mul_CryptOpt",
+        true,   // NASM
+        "secp256k1_dettman",
+        "mul",
+        5,      // field size
+        "0x1000003d10"  // loose bound
+    );
 
     // ---------- SQUARE ----------
     // LLC version (square)
@@ -610,25 +545,17 @@ fn build_secp256k1_dettman(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/secp256k1_dettman/cryptopt/square/seed0001746537458781_ratio09812.asm",
-            "-o",
-            "src/rust/secp256k1_dettman/cryptopt/square/seed0001746537458781_ratio09812.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/secp256k1_dettman/cryptopt/square/librust_fiat_secp256k1_dettman_square_CryptOpt.a",
-            "src/rust/secp256k1_dettman/cryptopt/square/seed0001746537458781_ratio09812.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/secp256k1_dettman/cryptopt/square/seed0001746537458781_ratio09812.asm",
+        "src/rust/secp256k1_dettman/cryptopt/square/seed0001746537458781_ratio09812.o",
+        "src/rust/secp256k1_dettman/cryptopt/square/librust_fiat_secp256k1_dettman_square_CryptOpt.a",
+        "rust_fiat_secp256k1_dettman_square_CryptOpt",
+        true,   // NASM
+        "secp256k1_dettman",
+        "square",
+        5,      // field size
+        "0x1000003d10"  // loose bound
+    );
 }
 
 fn build_rust_ec_secp256k1(){
@@ -676,25 +603,17 @@ fn build_rust_ec_secp256k1(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/rust_ec_secp256k1/cryptopt/mul/seed0001746573386443_ratio09947.asm",
-            "-o",
-            "src/rust/rust_ec_secp256k1/cryptopt/mul/seed0001746573386443_ratio09947.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/rust_ec_secp256k1/cryptopt/mul/librust_ec_secp256k1_mul_inner_CryptOpt.a",
-            "src/rust/rust_ec_secp256k1/cryptopt/mul/seed0001746573386443_ratio09947.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/rust_ec_secp256k1/cryptopt/mul/seed0001746573386443_ratio09947.asm",
+        "src/rust/rust_ec_secp256k1/cryptopt/mul/seed0001746573386443_ratio09947.o",
+        "src/rust/rust_ec_secp256k1/cryptopt/mul/librust_ec_secp256k1_mul_inner_CryptOpt.a",
+        "rust_ec_secp256k1_mul_inner_CryptOpt",
+        true,   // NASM
+        "rust_ec_secp256k1",
+        "mul",
+        4,      // field size
+        "0xfffffffefffffc30"  // loose bound
+    );
 
     // ---------- SQUARE ----------
     // LLC version (square)
@@ -740,25 +659,17 @@ fn build_rust_ec_secp256k1(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/rust/rust_ec_secp256k1/cryptopt/square/seed0001746575048113_ratio08485.asm",
-            "-o",
-            "src/rust/rust_ec_secp256k1/cryptopt/square/seed0001746575048113_ratio08485.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/rust/rust_ec_secp256k1/cryptopt/square/librust_ec_secp256k1_square_CryptOpt.a",
-            "src/rust/rust_ec_secp256k1/cryptopt/square/seed0001746575048113_ratio08485.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/rust/rust_ec_secp256k1/cryptopt/square/seed0001746575048113_ratio08485.asm",
+        "src/rust/rust_ec_secp256k1/cryptopt/square/seed0001746575048113_ratio08485.o",
+        "src/rust/rust_ec_secp256k1/cryptopt/square/librust_ec_secp256k1_square_CryptOpt.a",
+        "rust_ec_secp256k1_square_CryptOpt",
+        true,   // NASM
+        "rust_ec_secp256k1",
+        "square",
+        4,      // field size
+        "0xfffffffefffffc30"  // loose bound
+    );
     
 }
 // -------------------------------------------------------------------------
@@ -807,25 +718,17 @@ fn build_fiat_c_curve25519(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/fiat-curve25519/cryptopt/mul/seed0001746577739851_ratio10864.asm",
-            "-o",
-            "src/c/fiat-curve25519/cryptopt/mul/seed0001746577739851_ratio10864.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/c/fiat-curve25519/cryptopt/mul/libfiat_c_curve25519_carry_mul_CryptOpt.a",
-            "src/c/fiat-curve25519/cryptopt/mul/seed0001746577739851_ratio10864.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/c/fiat-curve25519/cryptopt/mul/seed0001746577739851_ratio10864.asm",
+        "src/c/fiat-curve25519/cryptopt/mul/seed0001746577739851_ratio10864.o",
+        "src/c/fiat-curve25519/cryptopt/mul/libfiat_c_curve25519_carry_mul_CryptOpt.a",
+        "fiat_c_curve25519_carry_mul_CryptOpt",
+        true,   // NASM
+        "curve25519",
+        "mul",
+        4,      // field size
+        "0x18000000000000"  // loose bound
+    );
     
     // ---------- SQUARE ----------
     // LLC version (square)
@@ -871,25 +774,17 @@ fn build_fiat_c_curve25519(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/fiat-curve25519/cryptopt/square/seed0001746579192069_ratio11076.asm",
-            "-o",
-            "src/c/fiat-curve25519/cryptopt/square/seed0001746579192069_ratio11076.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/c/fiat-curve25519/cryptopt/square/libfiat_c_curve25519_carry_square_CryptOpt.a",
-            "src/c/fiat-curve25519/cryptopt/square/seed0001746579192069_ratio11076.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/c/fiat-curve25519/cryptopt/square/seed0001746579192069_ratio11076.asm",
+        "src/c/fiat-curve25519/cryptopt/square/seed0001746579192069_ratio11076.o",
+        "src/c/fiat-curve25519/cryptopt/square/libfiat_c_curve25519_carry_square_CryptOpt.a",
+        "fiat_c_curve25519_carry_square_CryptOpt",
+        true,   // NASM
+        "curve25519",
+        "square",
+        4,      // field size
+        "0x18000000000000"  // loose bound
+    );
     
     
 }
@@ -939,25 +834,17 @@ fn build_fiat_c_secp256k1_dettman(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/fiat-secp256k1_dettman/cryptopt/mul/seed0001746590060287_ratio10115.asm",
-            "-o",
-            "src/c/fiat-secp256k1_dettman/cryptopt/mul/seed0001746590060287_ratio10115.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/c/fiat-secp256k1_dettman/cryptopt/mul/libfiat_c_secp256k1_dettman_mul_CryptOpt.a",
-            "src/c/fiat-secp256k1_dettman/cryptopt/mul/seed0001746590060287_ratio10115.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/c/fiat-secp256k1_dettman/cryptopt/mul/seed0001746590060287_ratio10115.asm",
+        "src/c/fiat-secp256k1_dettman/cryptopt/mul/seed0001746590060287_ratio10115.o",
+        "src/c/fiat-secp256k1_dettman/cryptopt/mul/libfiat_c_secp256k1_dettman_mul_CryptOpt.a",
+        "fiat_c_secp256k1_dettman_mul_CryptOpt",
+        true,   // NASM
+        "secp256k1_dettman",
+        "mul",
+        5,      // field size
+        "0x1000003d10"  // loose bound
+    );
 
     // ---------- SQUARE ----------
     // LLC version (square)
@@ -1003,25 +890,17 @@ fn build_fiat_c_secp256k1_dettman(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/fiat-secp256k1_dettman/cryptopt/square/seed0001746606684641_ratio09956.asm",
-            "-o",
-            "src/c/fiat-secp256k1_dettman/cryptopt/square/seed0001746606684641_ratio09956.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/c/fiat-secp256k1_dettman/cryptopt/square/libfiat_c_secp256k1_dettman_square_CryptOpt.a",
-            "src/c/fiat-secp256k1_dettman/cryptopt/square/seed0001746606684641_ratio09956.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/c/fiat-secp256k1_dettman/cryptopt/square/seed0001746606684641_ratio09956.asm",
+        "src/c/fiat-secp256k1_dettman/cryptopt/square/seed0001746606684641_ratio09956.o",
+        "src/c/fiat-secp256k1_dettman/cryptopt/square/libfiat_c_secp256k1_dettman_square_CryptOpt.a",
+        "fiat_c_secp256k1_dettman_square_CryptOpt",
+        true,   // NASM
+        "secp256k1_dettman",
+        "square",
+        5,      // field size
+        "0x1000003d10"  // loose bound
+    );
     
 }
 
@@ -1070,25 +949,17 @@ fn build_fiat_c_poly1305(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/fiat-poly1305/cryptopt/mul/seed0001746580132789_ratio11021.asm",
-            "-o",
-            "src/c/fiat-poly1305/cryptopt/mul/seed0001746580132789_ratio11021.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/c/fiat-poly1305/cryptopt/mul/libfiat_c_poly1305_carry_mul_CryptOpt.a",
-            "src/c/fiat-poly1305/cryptopt/mul/seed0001746580132789_ratio11021.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/c/fiat-poly1305/cryptopt/mul/seed0001746580132789_ratio11021.asm",
+        "src/c/fiat-poly1305/cryptopt/mul/seed0001746580132789_ratio11021.o",
+        "src/c/fiat-poly1305/cryptopt/mul/libfiat_c_poly1305_carry_mul_CryptOpt.a",
+        "fiat_c_poly1305_carry_mul_CryptOpt",
+        true,   // NASM
+        "poly1305",
+        "mul",
+        3,      // field size
+        "0x300000000"  // loose bound
+    );
 
     // ---------- SQUARE ---------- 
     // LLC version (square)
@@ -1134,25 +1005,17 @@ fn build_fiat_c_poly1305(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/fiat-poly1305/cryptopt/square/seed0001746589560845_ratio11265.asm",
-            "-o",
-            "src/c/fiat-poly1305/cryptopt/square/seed0001746589560845_ratio11265.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/c/fiat-poly1305/cryptopt/square/libfiat_c_poly1305_carry_square_CryptOpt.a",
-            "src/c/fiat-poly1305/cryptopt/square/seed0001746589560845_ratio11265.o"
-        ])  
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/c/fiat-poly1305/cryptopt/square/seed0001746589560845_ratio11265.asm",
+        "src/c/fiat-poly1305/cryptopt/square/seed0001746589560845_ratio11265.o",
+        "src/c/fiat-poly1305/cryptopt/square/libfiat_c_poly1305_carry_square_CryptOpt.a",
+        "fiat_c_poly1305_carry_square_CryptOpt",
+        true,   // NASM
+        "poly1305",
+        "square",
+        3,      // field size
+        "0x300000000"  // loose bound
+    );
 }
 
 fn build_fiat_c_p448(){
@@ -1200,25 +1063,17 @@ fn build_fiat_c_p448(){
         .success());
 
     // CryptOpt version (mul)
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/fiat-p448/cryptopt/mul/seed0001746593034063_ratio09458.asm",
-            "-o",
-            "src/c/fiat-p448/cryptopt/mul/seed0001746593034063_ratio09458.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/c/fiat-p448/cryptopt/mul/libfiat_c_p448_solinas_carry_mul_CryptOpt.a",
-            "src/c/fiat-p448/cryptopt/mul/seed0001746593034063_ratio09458.o"
-        ])
-        .status()   
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/c/fiat-p448/cryptopt/mul/seed0001746593034063_ratio09458.asm",
+        "src/c/fiat-p448/cryptopt/mul/seed0001746593034063_ratio09458.o",
+        "src/c/fiat-p448/cryptopt/mul/libfiat_c_p448_solinas_carry_mul_CryptOpt.a",
+        "fiat_c_p448_solinas_carry_mul_CryptOpt",
+        true,   // NASM
+        "p448",
+        "mul",
+        8,      // field size
+        "0x300000000000000"  // loose bound
+    );
     
     // Square
     // LLC version (square) 
@@ -1265,46 +1120,30 @@ fn build_fiat_c_p448(){
         .success());
         
     // // CryptOpt version (square)
-    // assert!(Command::new("nasm")
-    //     .args(&[
-    //         "-f", "elf64",
-    //         "src/c/fiat-p448/cryptopt/square/seed0001745398667315_ratio10358.asm",
-    //         "-o",
-    //         "src/c/fiat-p448/cryptopt/square/seed0001745398667315_ratio10358.o"
-    //     ])
-    //     .status()
-    //     .unwrap()
-    //     .success());
-    // assert!(Command::new("ar")
-    //     .args(&[
-    //         "rcs",
-    //         "src/c/fiat-p448/cryptopt/square/libfiat_c_p448_solinas_carry_square_CryptOpt.a",
-    //         "src/c/fiat-p448/cryptopt/square/seed0001745398667315_ratio10358.o"
-    //     ])
-    //     .status()
-    //     .unwrap()
-    //     .success());
+    build_and_validate!(
+        "src/c/fiat-p448/cryptopt/square/seed0001745398667315_ratio10358.asm",
+        "src/c/fiat-p448/cryptopt/square/seed0001745398667315_ratio10358.o",
+        "src/c/fiat-p448/cryptopt/square/libfiat_c_p448_solinas_carry_square_CryptOpt.a",
+        "fiat_c_p448_solinas_carry_square_CryptOpt",
+        true,   // NASM
+        "p448",
+        "square",
+        8,      // field size
+        "0x300000000000000"  // loose bound
+    );
 
     // CryptOpt version (square) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/fiat-p448/cryptopt/square/seed0001746659360708_ratio10853.asm",
-            "-o",
-            "src/c/fiat-p448/cryptopt/square/seed0001746659360708_ratio10853.o"
-        ])
-        .status()
-        .unwrap()
-        .success());        
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/c/fiat-p448/cryptopt/square/libfiat_c_p448_solinas_carry_square_CryptOpt.a",
-            "src/c/fiat-p448/cryptopt/square/seed0001746659360708_ratio10853.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/c/fiat-p448/cryptopt/square/seed0001746659360708_ratio10853.asm",
+        "src/c/fiat-p448/cryptopt/square/seed0001746659360708_ratio10853.o",
+        "src/c/fiat-p448/cryptopt/square/libfiat_c_p448_solinas_carry_square_CryptOpt.a",
+        "fiat_c_p448_solinas_carry_square_CryptOpt",
+        true,   // NASM
+        "p448",
+        "square",
+        8,      // field size
+        "0x300000000000000"  // loose bound
+    );
 }   
 
 fn build_openssl_curve25519(){
@@ -1412,25 +1251,17 @@ fn build_openssl_curve25519(){
         .success());
 
     // CryptOpt version (mul)
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/openssl-curve25519/cryptopt/mul/seed0001751441780944_ratio11932.asm",
-            "-o",
-            "src/c/openssl-curve25519/cryptopt/mul/seed0001751441780944_ratio11932.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/c/openssl-curve25519/cryptopt/mul/libopenssl_curve25519_fe51_mul_CryptOpt.a",
-            "src/c/openssl-curve25519/cryptopt/mul/seed0001751441780944_ratio11932.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/c/openssl-curve25519/cryptopt/mul/seed0001751441780944_ratio11932.asm",
+        "src/c/openssl-curve25519/cryptopt/mul/seed0001751441780944_ratio11932.o",
+        "src/c/openssl-curve25519/cryptopt/mul/libopenssl_curve25519_fe51_mul_CryptOpt.a",
+        "open_ssl_curve25519_fe51_mul_CryptOpt",
+        true,   // NASM
+        "curve25519",
+        "mul",
+        4,      // field size
+        "0x18000000000000"  // loose bound
+    );
 
     // ---------- SQUARE ----------
     // Hand-optimised square handled in the generated block above.
@@ -1457,25 +1288,17 @@ fn build_openssl_curve25519(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/openssl-curve25519/cryptopt/square/seed0001751442665031_ratio11816.asm",
-            "-o",
-            "src/c/openssl-curve25519/cryptopt/square/seed0001751442665031_ratio11816.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
-    assert!(Command::new("ar")
-        .args(&[
-            "rcs",
-            "src/c/openssl-curve25519/cryptopt/square/libopenssl_curve25519_fe51_square_CryptOpt.a",
-            "src/c/openssl-curve25519/cryptopt/square/seed0001751442665031_ratio11816.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
+    build_and_validate!(
+        "src/c/openssl-curve25519/cryptopt/square/seed0001751442665031_ratio11816.asm",
+        "src/c/openssl-curve25519/cryptopt/square/seed0001751442665031_ratio11816.o",
+        "src/c/openssl-curve25519/cryptopt/square/libopenssl_curve25519_fe51_square_CryptOpt.a",
+        "open_ssl_curve25519_fe51_square_CryptOpt",
+        true,   // NASM
+        "curve25519",
+        "square",
+        4,      // field size
+        "0x18000000000000"  // loose bound
+    );
 }
 
 fn main() {
