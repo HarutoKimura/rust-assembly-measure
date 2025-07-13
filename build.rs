@@ -9,6 +9,21 @@ include!("dudect_integration.rs");
 // -----------------------------------------------------------------------------
 // Build functions for each curve
 
+fn print_validation_header() {
+    if std::env::var("CARGO_DUDECT_VALIDATE")
+        .map(|v| v != "0" && v != "false")
+        .unwrap_or(false) {
+        println!("cargo:warning=");
+        println!("cargo:warning=╔═══════════════════════════════════════════════════════════════════╗");
+        println!("cargo:warning=║          DUDECT CONSTANT-TIME VALIDATION FOR CRYPTOPT             ║");
+        println!("cargo:warning=╚═══════════════════════════════════════════════════════════════════╝");
+        println!("cargo:warning=");
+        println!("cargo:warning=This will validate all CryptOpt-generated assembly files for");
+        println!("cargo:warning=constant-time properties using statistical tests.");
+        println!("cargo:warning=");
+    }
+}
+
 fn build_curve25519() {
     // ---------- MUL ----------
     // LLC version (mul)
@@ -1302,6 +1317,9 @@ fn build_openssl_curve25519(){
 }
 
 fn main() {
+    // Print validation header if enabled
+    print_validation_header();
+    
     // Build all curves (both mul and square, if available)
     build_curve25519();
     build_p448();

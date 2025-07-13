@@ -38,11 +38,20 @@ pub fn validate_assembly_constant_time(validation: &AssemblyValidation, config: 
         return true;
     }
 
-    println!("cargo:warning=Validating constant-time for CryptOpt: {}", validation.function_name);
+    // Extract just the filename for cleaner display
+    let filename = validation.asm_file.split('/').last().unwrap_or(&validation.asm_file);
+    let short_name = validation.function_name.replace("_CryptOpt", "");
+    
+    println!("cargo:warning=");
+    println!("cargo:warning=═══════════════════════════════════════════════════════════════════");
+    println!("cargo:warning=🔍 Testing: {} ({})", short_name, validation.operation);
+    println!("cargo:warning=   File: {}", filename);
+    println!("cargo:warning=   Curve: {}", validation.curve_name);
 
     // Ensure dudect is available
     if !Path::new("dudect-validation/src/dudect.h").exists() {
-        println!("cargo:warning=Dudect not found, skipping validation");
+        println!("cargo:warning=❌ ERROR: Dudect not found, skipping validation");
+        println!("cargo:warning=═══════════════════════════════════════════════════════════════════");
         return true;
     }
 
@@ -84,35 +93,41 @@ pub fn validate_assembly_constant_time(validation: &AssemblyValidation, config: 
             match test_output {
                 Ok(output) => {
                     if output.status.success() {
-                        println!("cargo:warning=✓ {} passed constant-time check", 
-                            validation.function_name);
+                        println!("cargo:warning=✅ PASS: Constant-time property verified!");
+                        println!("cargo:warning=═══════════════════════════════════════════════════════════════════");
                         true
                     } else {
-                        println!("cargo:warning=✗ {} FAILED constant-time check", 
-                            validation.function_name);
-                        if !output.stdout.is_empty() {
-                            println!("cargo:warning=  stdout: {}", 
-                                String::from_utf8_lossy(&output.stdout));
-                        }
+                        println!("cargo:warning=❌ FAIL: Timing leakage detected!");
                         if !output.stderr.is_empty() {
-                            println!("cargo:warning=  stderr: {}", 
-                                String::from_utf8_lossy(&output.stderr));
+                            let stderr_str = String::from_utf8_lossy(&output.stderr);
+                            if stderr_str.contains("dumped core") {
+                                println!("cargo:warning=   Error: Test crashed (segmentation fault)");
+                            } else {
+                                println!("cargo:warning=   Error: {}", stderr_str.trim());
+                            }
                         }
+                        println!("cargo:warning=═══════════════════════════════════════════════════════════════════");
                         false
                     }
                 }
                 Err(e) => {
-                    println!("cargo:warning=Failed to run test: {}", e);
+                    println!("cargo:warning=❌ ERROR: Failed to run test");
+                    println!("cargo:warning=   Details: {}", e);
+                    println!("cargo:warning=═══════════════════════════════════════════════════════════════════");
                     false
                 }
             }
         }
         Ok(_) => {
-            println!("cargo:warning=Failed to compile constant-time test");
+            println!("cargo:warning=⚠️  SKIP: Failed to compile test harness");
+            println!("cargo:warning=   This may be due to missing symbols or incompatible calling convention");
+            println!("cargo:warning=═══════════════════════════════════════════════════════════════════");
             false
         }
         Err(e) => {
-            println!("cargo:warning=Compilation error: {}", e);
+            println!("cargo:warning=❌ ERROR: Compilation failed");
+            println!("cargo:warning=   Details: {}", e);
+            println!("cargo:warning=═══════════════════════════════════════════════════════════════════");
             false
         }
     }
