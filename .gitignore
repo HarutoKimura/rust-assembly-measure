@@ -13,3 +13,4 @@ build_output.txt
 COMMIT_READY.md
 
 binsec/
+binsec-validation/harnesses/**/test_*
