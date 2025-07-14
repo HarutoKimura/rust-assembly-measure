@@ -1,6 +1,6 @@
 SECTION .text
-	GLOBAL c_fiat_p448_carry_square_CryptOpt
-c_fiat_p448_carry_square_CryptOpt:
+	GLOBAL fiat_c_p448_carry_square_CryptOpt
+fiat_c_p448_carry_square_CryptOpt:
 sub rsp, 368
 mov rax, [ rsi + 0x8 ]; load m64 arg1[1] to register64
 mov r10, rax; load m64 x22 to register64

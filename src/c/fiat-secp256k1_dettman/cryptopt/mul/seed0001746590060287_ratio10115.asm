@@ -1,5 +1,5 @@
 SECTION .text
-	GLOBALfiat_c_secp256k1_dettman_mul_CryptOpt
+	GLOBAL fiat_c_secp256k1_dettman_mul_CryptOpt
 fiat_c_secp256k1_dettman_mul_CryptOpt:
 mov rax, rdx; preserving value of arg2 into a new reg
 mov rdx, [ rdx + 0x18 ]; saving arg2[3] in rdx.

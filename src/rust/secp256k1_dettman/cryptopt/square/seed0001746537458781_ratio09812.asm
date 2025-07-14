@@ -1,6 +1,6 @@
 SECTION .text
 	GLOBAL rust_fiat_secp256k1_dettman_square_CryptOpt
-rust_fiat_secp256k1_dettman_squar_CryptOpt:
+rust_fiat_secp256k1_dettman_square_CryptOpt:
 imul rax, [ rsi + 0x10 ], 0x2; x7 <- arg1[2] * 0x2
 mov r10, [ rsi + 0x8 ]; load m64 arg1[1] to register64
 mov r11, r10; load m64 x10 to register64
