@@ -7,19 +7,37 @@ use std::io::Write;
 include!("dudect_integration.rs");
 
 // -----------------------------------------------------------------------------
+// Binsec formal verification integration
+include!("binsec_integration.rs");
+
+// -----------------------------------------------------------------------------
 // Build functions for each curve
 
 fn print_validation_header() {
-    if std::env::var("CARGO_DUDECT_VALIDATE")
+    let dudect_enabled = std::env::var("CARGO_DUDECT_VALIDATE")
         .map(|v| v != "0" && v != "false")
-        .unwrap_or(false) {
+        .unwrap_or(false);
+    let binsec_enabled = std::env::var("CARGO_BINSEC_VALIDATE")
+        .map(|v| v != "0" && v != "false")
+        .unwrap_or(false);
+        
+    if dudect_enabled || binsec_enabled {
         println!("cargo:warning=");
         println!("cargo:warning=╔═══════════════════════════════════════════════════════════════════╗");
-        println!("cargo:warning=║          DUDECT CONSTANT-TIME VALIDATION FOR CRYPTOPT             ║");
+        println!("cargo:warning=║          CONSTANT-TIME VALIDATION FOR CRYPTOPT                    ║");
         println!("cargo:warning=╚═══════════════════════════════════════════════════════════════════╝");
         println!("cargo:warning=");
-        println!("cargo:warning=This will validate all CryptOpt-generated assembly files for");
-        println!("cargo:warning=constant-time properties using statistical tests.");
+        
+        if dudect_enabled {
+            println!("cargo:warning=DUDECT: Statistical constant-time validation enabled");
+            println!("cargo:warning=  This will validate using statistical tests.");
+        }
+        
+        if binsec_enabled {
+            println!("cargo:warning=BINSEC: Formal constant-time verification enabled");
+            println!("cargo:warning=  This will formally verify constant-time properties.");
+        }
+        
         println!("cargo:warning=");
     }
 }
@@ -53,7 +71,7 @@ fn build_curve25519() {
     );
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/curve25519/cryptopt/mul/seed0001746533729338_ratio12461.asm",
         "src/rust/curve25519/cryptopt/mul/seed0001746533729338_ratio12461.o",
         "src/rust/curve25519/cryptopt/mul/librust_fiat_curve25519_carry_mul_CryptOpt.a",
@@ -101,7 +119,7 @@ fn build_curve25519() {
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/curve25519/cryptopt/square/seed0001746532817891_ratio10523.asm",
         "src/rust/curve25519/cryptopt/square/seed0001746532817891_ratio10523.o",
         "src/rust/curve25519/cryptopt/square/librust_fiat_curve25519_carry_square_CryptOpt.a",
@@ -160,7 +178,7 @@ fn build_curve25519_dalek() {
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/curve25519-dalek/cryptopt/mul/seed0001746569406075_ratio12273.asm",
         "src/rust/curve25519-dalek/cryptopt/mul/seed0001746569406075_ratio12273.o",
         "src/rust/curve25519-dalek/cryptopt/mul/libcurve25519_dalek_mul_CryptOpt.a",
@@ -216,7 +234,7 @@ fn build_curve25519_dalek() {
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/curve25519-dalek/cryptopt/square/seed0001746572411863_ratio09431.asm",
         "src/rust/curve25519-dalek/cryptopt/square/seed0001746572411863_ratio09431.o",
         "src/rust/curve25519-dalek/cryptopt/square/libcurve25519_dalek_square_CryptOpt.a",
@@ -274,7 +292,7 @@ fn build_p448() {
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/p448/cryptopt/seed0001746580882393_ratio14028.asm",
         "src/rust/p448/cryptopt/seed0001746580882393_ratio14028.o",
         "src/rust/p448/cryptopt/librust_fiat_p448_solinas_carry_mul_CryptOpt.a",
@@ -332,7 +350,7 @@ fn build_poly1305() {
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/poly1305/cryptopt/mul/seed0001746568049762_ratio10480.asm",
         "src/rust/poly1305/cryptopt/mul/seed0001746568049762_ratio10480.o",
         "src/rust/poly1305/cryptopt/mul/librust_fiat_poly1305_carry_mul_CryptOpt.a",
@@ -388,7 +406,7 @@ fn build_poly1305() {
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/poly1305/cryptopt/square/seed0001746568793896_ratio10366.asm",
         "src/rust/poly1305/cryptopt/square/seed0001746568793896_ratio10366.o",
         "src/rust/poly1305/cryptopt/square/librust_fiat_poly1305_carry_square_CryptOpt.a",
@@ -446,7 +464,7 @@ fn build_bls12(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/bls12/cryptopt/mul/seed0001746613146277_ratio06057.asm",
         "src/rust/bls12/cryptopt/mul/seed0001746613146277_ratio06057.o",
         "src/rust/bls12/cryptopt/mul/libbls12_mul_CryptOpt.a",
@@ -504,7 +522,7 @@ fn build_secp256k1_dettman(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/secp256k1_dettman/cryptopt/mul/seed0001746535350242_ratio10550.asm",
         "src/rust/secp256k1_dettman/cryptopt/mul/seed0001746535350242_ratio10550.o",
         "src/rust/secp256k1_dettman/cryptopt/mul/librust_fiat_secp256k1_dettman_mul_CryptOpt.a",
@@ -560,7 +578,7 @@ fn build_secp256k1_dettman(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/secp256k1_dettman/cryptopt/square/seed0001746537458781_ratio09812.asm",
         "src/rust/secp256k1_dettman/cryptopt/square/seed0001746537458781_ratio09812.o",
         "src/rust/secp256k1_dettman/cryptopt/square/librust_fiat_secp256k1_dettman_square_CryptOpt.a",
@@ -618,7 +636,7 @@ fn build_rust_ec_secp256k1(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/rust_ec_secp256k1/cryptopt/mul/seed0001746573386443_ratio09947.asm",
         "src/rust/rust_ec_secp256k1/cryptopt/mul/seed0001746573386443_ratio09947.o",
         "src/rust/rust_ec_secp256k1/cryptopt/mul/librust_ec_secp256k1_mul_inner_CryptOpt.a",
@@ -674,7 +692,7 @@ fn build_rust_ec_secp256k1(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/rust/rust_ec_secp256k1/cryptopt/square/seed0001746575048113_ratio08485.asm",
         "src/rust/rust_ec_secp256k1/cryptopt/square/seed0001746575048113_ratio08485.o",
         "src/rust/rust_ec_secp256k1/cryptopt/square/librust_ec_secp256k1_square_CryptOpt.a",
@@ -733,7 +751,7 @@ fn build_fiat_c_curve25519(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/c/fiat-curve25519/cryptopt/mul/seed0001746577739851_ratio10864.asm",
         "src/c/fiat-curve25519/cryptopt/mul/seed0001746577739851_ratio10864.o",
         "src/c/fiat-curve25519/cryptopt/mul/libfiat_c_curve25519_carry_mul_CryptOpt.a",
@@ -789,7 +807,7 @@ fn build_fiat_c_curve25519(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/c/fiat-curve25519/cryptopt/square/seed0001746579192069_ratio11076.asm",
         "src/c/fiat-curve25519/cryptopt/square/seed0001746579192069_ratio11076.o",
         "src/c/fiat-curve25519/cryptopt/square/libfiat_c_curve25519_carry_square_CryptOpt.a",
@@ -849,7 +867,7 @@ fn build_fiat_c_secp256k1_dettman(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/c/fiat-secp256k1_dettman/cryptopt/mul/seed0001746590060287_ratio10115.asm",
         "src/c/fiat-secp256k1_dettman/cryptopt/mul/seed0001746590060287_ratio10115.o",
         "src/c/fiat-secp256k1_dettman/cryptopt/mul/libfiat_c_secp256k1_dettman_mul_CryptOpt.a",
@@ -905,7 +923,7 @@ fn build_fiat_c_secp256k1_dettman(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/c/fiat-secp256k1_dettman/cryptopt/square/seed0001746606684641_ratio09956.asm",
         "src/c/fiat-secp256k1_dettman/cryptopt/square/seed0001746606684641_ratio09956.o",
         "src/c/fiat-secp256k1_dettman/cryptopt/square/libfiat_c_secp256k1_dettman_square_CryptOpt.a",
@@ -964,7 +982,7 @@ fn build_fiat_c_poly1305(){
         .success());
 
     // CryptOpt version (mul) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/c/fiat-poly1305/cryptopt/mul/seed0001746580132789_ratio11021.asm",
         "src/c/fiat-poly1305/cryptopt/mul/seed0001746580132789_ratio11021.o",
         "src/c/fiat-poly1305/cryptopt/mul/libfiat_c_poly1305_carry_mul_CryptOpt.a",
@@ -1020,7 +1038,7 @@ fn build_fiat_c_poly1305(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/c/fiat-poly1305/cryptopt/square/seed0001746589560845_ratio11265.asm",
         "src/c/fiat-poly1305/cryptopt/square/seed0001746589560845_ratio11265.o",
         "src/c/fiat-poly1305/cryptopt/square/libfiat_c_poly1305_carry_square_CryptOpt.a",
@@ -1078,7 +1096,7 @@ fn build_fiat_c_p448(){
         .success());
 
     // CryptOpt version (mul)
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/c/fiat-p448/cryptopt/mul/seed0001746593034063_ratio09458.asm",
         "src/c/fiat-p448/cryptopt/mul/seed0001746593034063_ratio09458.o",
         "src/c/fiat-p448/cryptopt/mul/libfiat_c_p448_solinas_carry_mul_CryptOpt.a",
@@ -1135,7 +1153,7 @@ fn build_fiat_c_p448(){
         .success());
         
     // // CryptOpt version (square)
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/c/fiat-p448/cryptopt/square/seed0001745398667315_ratio10358.asm",
         "src/c/fiat-p448/cryptopt/square/seed0001745398667315_ratio10358.o",
         "src/c/fiat-p448/cryptopt/square/libfiat_c_p448_solinas_carry_square_CryptOpt.a",
@@ -1148,7 +1166,7 @@ fn build_fiat_c_p448(){
     );
 
     // CryptOpt version (square) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/c/fiat-p448/cryptopt/square/seed0001746659360708_ratio10853.asm",
         "src/c/fiat-p448/cryptopt/square/seed0001746659360708_ratio10853.o",
         "src/c/fiat-p448/cryptopt/square/libfiat_c_p448_solinas_carry_square_CryptOpt.a",
@@ -1266,7 +1284,7 @@ fn build_openssl_curve25519(){
         .success());
 
     // CryptOpt version (mul)
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/c/openssl-curve25519/cryptopt/mul/seed0001751441780944_ratio11932.asm",
         "src/c/openssl-curve25519/cryptopt/mul/seed0001751441780944_ratio11932.o",
         "src/c/openssl-curve25519/cryptopt/mul/libopenssl_curve25519_fe51_mul_CryptOpt.a",
@@ -1303,7 +1321,7 @@ fn build_openssl_curve25519(){
         .success());
 
     // CryptOpt version (square) CryptOpt paper parameters
-    build_and_validate!(
+    build_and_validate_with_formal!(
         "src/c/openssl-curve25519/cryptopt/square/seed0001751442665031_ratio11816.asm",
         "src/c/openssl-curve25519/cryptopt/square/seed0001751442665031_ratio11816.o",
         "src/c/openssl-curve25519/cryptopt/square/libopenssl_curve25519_fe51_square_CryptOpt.a",

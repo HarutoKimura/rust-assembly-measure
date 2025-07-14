@@ -229,6 +229,7 @@ int main() {{
 }
 
 // Helper macro to simplify validation calls in build.rs
+// This macro is used for non-CryptOpt files (dudect validation only)
 #[macro_export]
 macro_rules! build_and_validate {
     ($asm:expr, $obj:expr, $lib:expr, $func:expr, $is_nasm:expr, $curve:expr, $op:expr, $size:expr, $bound:expr) => {{

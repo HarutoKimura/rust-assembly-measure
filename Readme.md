@@ -4,6 +4,40 @@ This Rust project measures and compares the performance of cryptographic field a
 
 The goal is to benchmark these assembly variants across various cryptographic curve implementations derived from both Fiat-Rust and Fiat-C projects.
 
+## Constant-Time Validation Support
+
+The project includes comprehensive constant-time validation through two complementary approaches:
+
+### 1. DUDECT - Statistical Validation
+- **Method**: Statistical analysis of timing measurements
+- **Approach**: Compares execution times between fixed and random inputs
+- **Benefits**: Fast, doesn't require complex setup
+- **Limitations**: Provides statistical confidence, not mathematical proof
+
+### 2. BINSEC - Formal Verification
+- **Method**: Symbolic execution and formal methods
+- **Approach**: Mathematically proves absence of timing leaks
+- **Benefits**: Provides formal guarantees, identifies exact leak locations
+- **Limitations**: Slower, may timeout on complex functions
+
+### Running Constant-Time Validation
+
+```bash
+# Statistical validation with DUDECT only
+CARGO_DUDECT_VALIDATE=1 cargo build
+
+# Formal verification with BINSEC only
+CARGO_BINSEC_VALIDATE=1 cargo build
+
+# Run both validations (recommended)
+CARGO_DUDECT_VALIDATE=1 CARGO_BINSEC_VALIDATE=1 cargo build
+```
+
+### Setup Instructions
+- **DUDECT**: No additional setup required (included in the project)
+- **BINSEC**: Requires OCaml and dependencies. See [BINSEC_SETUP.md](BINSEC_SETUP.md) for installation
+- **Full Documentation**: See [BINSEC_INTEGRATION_DOCUMENTATION.md](BINSEC_INTEGRATION_DOCUMENTATION.md) for detailed implementation information
+
 ## Features
 
 - Benchmarks multiplication (`mul`) and squaring (`square`) operations (where available).
