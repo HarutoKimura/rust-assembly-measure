@@ -1099,8 +1099,8 @@ fn build_fiat_c_p448(){
     build_and_validate_with_formal!(
         "src/c/fiat-p448/cryptopt/mul/seed0001746593034063_ratio09458.asm",
         "src/c/fiat-p448/cryptopt/mul/seed0001746593034063_ratio09458.o",
-        "src/c/fiat-p448/cryptopt/mul/libfiat_c_p448_solinas_carry_mul_CryptOpt.a",
-        "fiat_c_p448_solinas_carry_mul_CryptOpt",
+        "src/c/fiat-p448/cryptopt/mul/libfiat_c_p448_carry_mul_CryptOpt.a",
+        "fiat_c_p448_carry_mul_CryptOpt",
         true,   // NASM
         "p448",
         "mul",
@@ -1169,8 +1169,8 @@ fn build_fiat_c_p448(){
     build_and_validate_with_formal!(
         "src/c/fiat-p448/cryptopt/square/seed0001746659360708_ratio10853.asm",
         "src/c/fiat-p448/cryptopt/square/seed0001746659360708_ratio10853.o",
-        "src/c/fiat-p448/cryptopt/square/libfiat_c_p448_solinas_carry_square_CryptOpt.a",
-        "fiat_c_p448_solinas_carry_square_CryptOpt",
+        "src/c/fiat-p448/cryptopt/square/libfiat_c_p448_carry_square_CryptOpt.a",
+        "fiat_c_p448_carry_square_CryptOpt",
         true,   // NASM
         "p448",
         "square",
