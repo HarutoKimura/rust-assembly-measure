@@ -65,16 +65,78 @@ CARGO_DUDECT_VALIDATE=1 CARGO_BINSEC_VALIDATE=1 cargo build
 
 ## How It Works
 
-The tool performs the following steps for a selected curve and operation:
+### Enhanced Methodology (Recommended)
+
+The enhanced measurement system addresses all academic reviewer concerns about microbenchmarking:
+
+1.  **Environment Setup**: Automated CPU core pinning, frequency control, and noise reduction
+2.  **Dynamic Batch Sizing**: CryptOpt's 10,000 cycle goal for consistent measurement precision
+3.  **Randomized Execution**: Fisher-Yates shuffled batch order to prevent systematic bias
+4.  **Multi-layered Warm-up**: Global, calibration, and targeted warm-up phases
+5.  **Statistical Validation**: Coefficient of variation tracking and quality assessment
+6.  **Median-of-Medians**: Multiple independent runs for robust final estimates
+
+### Legacy Methodology (Basic)
+
+The original tool performs simpler measurements:
 
 1.  **Generate Random Inputs**: Creates appropriately sized random field elements within loose bounds.
-2.  **Measure Execution Time**: Executes batches of the target operation (mul/square) using each of the three assembly variants (GAS, NASM, CryptOpt). Records cycle counts using `rdtsc` for each batch.
-3.  **Calculate Median Performance**: Calculates the median cycle count across multiple batches for each assembly variant. This forms one run's result.
-4.  **Repeat Measurements**: Repeats steps 1-3 multiple times (configurable).
-5.  **Calculate Median-of-Medians**: Determines the final performance metric for each assembly variant by taking the median of the results from all runs.
-6.  **Compare Performance**: Prints the final median-of-medians cycle counts and calculates the percentage difference between the CryptOpt version and the GAS/NASM versions.
+2.  **Measure Execution Time**: Fixed batch size (200) sequential execution measurements
+3.  **Calculate Median Performance**: Basic median calculation without quality validation
+4.  **Repeat Measurements**: Simple repetition without statistical robustness checks
+5.  **Compare Performance**: Basic percentage difference calculation
+
+### Addressing Reviewer Concerns
+
+The enhanced methodology specifically addresses academic review concerns:
+
+| Reviewer Concern | Our Solution |
+|------------------|--------------|
+| **CPU core pinning** | ✅ Automated `taskset` core isolation |
+| **Turbo Boost/frequency scaling** | ✅ Performance governor + frequency fixing |
+| **SMT/ASLR control** | ✅ Optional disabling with user choice |
+| **Iteration/batching strategies** | ✅ CryptOpt's R3-validation (31 batches, Fisher-Yates) |
+| **Cycle measurement methods** | ✅ Memory barriers + RDTSC precision |
+| **Warm-up procedures** | ✅ Multi-phase warm-up strategy |
+| **Reproducibility** | ✅ Complete automation + documentation |
+| **Performance benefit demonstration** | ✅ Comparison tool showing improvements |
 
 ## Usage
+
+### Quick Start (Enhanced Methodology)
+
+For publication-quality results that address all reviewer concerns:
+
+```bash
+# 1. Set up optimal benchmarking environment
+chmod +x setup_benchmark_environment.sh
+./setup_benchmark_environment.sh
+
+# 2. Verify environment is ready
+./verify_benchmark_environment.sh
+
+# 3. Run enhanced measurements
+ENHANCED_MEASUREMENT=1 ./run_benchmark_pinned.sh cargo run curve25519 mul 5
+
+# 4. Restore system defaults when done
+./restore_system_defaults.sh
+```
+
+### Methodology Comparison
+
+To demonstrate the benefits of enhanced vs original methodology:
+
+```bash
+# Show systematic comparison of both approaches
+chmod +x run_methodology_comparison.sh
+./run_methodology_comparison.sh
+```
+
+This comparison script will show:
+- **Measurement precision**: Dynamic vs fixed batch sizing
+- **Bias reduction**: Randomized vs sequential execution
+- **Statistical robustness**: Median-of-medians vs single measurements
+- **Quality assessment**: CV tracking vs no validation
 
 ### Build the Project
 

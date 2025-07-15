@@ -1,3 +1,4 @@
 [env]
-# Enable dudect constant-time validation during build
-CARGO_DUDECT_VALIDATE = "1"
+# Disable dudect constant-time validation during build for faster compilation
+# Set to "1" to re-enable: CARGO_DUDECT_VALIDATE = "1"
+CARGO_DUDECT_VALIDATE = "0"

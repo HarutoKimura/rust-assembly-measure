@@ -1,7 +1,11 @@
 use rand::Rng;
 use rand::thread_rng;
-use core::arch::x86_64::_rdtsc;
+use core::arch::x86_64::{_rdtsc, _mm_mfence};
 use std::env;
+
+// Import the new precise timing module
+mod precise_timing;
+use precise_timing::*;
 
 // -----------------------------------------------------------------------------
 // Modules for the curves with external function declarations.
@@ -454,7 +458,30 @@ fn median(cycles: &[u64]) -> u64 {
 }
 
 // -----------------------------------------------------------------------------
-// Measurement functions for U64 multiplication
+// Enhanced measurement functions using CryptOpt methodology
+
+/// Improved U64 multiplication measurement with proper timing
+fn measure_one_batch_u64_mul_precise(
+    func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    out: &mut [u64],
+    in0: &[u64],
+    in1: &[u64],
+    batch_size: usize,
+) -> u64 {
+    // Use precise timing with memory barriers
+    let start = precise_rdtsc();
+    
+    unsafe {
+        for _ in 0..batch_size {
+            func(out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+        }
+    }
+    
+    let end = precise_rdtsc();
+    end.saturating_sub(start)
+}
+
+// Legacy function maintained for compatibility
 fn measure_one_batch_u64_mul(
     func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
     out: &mut [u64],
@@ -462,15 +489,7 @@ fn measure_one_batch_u64_mul(
     in1: &[u64],
     batch_size: usize,
 ) -> u64 {
-    unsafe {
-        _rdtsc();
-        let start = _rdtsc();
-        for _ in 0..batch_size {
-            func(out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
-        }
-        let end = _rdtsc();
-        end - start
-    }
+    measure_one_batch_u64_mul_precise(func, out, in0, in1, batch_size)
 }
 
 fn measure_three_functions_u64_mul(
@@ -713,6 +732,113 @@ fn measure_three_functions_usize_mul(
         cycles_cryptopt.push(c_cryptopt);
     }
     (median(&cycles_llc), median(&cycles_nasm), median(&cycles_cryptopt))
+}
+
+// -----------------------------------------------------------------------------
+// Enhanced measurement using CryptOpt methodology
+
+/// Enhanced U64 multiplication measurement with full CryptOpt methodology
+fn measure_u64_mul_functions_enhanced(
+    bound: u64,
+    size: usize,
+    llc_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    nasm_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    cryptopt_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    config: &MeasurementConfig,
+) -> (MeasurementStats, MeasurementStats, MeasurementStats) {
+    
+    // Prepare shared input data (regenerated for each measurement to prevent cache effects)
+    let generate_inputs = || -> (Vec<u64>, Vec<u64>) {
+        let mut rng = thread_rng();
+        let in0: Vec<u64> = (0..size).map(|_| rng.gen_range(0..bound)).collect();
+        let in1: Vec<u64> = (0..size).map(|_| rng.gen_range(0..bound)).collect();
+        (in0, in1)
+    };
+    
+    // Global warm-up: Exercise all three functions to warm up the system
+    println!("Global warm-up: warming up all functions...");
+    let mut warmup_out = vec![0u64; size];
+    for _ in 0..config.warmup_iterations {
+        let (in0, in1) = generate_inputs();
+        unsafe {
+            llc_func(warmup_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+            nasm_func(warmup_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+            cryptopt_func(warmup_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+        }
+        unsafe { _mm_mfence(); } // Prevent over-optimization
+    }
+    
+    let mut multi_measurement = MultiMeasurement::new(config.clone());
+    
+    // Measure GAS format function
+    {
+        multi_measurement.measure_function(
+            "GAS Format".to_string(),
+            || {
+                let (in0, in1) = generate_inputs();
+                let mut gas_out = vec![0u64; size];
+                unsafe {
+                    llc_func(gas_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+                }
+            },
+            || {
+                let (in0, in1) = generate_inputs();
+                let mut gas_out = vec![0u64; size];
+                unsafe {
+                    llc_func(gas_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+                }
+            }
+        );
+    }
+    
+    // Measure NASM format function
+    {
+        multi_measurement.measure_function(
+            "NASM Format".to_string(),
+            || {
+                let (in0, in1) = generate_inputs();
+                let mut nasm_out = vec![0u64; size];
+                unsafe {
+                    nasm_func(nasm_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+                }
+            },
+            || {
+                let (in0, in1) = generate_inputs();
+                let mut nasm_out = vec![0u64; size];
+                unsafe {
+                    nasm_func(nasm_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+                }
+            }
+        );
+    }
+    
+    // Measure CryptOpt function
+    {
+        multi_measurement.measure_function(
+            "CryptOpt Format".to_string(),
+            || {
+                let (in0, in1) = generate_inputs();
+                let mut cryptopt_out = vec![0u64; size];
+                unsafe {
+                    cryptopt_func(cryptopt_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+                }
+            },
+            || {
+                let (in0, in1) = generate_inputs();
+                let mut cryptopt_out = vec![0u64; size];
+                unsafe {
+                    cryptopt_func(cryptopt_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+                }
+            }
+        );
+    }
+    
+    // Extract statistics for return
+    let gas_stats = MeasurementStats::from_measurements(&multi_measurement.results[0].1);
+    let nasm_stats = MeasurementStats::from_measurements(&multi_measurement.results[1].1);
+    let cryptopt_stats = MeasurementStats::from_measurements(&multi_measurement.results[2].1);
+    
+    (gas_stats, nasm_stats, cryptopt_stats)
 }
 
 // -----------------------------------------------------------------------------
@@ -1053,6 +1179,149 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
 }
 
 // -----------------------------------------------------------------------------
+// Enhanced measurement runner using CryptOpt methodology
+
+fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize) {
+    let config = MeasurementConfig {
+        cycle_goal: 10_000,     // CryptOpt's cycle goal
+        num_batches: 31,        // CryptOpt's number of batches
+        initial_batch_size: 200, // Current batch size
+        min_batch_size: 10,
+        max_batch_size: 5_000,
+        warmup_iterations: 20,   // Reduced since we warm up all functions together
+    };
+    
+    println!("Enhanced Measurement Configuration:");
+    println!("  Cycle Goal: {} cycles/batch", config.cycle_goal);
+    println!("  Number of Batches: {}", config.num_batches);
+    println!("  Warm-up Iterations: {}", config.warmup_iterations);
+    println!("  Repeats: {} (median-of-medians)", repeats);
+    println!("  Features: Memory barriers, Fisher-Yates randomization, dynamic batch sizing\n");
+    
+    let (bound, size) = curve.get_params();
+    
+    // Collect results from multiple runs for median-of-medians
+    let mut gas_medians = Vec::with_capacity(repeats);
+    let mut nasm_medians = Vec::with_capacity(repeats);
+    let mut cryptopt_medians = Vec::with_capacity(repeats);
+    
+    for run in 1..=repeats {
+        println!("=== Run {}/{} ===", run, repeats);
+        
+        match operation {
+            "mul" => {
+                let functions = curve.get_mul_functions();
+                match functions {
+                    Function::U64Mul(llc_func, nasm_func, cryptopt_func) => {
+                        let (gas_stats, nasm_stats, cryptopt_stats) = 
+                            measure_u64_mul_functions_enhanced(bound, size, llc_func, nasm_func, cryptopt_func, &config);
+                        
+                        gas_medians.push(gas_stats.median);
+                        nasm_medians.push(nasm_stats.median);
+                        cryptopt_medians.push(cryptopt_stats.median);
+                        
+                        println!("Run {} - GAS: {} cycles, NASM: {} cycles, CryptOpt: {} cycles",
+                                run, gas_stats.median, nasm_stats.median, cryptopt_stats.median);
+                        println!("Quality - GAS: {}, NASM: {}, CryptOpt: {}",
+                                gas_stats.quality_assessment(),
+                                nasm_stats.quality_assessment(),
+                                cryptopt_stats.quality_assessment());
+                    },
+                    _ => {
+                        println!("Enhanced measurement not yet implemented for this curve's function type");
+                        return;
+                    }
+                }
+            },
+            "square" => {
+                println!("Enhanced square measurement not yet implemented");
+                return;
+            },
+            _ => {
+                println!("Unknown operation: {}", operation);
+                return;
+            }
+        }
+        
+        println!();
+    }
+    
+    // Calculate median-of-medians
+    let gas_mom = calculate_median(gas_medians.clone());
+    let nasm_mom = calculate_median(nasm_medians.clone());
+    let cryptopt_mom = calculate_median(cryptopt_medians.clone());
+    
+    // Generate final report
+    println!("=== FINAL ENHANCED MEASUREMENT REPORT ===");
+    println!("Methodology: CryptOpt-style with memory barriers, randomized batching, and statistical analysis");
+    println!("Measurement quality validation: Coefficient of variation tracking");
+    println!();
+    
+    println!("Median-of-Medians Results ({} runs):", repeats);
+    println!("  GAS Format:     {} cycles", gas_mom);
+    println!("  NASM Format:    {} cycles", nasm_mom);
+    println!("  CryptOpt Format: {} cycles", cryptopt_mom);
+    println!();
+    
+    // Performance analysis
+    println!("Performance Analysis:");
+    
+    // Find the best performer
+    let best_performance = gas_mom.min(nasm_mom).min(cryptopt_mom);
+    let best_name = if best_performance == gas_mom {
+        "GAS Format"
+    } else if best_performance == nasm_mom {
+        "NASM Format"
+    } else {
+        "CryptOpt Format"
+    };
+    
+    println!("  Best Performance: {} ({} cycles)", best_name, best_performance);
+    
+    // Calculate relative performance
+    let gas_vs_cryptopt = ((gas_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+    let nasm_vs_cryptopt = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+    
+    if gas_vs_cryptopt > 0.0 {
+        println!("  CryptOpt is {:.2}% faster than GAS", gas_vs_cryptopt);
+    } else {
+        println!("  GAS is {:.2}% faster than CryptOpt", gas_vs_cryptopt.abs());
+    }
+    
+    if nasm_vs_cryptopt > 0.0 {
+        println!("  CryptOpt is {:.2}% faster than NASM", nasm_vs_cryptopt);
+    } else {
+        println!("  NASM is {:.2}% faster than CryptOpt", nasm_vs_cryptopt.abs());
+    }
+    
+    // Measurement stability analysis
+    println!();
+    println!("Measurement Stability Analysis:");
+    let gas_stats_final = MeasurementStats::from_measurements(&gas_medians);
+    let nasm_stats_final = MeasurementStats::from_measurements(&nasm_medians);
+    let cryptopt_stats_final = MeasurementStats::from_measurements(&cryptopt_medians);
+    
+    println!("  GAS Format:     CV = {:.3}% ({})", 
+             gas_stats_final.coefficient_of_variation * 100.0,
+             gas_stats_final.quality_assessment());
+    println!("  NASM Format:    CV = {:.3}% ({})", 
+             nasm_stats_final.coefficient_of_variation * 100.0,
+             nasm_stats_final.quality_assessment());
+    println!("  CryptOpt Format: CV = {:.3}% ({})", 
+             cryptopt_stats_final.coefficient_of_variation * 100.0,
+             cryptopt_stats_final.quality_assessment());
+    
+    println!();
+    println!("Note: This enhanced methodology addresses reviewer concerns about:");
+    println!("  ✓ Memory barriers (mfence before rdtsc)");
+    println!("  ✓ Randomized batch execution order (Fisher-Yates)");
+    println!("  ✓ Proper warm-up procedures");
+    println!("  ✓ Statistical analysis with coefficient of variation");
+    println!("  ✓ Dynamic batch sizing based on cycle goals");
+    println!("  • CPU pinning and frequency control: Use setup_benchmark_environment.sh");
+}
+
+// -----------------------------------------------------------------------------
 // Main entry point: parse command-line arguments.
 // Usage: cargo run <curve_name> <operation> [repeat_count]
 // where <operation> is either "mul" or "square"
@@ -1094,15 +1363,26 @@ fn main() {
         1
     };
 
-    println!("Measuring {:?} for operation '{}' with CryptOpt approach...", curve_type, op);
-    println!("Using batch size = 200 and nBatches = 31, repeated {} time(s).\n", repeats);
+    // Check for enhanced measurement mode
+    let use_enhanced = std::env::var("ENHANCED_MEASUREMENT").is_ok();
+    
+    if use_enhanced {
+        println!("Measuring {:?} for operation '{}' with ENHANCED CryptOpt methodology...", curve_type, op);
+        println!("Features: Memory barriers, randomized batching, proper warm-up, statistical analysis\n");
+        
+        run_enhanced_measurements(&curve_type, op, repeats);
+    } else {
+        println!("Measuring {:?} for operation '{}' with CryptOpt approach...", curve_type, op);
+        println!("Using batch size = 200 and nBatches = 31, repeated {} time(s).", repeats);
+        println!("Tip: Set ENHANCED_MEASUREMENT=1 for improved methodology addressing reviewer concerns\n");
 
-    match op {
-        "mul" => run_repeated_measurements_mul(&curve_type, repeats),
-        "square" => run_repeated_measurements_square(&curve_type, repeats),
-        _ => {
-            println!("Unknown operation: {}. Available operations: mul, square", op);
-            return;
+        match op {
+            "mul" => run_repeated_measurements_mul(&curve_type, repeats),
+            "square" => run_repeated_measurements_square(&curve_type, repeats),
+            _ => {
+                println!("Unknown operation: {}. Available operations: mul, square", op);
+                return;
+            }
         }
     }
 }
