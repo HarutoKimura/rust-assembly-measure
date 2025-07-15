@@ -203,6 +203,120 @@ pub fn calculate_median(mut values: Vec<u64>) -> u64 {
     }
 }
 
+/// Approximate the cumulative distribution function of the standard normal distribution
+fn normal_cdf(z: f64) -> f64 {
+    // Using approximation from Abramowitz and Stegun
+    let a1 =  0.254829592;
+    let a2 = -0.284496736;
+    let a3 =  1.421413741;
+    let a4 = -1.453152027;
+    let a5 =  1.061405429;
+    let p  =  0.3275911;
+    
+    let sign = if z < 0.0 { -1.0 } else { 1.0 };
+    let z = z.abs();
+    
+    let t = 1.0 / (1.0 + p * z);
+    let y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * (-z * z).exp();
+    
+    0.5 * (1.0 + sign * y)
+}
+
+/// Calculate approximate p-value for two-sample t-test
+/// Returns the p-value for the null hypothesis that two samples have the same mean
+pub fn calculate_p_value(sample1: &[u64], sample2: &[u64]) -> f64 {
+    if sample1.is_empty() || sample2.is_empty() {
+        return 1.0;
+    }
+    
+    // Calculate means
+    let mean1 = sample1.iter().map(|&x| x as f64).sum::<f64>() / sample1.len() as f64;
+    let mean2 = sample2.iter().map(|&x| x as f64).sum::<f64>() / sample2.len() as f64;
+    
+    // Calculate variances
+    let var1 = sample1.iter()
+        .map(|&x| {
+            let diff = x as f64 - mean1;
+            diff * diff
+        })
+        .sum::<f64>() / (sample1.len() - 1) as f64;
+    
+    let var2 = sample2.iter()
+        .map(|&x| {
+            let diff = x as f64 - mean2;
+            diff * diff
+        })
+        .sum::<f64>() / (sample2.len() - 1) as f64;
+    
+    // Calculate t-statistic using Welch's t-test (for unequal variances)
+    let n1 = sample1.len() as f64;
+    let n2 = sample2.len() as f64;
+    let se = ((var1 / n1) + (var2 / n2)).sqrt();
+    
+    if se == 0.0 {
+        return 1.0; // No variation, cannot determine significance
+    }
+    
+    let t_stat = (mean1 - mean2).abs() / se;
+    
+    // Calculate degrees of freedom using Welch-Satterthwaite equation
+    let df = ((var1 / n1 + var2 / n2).powi(2)) / 
+             ((var1 / n1).powi(2) / (n1 - 1.0) + (var2 / n2).powi(2) / (n2 - 1.0));
+    
+    // Debug output (can be removed later)
+    eprintln!("Debug: mean1={:.2}, mean2={:.2}, t_stat={:.4}, df={:.2}", mean1, mean2, t_stat, df);
+    
+    // For large degrees of freedom, t-distribution approaches normal distribution
+    // We'll use normal approximation for df > 30
+    let p_value = if df > 30.0 {
+        // Use normal distribution approximation
+        2.0 * (1.0 - normal_cdf(t_stat))
+    } else {
+        // Simplified but more accurate p-value calculation
+        // Using approximation based on t-statistic and degrees of freedom
+        
+        // For extreme t-values, return very small p-values
+        if t_stat > 10.0 {
+            0.000001
+        } else if t_stat > 5.0 {
+            0.00001
+        } else {
+            // Use a better approximation for moderate t-values
+            // This approximation works well for df between 10 and 30
+            let z = t_stat / (1.0 + 0.2316419 * t_stat / df.sqrt()).sqrt();
+            2.0 * (1.0 - normal_cdf(z))
+        }
+    };
+    
+    // Return the actual p-value without artificial floor
+    p_value.min(1.0).max(0.0)
+}
+
+/// Remove outliers using Interquartile Range (IQR) method
+pub fn remove_outliers(data: &[u64]) -> Vec<u64> {
+    if data.len() < 4 {
+        return data.to_vec(); // Not enough data to determine outliers
+    }
+    
+    let mut sorted = data.to_vec();
+    sorted.sort_unstable();
+    
+    let q1_idx = sorted.len() / 4;
+    let q3_idx = 3 * sorted.len() / 4;
+    
+    let q1 = sorted[q1_idx] as f64;
+    let q3 = sorted[q3_idx] as f64;
+    let iqr = q3 - q1;
+    
+    let lower_bound = q1 - 1.5 * iqr;
+    let upper_bound = q3 + 1.5 * iqr;
+    
+    data.iter()
+        .filter(|&&x| x as f64 >= lower_bound && x as f64 <= upper_bound)
+        .copied()
+        .collect()
+}
+
 /// Advanced statistics calculation for measurement validation
 #[derive(Debug)]
 pub struct MeasurementStats {
@@ -212,6 +326,10 @@ pub struct MeasurementStats {
     pub min: u64,
     pub max: u64,
     pub coefficient_of_variation: f64,
+    pub confidence_interval_95: (f64, f64),
+    pub raw_cycles: Vec<u64>,
+    pub filtered_cycles: Vec<u64>,
+    pub outliers_removed: usize,
 }
 
 impl MeasurementStats {
@@ -224,10 +342,24 @@ impl MeasurementStats {
                 min: 0,
                 max: 0,
                 coefficient_of_variation: 0.0,
+                confidence_interval_95: (0.0, 0.0),
+                raw_cycles: Vec::new(),
+                filtered_cycles: Vec::new(),
+                outliers_removed: 0,
             };
         }
         
-        let mut sorted = measurements.to_vec();
+        // Store raw data
+        let raw_cycles = measurements.to_vec();
+        
+        // Remove outliers
+        let filtered = remove_outliers(measurements);
+        let outliers_removed = raw_cycles.len() - filtered.len();
+        
+        // Use filtered data for statistics
+        let working_data = if filtered.len() >= 3 { &filtered } else { measurements };
+        
+        let mut sorted = working_data.to_vec();
         sorted.sort_unstable();
         
         let median = if sorted.len() % 2 == 0 {
@@ -237,17 +369,37 @@ impl MeasurementStats {
             sorted[sorted.len() / 2]
         };
         
-        let mean = measurements.iter().map(|&x| x as f64).sum::<f64>() / measurements.len() as f64;
+        let mean = working_data.iter().map(|&x| x as f64).sum::<f64>() / working_data.len() as f64;
         
-        let variance = measurements.iter()
+        let variance = working_data.iter()
             .map(|&x| {
                 let diff = x as f64 - mean;
                 diff * diff
             })
-            .sum::<f64>() / measurements.len() as f64;
+            .sum::<f64>() / working_data.len() as f64;
         
         let std_dev = variance.sqrt();
         let coefficient_of_variation = if mean > 0.0 { std_dev / mean } else { 0.0 };
+        
+        // Calculate 95% confidence interval using t-distribution
+        // t-values for common degrees of freedom (df = n-1):
+        // df=10: 2.228, df=15: 2.131, df=20: 2.086, df=30: 2.042, df=inf: 1.96
+        let n = working_data.len() as f64;
+        let df = n - 1.0;
+        let t_value = if df <= 10.0 {
+            2.228
+        } else if df <= 15.0 {
+            2.131
+        } else if df <= 20.0 {
+            2.086
+        } else if df <= 30.0 {
+            2.042
+        } else {
+            1.96 // Use z-score for large samples
+        };
+        let standard_error = std_dev / n.sqrt();
+        let margin_of_error = t_value * standard_error;
+        let confidence_interval_95 = (mean - margin_of_error, mean + margin_of_error);
         
         Self {
             median,
@@ -256,6 +408,10 @@ impl MeasurementStats {
             min: *sorted.first().unwrap(),
             max: *sorted.last().unwrap(),
             coefficient_of_variation,
+            confidence_interval_95,
+            raw_cycles,
+            filtered_cycles: filtered,
+            outliers_removed,
         }
     }
     

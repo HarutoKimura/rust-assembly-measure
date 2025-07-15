@@ -890,6 +890,21 @@ fn measure_cryptopt_once_square(curve: &CurveType) -> Result<(u64, u64, u64), Re
 }
 
 // -----------------------------------------------------------------------------
+// Helper function to print performance statistics
+fn print_performance_stats(name: &str, stats: &MeasurementStats) {
+    println!("\n{}:", name);
+    println!("  Raw cycle counts: {:?}", stats.raw_cycles);
+    if stats.outliers_removed > 0 {
+        println!("  Outliers removed: {} (using IQR method)", stats.outliers_removed);
+        println!("  Filtered cycle counts: {:?}", stats.filtered_cycles);
+    }
+    println!("  Mean: {:.2} cycles", stats.mean);
+    println!("  Median: {} cycles", stats.median);
+    println!("  Std Dev: {:.2} cycles", stats.std_dev);
+    println!("  95% CI: [{:.2}, {:.2}] cycles", stats.confidence_interval_95.0, stats.confidence_interval_95.1);
+}
+
+// -----------------------------------------------------------------------------
 // Run repeated measurements for multiplication
 fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
     // Check if this is a 3, 4, or 5-function case
@@ -906,25 +921,77 @@ fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
                     cryptopt_results.push(cryptopt);
                 }
             }
-            let llc_mom = median(&llc_results);
-            let nasm_mom = median(&nasm_results);
-            let cryptopt_mom = median(&cryptopt_results);
-            println!("\n=== Final 'Median of Medians' (multiply) after {} runs ===", repeats);
-            println!("GAS format ASM: {:?}", llc_mom);
-            println!("NASM format ASM: {:?}", nasm_mom);
-            println!("CryptOpt format ASM: {:?}", cryptopt_mom);
-            let diff_cryptopt_llc = ((llc_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            
+            // Calculate comprehensive statistics
+            let llc_stats = MeasurementStats::from_measurements(&llc_results);
+            let nasm_stats = MeasurementStats::from_measurements(&nasm_results);
+            let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
+            
+            println!("\n=== Performance Statistics (multiply) after {} runs ===", repeats);
+            print_performance_stats("GAS format ASM", &llc_stats);
+            print_performance_stats("NASM format ASM", &nasm_stats);
+            print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
+            
+            println!("\n=== Comparative Analysis ===");
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (median-of-medians).", diff_cryptopt_llc);
+                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (median-of-medians).", diff_cryptopt_llc.abs());
+                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
             }
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (median-of-medians).", diff_cryptopt_nasm);
+                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (median-of-medians).", diff_cryptopt_nasm.abs());
+                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
             }
+            
+            // Test for statistical significance using confidence intervals and p-values
+            println!("\n=== Statistical Significance ===");
+            
+            // Calculate p-values using filtered data if available
+            let gas_data = if llc_stats.filtered_cycles.len() >= 3 { &llc_stats.filtered_cycles } else { &llc_stats.raw_cycles };
+            let nasm_data = if nasm_stats.filtered_cycles.len() >= 3 { &nasm_stats.filtered_cycles } else { &nasm_stats.raw_cycles };
+            let cryptopt_data = if cryptopt_stats.filtered_cycles.len() >= 3 { &cryptopt_stats.filtered_cycles } else { &cryptopt_stats.raw_cycles };
+            
+            let p_gas_cryptopt = calculate_p_value(gas_data, cryptopt_data);
+            let p_nasm_cryptopt = calculate_p_value(nasm_data, cryptopt_data);
+            
+            // GAS vs CryptOpt
+            let p_gas_str = if p_gas_cryptopt < 1e-10 {
+                format!("{:.2e}", p_gas_cryptopt)  // Scientific notation for very small values
+            } else if p_gas_cryptopt < 0.000001 { 
+                format!("< 0.000001")
+            } else { 
+                format!("{:.6}", p_gas_cryptopt) 
+            };
+            
+            if llc_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
+                println!("GAS is significantly faster than CryptOpt (95% CI non-overlapping, p = {})", p_gas_str);
+            } else if cryptopt_stats.confidence_interval_95.1 < llc_stats.confidence_interval_95.0 {
+                println!("CryptOpt is significantly faster than GAS (95% CI non-overlapping, p = {})", p_gas_str);
+            } else {
+                println!("No significant difference between GAS and CryptOpt (95% CI overlapping, p = {})", p_gas_str);
+            }
+            
+            // NASM vs CryptOpt
+            let p_nasm_str = if p_nasm_cryptopt < 1e-10 {
+                format!("{:.2e}", p_nasm_cryptopt)  // Scientific notation for very small values
+            } else if p_nasm_cryptopt < 0.000001 { 
+                format!("< 0.000001")
+            } else { 
+                format!("{:.6}", p_nasm_cryptopt) 
+            };
+            
+            if nasm_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
+                println!("NASM is significantly faster than CryptOpt (95% CI non-overlapping, p = {})", p_nasm_str);
+            } else if cryptopt_stats.confidence_interval_95.1 < nasm_stats.confidence_interval_95.0 {
+                println!("CryptOpt is significantly faster than NASM (95% CI non-overlapping, p = {})", p_nasm_str);
+            } else {
+                println!("No significant difference between NASM and CryptOpt (95% CI overlapping, p = {})", p_nasm_str);
+            }
+            
+            println!("\nNote: p-values < 0.05 indicate statistically significant differences at the 95% confidence level.");
         },
         Err(Ok(_)) => {
             // 4-function case
@@ -940,37 +1007,41 @@ fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
                     cryptopt_results.push(cryptopt);
                 }
             }
-            let llc_mom = median(&llc_results);
-            let nasm_mom = median(&nasm_results);
-            let hand_optmised_mom = median(&hand_optmised_results);
-            let cryptopt_mom = median(&cryptopt_results);
-            println!("\n=== Final 'Median of Medians' (multiply) after {} runs ===", repeats);
-            println!("GAS format ASM: {:?}", llc_mom);
-            println!("NASM format ASM: {:?}", nasm_mom);
-            println!("Hand-optimised ASM: {:?}", hand_optmised_mom);
-            println!("CryptOpt format ASM: {:?}", cryptopt_mom);
             
+            // Calculate comprehensive statistics
+            let llc_stats = MeasurementStats::from_measurements(&llc_results);
+            let nasm_stats = MeasurementStats::from_measurements(&nasm_results);
+            let hand_stats = MeasurementStats::from_measurements(&hand_optmised_results);
+            let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
+            
+            println!("\n=== Performance Statistics (multiply) after {} runs ===", repeats);
+            print_performance_stats("GAS format ASM", &llc_stats);
+            print_performance_stats("NASM format ASM", &nasm_stats);
+            print_performance_stats("Hand-optimised ASM", &hand_stats);
+            print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
+            
+            println!("\n=== Comparative Analysis ===");
             // Compare all relative to CryptOpt
-            let diff_cryptopt_llc = ((llc_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_hand = ((hand_optmised_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
             
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (median-of-medians).", diff_cryptopt_llc);
+                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (median-of-medians).", diff_cryptopt_llc.abs());
+                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
             }
             
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (median-of-medians).", diff_cryptopt_nasm);
+                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (median-of-medians).", diff_cryptopt_nasm.abs());
+                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
             }
             
             if diff_cryptopt_hand > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised (median-of-medians).", diff_cryptopt_hand);
+                println!("CryptOpt is {:.2}% faster than Hand-optimised (based on median).", diff_cryptopt_hand);
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised (median-of-medians).", diff_cryptopt_hand.abs());
+                println!("CryptOpt is {:.2}% slower than Hand-optimised (based on median).", diff_cryptopt_hand.abs());
             }
         },
         Err(Err(_)) => {
@@ -989,46 +1060,49 @@ fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
                     cryptopt_results.push(cryptopt);
                 }
             }
-            let llc_mom = median(&llc_results);
-            let nasm_mom = median(&nasm_results);
-            let hand_optmised_mom = median(&hand_optmised_results);
-            let hand_optmised_nasm_mom = median(&hand_optmised_nasm_results);
-            let cryptopt_mom = median(&cryptopt_results);
-            println!("\n=== Final 'Median of Medians' (multiply) after {} runs ===", repeats);
-            println!("GAS format ASM: {:?}", llc_mom);
-            println!("NASM format ASM: {:?}", nasm_mom);
-            println!("Hand-optimised ASM: {:?}", hand_optmised_mom);
-            println!("Hand-optimised NASM ASM: {:?}", hand_optmised_nasm_mom);
-            println!("CryptOpt format ASM: {:?}", cryptopt_mom);
+            // Calculate comprehensive statistics
+            let llc_stats = MeasurementStats::from_measurements(&llc_results);
+            let nasm_stats = MeasurementStats::from_measurements(&nasm_results);
+            let hand_stats = MeasurementStats::from_measurements(&hand_optmised_results);
+            let hand_nasm_stats = MeasurementStats::from_measurements(&hand_optmised_nasm_results);
+            let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
             
+            println!("\n=== Performance Statistics (multiply) after {} runs ===", repeats);
+            print_performance_stats("GAS format ASM", &llc_stats);
+            print_performance_stats("NASM format ASM", &nasm_stats);
+            print_performance_stats("Hand-optimised ASM", &hand_stats);
+            print_performance_stats("Hand-optimised NASM ASM", &hand_nasm_stats);
+            print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
+            
+            println!("\n=== Comparative Analysis ===");
             // Compare all relative to CryptOpt
-            let diff_cryptopt_llc = ((llc_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_hand = ((hand_optmised_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_hand_nasm = ((hand_optmised_nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_hand_nasm = ((hand_nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
             
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (median-of-medians).", diff_cryptopt_llc);
+                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (median-of-medians).", diff_cryptopt_llc.abs());
+                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
             }
             
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (median-of-medians).", diff_cryptopt_nasm);
+                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (median-of-medians).", diff_cryptopt_nasm.abs());
+                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
             }
             
             if diff_cryptopt_hand > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised (median-of-medians).", diff_cryptopt_hand);
+                println!("CryptOpt is {:.2}% faster than Hand-optimised (based on median).", diff_cryptopt_hand);
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised (median-of-medians).", diff_cryptopt_hand.abs());
+                println!("CryptOpt is {:.2}% slower than Hand-optimised (based on median).", diff_cryptopt_hand.abs());
             }
             
             if diff_cryptopt_hand_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised NASM (median-of-medians).", diff_cryptopt_hand_nasm);
+                println!("CryptOpt is {:.2}% faster than Hand-optimised NASM (based on median).", diff_cryptopt_hand_nasm);
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised NASM (median-of-medians).", diff_cryptopt_hand_nasm.abs());
+                println!("CryptOpt is {:.2}% slower than Hand-optimised NASM (based on median).", diff_cryptopt_hand_nasm.abs());
             }
         }
     }
@@ -1050,25 +1124,76 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
                     cryptopt_results.push(cryptopt);
                 }
             }
-            let llc_mom = median(&llc_results);
-            let nasm_mom = median(&nasm_results);
-            let cryptopt_mom = median(&cryptopt_results);
-            println!("\n=== Final 'Median of Medians' (square) after {} runs ===", repeats);
-            println!("GAS format ASM: {:?}", llc_mom);
-            println!("NASM format ASM: {:?}", nasm_mom);
-            println!("CryptOpt format ASM: {:?}", cryptopt_mom);
-            let diff_cryptopt_llc = ((llc_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            // Calculate comprehensive statistics
+            let llc_stats = MeasurementStats::from_measurements(&llc_results);
+            let nasm_stats = MeasurementStats::from_measurements(&nasm_results);
+            let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
+            
+            println!("\n=== Performance Statistics (square) after {} runs ===", repeats);
+            print_performance_stats("GAS format ASM", &llc_stats);
+            print_performance_stats("NASM format ASM", &nasm_stats);
+            print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
+            
+            println!("\n=== Comparative Analysis ===");
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (median-of-medians).", diff_cryptopt_llc);
+                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (median-of-medians).", diff_cryptopt_llc.abs());
+                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
             }
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (median-of-medians).", diff_cryptopt_nasm);
+                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (median-of-medians).", diff_cryptopt_nasm.abs());
+                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
             }
+            
+            // Test for statistical significance using confidence intervals and p-values
+            println!("\n=== Statistical Significance ===");
+            
+            // Calculate p-values using filtered data if available
+            let gas_data = if llc_stats.filtered_cycles.len() >= 3 { &llc_stats.filtered_cycles } else { &llc_stats.raw_cycles };
+            let nasm_data = if nasm_stats.filtered_cycles.len() >= 3 { &nasm_stats.filtered_cycles } else { &nasm_stats.raw_cycles };
+            let cryptopt_data = if cryptopt_stats.filtered_cycles.len() >= 3 { &cryptopt_stats.filtered_cycles } else { &cryptopt_stats.raw_cycles };
+            
+            let p_gas_cryptopt = calculate_p_value(gas_data, cryptopt_data);
+            let p_nasm_cryptopt = calculate_p_value(nasm_data, cryptopt_data);
+            
+            // GAS vs CryptOpt
+            let p_gas_str = if p_gas_cryptopt < 1e-10 {
+                format!("{:.2e}", p_gas_cryptopt)  // Scientific notation for very small values
+            } else if p_gas_cryptopt < 0.000001 { 
+                format!("< 0.000001")
+            } else { 
+                format!("{:.6}", p_gas_cryptopt) 
+            };
+            
+            if llc_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
+                println!("GAS is significantly faster than CryptOpt (95% CI non-overlapping, p = {})", p_gas_str);
+            } else if cryptopt_stats.confidence_interval_95.1 < llc_stats.confidence_interval_95.0 {
+                println!("CryptOpt is significantly faster than GAS (95% CI non-overlapping, p = {})", p_gas_str);
+            } else {
+                println!("No significant difference between GAS and CryptOpt (95% CI overlapping, p = {})", p_gas_str);
+            }
+            
+            // NASM vs CryptOpt
+            let p_nasm_str = if p_nasm_cryptopt < 1e-10 {
+                format!("{:.2e}", p_nasm_cryptopt)  // Scientific notation for very small values
+            } else if p_nasm_cryptopt < 0.000001 { 
+                format!("< 0.000001")
+            } else { 
+                format!("{:.6}", p_nasm_cryptopt) 
+            };
+            
+            if nasm_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
+                println!("NASM is significantly faster than CryptOpt (95% CI non-overlapping, p = {})", p_nasm_str);
+            } else if cryptopt_stats.confidence_interval_95.1 < nasm_stats.confidence_interval_95.0 {
+                println!("CryptOpt is significantly faster than NASM (95% CI non-overlapping, p = {})", p_nasm_str);
+            } else {
+                println!("No significant difference between NASM and CryptOpt (95% CI overlapping, p = {})", p_nasm_str);
+            }
+            
+            println!("\nNote: p-values < 0.05 indicate statistically significant differences at the 95% confidence level.");
         },
         Err(Ok(_)) => {
             // 4-function case
@@ -1084,37 +1209,40 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
                     cryptopt_results.push(cryptopt);
                 }
             }
-            let llc_mom = median(&llc_results);
-            let nasm_mom = median(&nasm_results);
-            let hand_optmised_mom = median(&hand_optmised_results);
-            let cryptopt_mom = median(&cryptopt_results);
-            println!("\n=== Final 'Median of Medians' (square) after {} runs ===", repeats);
-            println!("GAS format ASM: {:?}", llc_mom);
-            println!("NASM format ASM: {:?}", nasm_mom);
-            println!("Hand-optimised ASM: {:?}", hand_optmised_mom);
-            println!("CryptOpt format ASM: {:?}", cryptopt_mom);
+            // Calculate comprehensive statistics
+            let llc_stats = MeasurementStats::from_measurements(&llc_results);
+            let nasm_stats = MeasurementStats::from_measurements(&nasm_results);
+            let hand_stats = MeasurementStats::from_measurements(&hand_optmised_results);
+            let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
             
+            println!("\n=== Performance Statistics (square) after {} runs ===", repeats);
+            print_performance_stats("GAS format ASM", &llc_stats);
+            print_performance_stats("NASM format ASM", &nasm_stats);
+            print_performance_stats("Hand-optimised ASM", &hand_stats);
+            print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
+            
+            println!("\n=== Comparative Analysis ===");
             // Compare all relative to CryptOpt
-            let diff_cryptopt_llc = ((llc_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_hand = ((hand_optmised_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
             
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (median-of-medians).", diff_cryptopt_llc);
+                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (median-of-medians).", diff_cryptopt_llc.abs());
+                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
             }
             
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (median-of-medians).", diff_cryptopt_nasm);
+                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (median-of-medians).", diff_cryptopt_nasm.abs());
+                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
             }
             
             if diff_cryptopt_hand > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised (median-of-medians).", diff_cryptopt_hand);
+                println!("CryptOpt is {:.2}% faster than Hand-optimised (based on median).", diff_cryptopt_hand);
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised (median-of-medians).", diff_cryptopt_hand.abs());
+                println!("CryptOpt is {:.2}% slower than Hand-optimised (based on median).", diff_cryptopt_hand.abs());
             }
         },
         Err(Err(_)) => {
@@ -1133,46 +1261,49 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
                     cryptopt_results.push(cryptopt);
                 }
             }
-            let llc_mom = median(&llc_results);
-            let nasm_mom = median(&nasm_results);
-            let hand_optmised_mom = median(&hand_optmised_results);
-            let hand_optmised_nasm_mom = median(&hand_optmised_nasm_results);
-            let cryptopt_mom = median(&cryptopt_results);
-            println!("\n=== Final 'Median of Medians' (square) after {} runs ===", repeats);
-            println!("GAS format ASM: {:?}", llc_mom);
-            println!("NASM format ASM: {:?}", nasm_mom);
-            println!("Hand-optimised ASM: {:?}", hand_optmised_mom);
-            println!("Hand-optimised NASM ASM: {:?}", hand_optmised_nasm_mom);
-            println!("CryptOpt format ASM: {:?}", cryptopt_mom);
+            // Calculate comprehensive statistics
+            let llc_stats = MeasurementStats::from_measurements(&llc_results);
+            let nasm_stats = MeasurementStats::from_measurements(&nasm_results);
+            let hand_stats = MeasurementStats::from_measurements(&hand_optmised_results);
+            let hand_nasm_stats = MeasurementStats::from_measurements(&hand_optmised_nasm_results);
+            let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
             
+            println!("\n=== Performance Statistics (square) after {} runs ===", repeats);
+            print_performance_stats("GAS format ASM", &llc_stats);
+            print_performance_stats("NASM format ASM", &nasm_stats);
+            print_performance_stats("Hand-optimised ASM", &hand_stats);
+            print_performance_stats("Hand-optimised NASM ASM", &hand_nasm_stats);
+            print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
+            
+            println!("\n=== Comparative Analysis ===");
             // Compare all relative to CryptOpt
-            let diff_cryptopt_llc = ((llc_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_hand = ((hand_optmised_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-            let diff_cryptopt_hand_nasm = ((hand_optmised_nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_hand_nasm = ((hand_nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
             
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (median-of-medians).", diff_cryptopt_llc);
+                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (median-of-medians).", diff_cryptopt_llc.abs());
+                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
             }
             
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (median-of-medians).", diff_cryptopt_nasm);
+                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (median-of-medians).", diff_cryptopt_nasm.abs());
+                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
             }
             
             if diff_cryptopt_hand > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised (median-of-medians).", diff_cryptopt_hand);
+                println!("CryptOpt is {:.2}% faster than Hand-optimised (based on median).", diff_cryptopt_hand);
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised (median-of-medians).", diff_cryptopt_hand.abs());
+                println!("CryptOpt is {:.2}% slower than Hand-optimised (based on median).", diff_cryptopt_hand.abs());
             }
             
             if diff_cryptopt_hand_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised NASM (median-of-medians).", diff_cryptopt_hand_nasm);
+                println!("CryptOpt is {:.2}% faster than Hand-optimised NASM (based on median).", diff_cryptopt_hand_nasm);
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised NASM (median-of-medians).", diff_cryptopt_hand_nasm.abs());
+                println!("CryptOpt is {:.2}% slower than Hand-optimised NASM (based on median).", diff_cryptopt_hand_nasm.abs());
             }
         }
     }
@@ -1311,6 +1442,46 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
              cryptopt_stats_final.coefficient_of_variation * 100.0,
              cryptopt_stats_final.quality_assessment());
     
+    // Detailed statistics with confidence intervals
+    println!();
+    println!("Detailed Statistics (across {} runs):", repeats);
+    println!("  GAS Format:");
+    println!("    Mean: {:.2} cycles", gas_stats_final.mean);
+    println!("    Median: {} cycles", gas_stats_final.median);
+    println!("    Std Dev: {:.2} cycles", gas_stats_final.std_dev);
+    println!("    95% CI: [{:.2}, {:.2}] cycles", gas_stats_final.confidence_interval_95.0, gas_stats_final.confidence_interval_95.1);
+    
+    println!("  NASM Format:");
+    println!("    Mean: {:.2} cycles", nasm_stats_final.mean);
+    println!("    Median: {} cycles", nasm_stats_final.median);
+    println!("    Std Dev: {:.2} cycles", nasm_stats_final.std_dev);
+    println!("    95% CI: [{:.2}, {:.2}] cycles", nasm_stats_final.confidence_interval_95.0, nasm_stats_final.confidence_interval_95.1);
+    
+    println!("  CryptOpt Format:");
+    println!("    Mean: {:.2} cycles", cryptopt_stats_final.mean);
+    println!("    Median: {} cycles", cryptopt_stats_final.median);
+    println!("    Std Dev: {:.2} cycles", cryptopt_stats_final.std_dev);
+    println!("    95% CI: [{:.2}, {:.2}] cycles", cryptopt_stats_final.confidence_interval_95.0, cryptopt_stats_final.confidence_interval_95.1);
+    
+    // Statistical significance assessment
+    println!();
+    println!("Statistical Significance Assessment:");
+    if gas_stats_final.confidence_interval_95.1 < cryptopt_stats_final.confidence_interval_95.0 {
+        println!("  GAS is significantly faster than CryptOpt (95% CI non-overlapping)");
+    } else if cryptopt_stats_final.confidence_interval_95.1 < gas_stats_final.confidence_interval_95.0 {
+        println!("  CryptOpt is significantly faster than GAS (95% CI non-overlapping)");
+    } else {
+        println!("  No significant difference between GAS and CryptOpt (95% CI overlapping)");
+    }
+    
+    if nasm_stats_final.confidence_interval_95.1 < cryptopt_stats_final.confidence_interval_95.0 {
+        println!("  NASM is significantly faster than CryptOpt (95% CI non-overlapping)");
+    } else if cryptopt_stats_final.confidence_interval_95.1 < nasm_stats_final.confidence_interval_95.0 {
+        println!("  CryptOpt is significantly faster than NASM (95% CI non-overlapping)");
+    } else {
+        println!("  No significant difference between NASM and CryptOpt (95% CI overlapping)");
+    }
+    
     println!();
     println!("Note: This enhanced methodology addresses reviewer concerns about:");
     println!("  ✓ Memory barriers (mfence before rdtsc)");
@@ -1374,7 +1545,6 @@ fn main() {
     } else {
         println!("Measuring {:?} for operation '{}' with CryptOpt approach...", curve_type, op);
         println!("Using batch size = 200 and nBatches = 31, repeated {} time(s).", repeats);
-        println!("Tip: Set ENHANCED_MEASUREMENT=1 for improved methodology addressing reviewer concerns\n");
 
         match op {
             "mul" => run_repeated_measurements_mul(&curve_type, repeats),
