@@ -7,6 +7,10 @@ use std::env;
 mod precise_timing;
 use precise_timing::*;
 
+// Import CryptOpt-style timing module
+mod cryptopt_timing;
+use cryptopt_timing::*;
+
 // -----------------------------------------------------------------------------
 // Modules for the curves with external function declarations.
 // (These signatures should match actual FFI declarations.)

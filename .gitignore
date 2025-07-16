@@ -15,5 +15,6 @@ COMMIT_READY.md
 binsec/
 binsec-validation/harnesses/**/test_*
 output/
+output100/
 *.tex
 *.py

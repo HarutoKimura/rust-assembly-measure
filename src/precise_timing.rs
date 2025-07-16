@@ -264,7 +264,7 @@ pub fn calculate_p_value(sample1: &[u64], sample2: &[u64]) -> f64 {
              ((var1 / n1).powi(2) / (n1 - 1.0) + (var2 / n2).powi(2) / (n2 - 1.0));
     
     // Debug output (can be removed later)
-    eprintln!("Debug: mean1={:.2}, mean2={:.2}, t_stat={:.4}, df={:.2}", mean1, mean2, t_stat, df);
+    println!("Debug: mean1={:.2}, mean2={:.2}, t_stat={:.4}, df={:.2}", mean1, mean2, t_stat, df);
     
     // For large degrees of freedom, t-distribution approaches normal distribution
     // We'll use normal approximation for df > 30
