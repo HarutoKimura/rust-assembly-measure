@@ -67,7 +67,7 @@ mod fiat_c_p448 {
         // Multiply functions
         pub fn fiat_c_p448_solinas_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn fiat_c_p448_solinas_carry_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_p448_solinas_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_p448_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
         pub fn fiat_c_p448_solinas_carry_square(arg0: *mut u64, arg1: *const u64);
         pub fn fiat_c_p448_solinas_carry_square_nasm(arg0: *mut u64, arg1: *const u64);
@@ -355,7 +355,7 @@ impl CurveType {
             CurveType::FiatCP448 => Function::U64Mul(
                 fiat_c_p448::fiat_c_p448_solinas_carry_mul,
                 fiat_c_p448::fiat_c_p448_solinas_carry_mul_nasm,
-                fiat_c_p448::fiat_c_p448_solinas_carry_mul_CryptOpt
+                fiat_c_p448::fiat_c_p448_carry_mul_CryptOpt
             ),
             CurveType::OpenSSLCurve25519 => Function::U64MulFive(
                 openssl_curve25519::open_ssl_curve25519_fe51_mul,

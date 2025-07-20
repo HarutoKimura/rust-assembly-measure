@@ -1299,6 +1299,48 @@ fn build_openssl_curve25519(){
     // ---------- SQUARE ----------
     // Hand-optimised square handled in the generated block above.
 
+    // LLC version (square)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa.asm",
+            "-o",
+            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-curve25519/llc/square/libopenssl_curve25519_fe51_square.a",
+            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_nasm.asm",
+            "-o",
+            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-curve25519/llc-nasm/square/libopenssl_curve25519_fe51_square_nasm.a",
+            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
     // Hand-optimised NASM version (square)
     assert!(Command::new("nasm")
         .args(&[
@@ -1543,7 +1585,7 @@ fn main() {
     // Fiat C P448 (mul)
     println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul");
     println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul_nasm");
-    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul_CryptOpt");
+    println!("cargo:rustc-link-lib=static=fiat_c_p448_carry_mul_CryptOpt");
 
     // Fiat C P448 (square)
     println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square");
