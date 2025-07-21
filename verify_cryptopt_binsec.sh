@@ -4,6 +4,10 @@
 # Don't use set -e to allow proper error handling
 set -uo pipefail
 
+# Ensure we're using the correct opam switch with working binsec
+opam switch default >/dev/null 2>&1
+eval $(opam env)
+
 # Check for binsec
 if ! command -v binsec >/dev/null 2>&1; then
     echo "Error: binsec not found in PATH"
@@ -105,7 +109,7 @@ EOF
     
     # Run BINSEC
     LOG="logs/stub/${SYMBOL}.log"
-    timeout 30 binsec -sse -checkct -sse-script "${SYMBOL}.cfg" -sse-depth 2000 "${SYMBOL}_stub.elf" > "$LOG" 2>&1 || true
+    timeout 30 binsec -isa amd64 -sse -checkct -sse-script "${SYMBOL}.cfg" -sse-depth 2000 "${SYMBOL}_stub.elf" > "$LOG" 2>&1 || true
     
     # Parse results
     CFI=$(grep -oP '\d+(?= / \d+ control flow checks pass)' "$LOG" 2>/dev/null || echo "0")
