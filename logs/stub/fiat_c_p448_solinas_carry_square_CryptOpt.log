@@ -1,0 +1,5 @@
+[sse:fatal] Parse error at word `KO
+' (line 5, column 17 in fiat_c_p448_solinas_carry_square_CryptOpt.cfg)
+"validInstruction KO"
+                  ^
+Fatal error: exception Failure("abort")

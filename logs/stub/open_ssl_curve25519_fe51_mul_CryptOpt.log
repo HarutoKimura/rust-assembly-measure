@@ -1,0 +1,5 @@
+[sse:fatal] Parse error at word `KO
+' (line 5, column 17 in open_ssl_curve25519_fe51_mul_CryptOpt.cfg)
+"validInstruction KO"
+                  ^
+Fatal error: exception Failure("abort")
