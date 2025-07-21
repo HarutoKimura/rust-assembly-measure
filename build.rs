@@ -8,7 +8,7 @@ include!("dudect_integration.rs");
 
 // -----------------------------------------------------------------------------
 // Binsec formal verification integration
-include!("binsec_integration.rs");
+include!("binsec_integration_new.rs");
 
 // -----------------------------------------------------------------------------
 // Build functions for each curve
@@ -1620,4 +1620,13 @@ fn main() {
     println!("cargo:rerun-if-changed=src/c/fiat-poly1305");
     println!("cargo:rerun-if-changed=src/c/fiat-p448");
     println!("cargo:rerun-if-changed=src/c/openssl-curve25519");
+    
+    // Run BINSEC verification on all CryptOpt implementations if enabled
+    let binsec_config = BinsecConfig::default();
+    if binsec_config.enabled {
+        if !run_binsec_verification(&binsec_config) {
+            // Build failed due to verification errors
+            panic!("BINSEC verification failed!");
+        }
+    }
 }
