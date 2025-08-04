@@ -1179,6 +1179,184 @@ fn build_fiat_c_p448(){
     );
 }   
 
+fn build_openssl_p448(){
+    // ---------- MUL ----------
+    // LLC version (mul)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/openssl-p448/llc/mul/openssl_p448_mul_ssa.asm",
+            "-o",
+            "src/c/openssl-p448/llc/mul/openssl_p448_mul_ssa.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-p448/llc/mul/libopenssl_p448_mul.a",
+            "src/c/openssl-p448/llc/mul/openssl_p448_mul_ssa.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-p448/llc-nasm/mul/openssl_p448_mul_ssa_nasm.asm",
+            "-o",
+            "src/c/openssl-p448/llc-nasm/mul/openssl_p448_mul_ssa_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-p448/llc-nasm/mul/libopenssl_p448_mul_nasm.a",
+            "src/c/openssl-p448/llc-nasm/mul/openssl_p448_mul_ssa_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (mul)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-p448/cryptopt/mul/seed0001754016023536_ratio11739.asm",
+            "-o",
+            "src/c/openssl-p448/cryptopt/mul/seed0001754016023536_ratio11739.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    
+    // Dudect validation for CryptOpt mul
+    let dudect_validation_mul = AssemblyValidation {
+        asm_file: "src/c/openssl-p448/cryptopt/mul/seed0001754016023536_ratio11739.asm".to_string(),
+        function_name: "openssl_p448_mul".to_string(),  // Use the actual function name from the assembly
+        curve_name: "openssl_p448".to_string(),
+        operation: "mul".to_string(),
+        field_size: 8,
+        loose_bound: "0x300000000000000".to_string(),
+    };
+    let dudect_config = DudectConfig::default();
+    validate_assembly_constant_time(&dudect_validation_mul, &dudect_config);
+    
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-p448/cryptopt/mul/wrapper.asm",
+            "-o",
+            "src/c/openssl-p448/cryptopt/mul/wrapper.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-p448/cryptopt/mul/libopenssl_p448_mul_CryptOpt.a",
+            "src/c/openssl-p448/cryptopt/mul/seed0001754016023536_ratio11739.o",
+            "src/c/openssl-p448/cryptopt/mul/wrapper.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // ---------- SQUARE ----------
+    // LLC version (square)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/c/openssl-p448/llc/square/openssl_p448_square_ssa.asm",
+            "-o",
+            "src/c/openssl-p448/llc/square/openssl_p448_square_ssa.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-p448/llc/square/libopenssl_p448_square.a",
+            "src/c/openssl-p448/llc/square/openssl_p448_square_ssa.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-p448/llc-nasm/square/openssl_p448_square_ssa_nasm.asm",
+            "-o",
+            "src/c/openssl-p448/llc-nasm/square/openssl_p448_square_ssa_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-p448/llc-nasm/square/libopenssl_p448_square_nasm.a",
+            "src/c/openssl-p448/llc-nasm/square/openssl_p448_square_ssa_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-p448/cryptopt/square/seed0001754025746283_ratio11326.asm",
+            "-o",
+            "src/c/openssl-p448/cryptopt/square/seed0001754025746283_ratio11326.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    
+    // Dudect validation for CryptOpt square
+    let dudect_validation_square = AssemblyValidation {
+        asm_file: "src/c/openssl-p448/cryptopt/square/seed0001754025746283_ratio11326.asm".to_string(),
+        function_name: "openssl_p448_square".to_string(),  // Use the actual function name from the assembly
+        curve_name: "openssl_p448".to_string(),
+        operation: "square".to_string(),
+        field_size: 8,
+        loose_bound: "0x300000000000000".to_string(),
+    };
+    let dudect_config = DudectConfig::default();
+    validate_assembly_constant_time(&dudect_validation_square, &dudect_config);
+    
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/c/openssl-p448/cryptopt/square/wrapper.asm",
+            "-o",
+            "src/c/openssl-p448/cryptopt/square/wrapper.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/c/openssl-p448/cryptopt/square/libopenssl_p448_square_CryptOpt.a",
+            "src/c/openssl-p448/cryptopt/square/seed0001754025746283_ratio11326.o",
+            "src/c/openssl-p448/cryptopt/square/wrapper.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+}
+
 fn build_openssl_curve25519(){
     // ---------- MUL ----------
     // Hand-optimised mul & square generated from upstream OpenSSL perl
@@ -1393,6 +1571,7 @@ fn main() {
     build_fiat_c_poly1305();
     build_fiat_c_p448();
     build_openssl_curve25519();
+    build_openssl_p448();
     // -------------------------------------------------------------------------
     // Add link-search paths for all curves and both operations
 
@@ -1490,6 +1669,14 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/hand-optimised/square");
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/hand-optimised-nasm/square");
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/cryptopt/square");
+
+    // OpenSSL P448
+    println!("cargo:rustc-link-search=native=src/c/openssl-p448/llc/mul");
+    println!("cargo:rustc-link-search=native=src/c/openssl-p448/llc-nasm/mul");
+    println!("cargo:rustc-link-search=native=src/c/openssl-p448/cryptopt/mul");
+    println!("cargo:rustc-link-search=native=src/c/openssl-p448/llc/square");
+    println!("cargo:rustc-link-search=native=src/c/openssl-p448/llc-nasm/square");
+    println!("cargo:rustc-link-search=native=src/c/openssl-p448/cryptopt/square");
 
 
     // -------------------------------------------------------------------------
@@ -1606,6 +1793,16 @@ fn main() {
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_hand_optimised_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_CryptOpt");
 
+    // OpenSSL P448 (mul)
+    println!("cargo:rustc-link-lib=static=openssl_p448_mul");
+    println!("cargo:rustc-link-lib=static=openssl_p448_mul_nasm");
+    println!("cargo:rustc-link-lib=static=openssl_p448_mul_CryptOpt");
+
+    // OpenSSL P448 (square)
+    println!("cargo:rustc-link-lib=static=openssl_p448_square");
+    println!("cargo:rustc-link-lib=static=openssl_p448_square_nasm");
+    println!("cargo:rustc-link-lib=static=openssl_p448_square_CryptOpt");
+
     // -------------------------------------------------------------------------
     // Re-run build.rs if any assembly files change
     println!("cargo:rerun-if-changed=src/rust/curve25519"); 
@@ -1620,6 +1817,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/c/fiat-poly1305");
     println!("cargo:rerun-if-changed=src/c/fiat-p448");
     println!("cargo:rerun-if-changed=src/c/openssl-curve25519");
+    println!("cargo:rerun-if-changed=src/c/openssl-p448");
     
     // Run BINSEC verification on all CryptOpt implementations if enabled
     let binsec_config = BinsecConfig::default();

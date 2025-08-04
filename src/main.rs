@@ -213,6 +213,20 @@ mod bls12 {
         //                              in0: *const usize, in0_len: usize);
     }
 }
+mod openssl_p448 {
+    pub const LOOSE_BOUND: u64 = 0x300000000000000;
+    pub const SIZE: usize = 8;
+    extern "C" {
+        // Multiply functions
+        pub fn openssl_p448_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn openssl_p448_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn openssl_p448_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        // Square functions
+        pub fn openssl_p448_square(arg0: *mut u64, arg1: *const u64);
+        pub fn openssl_p448_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn openssl_p448_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
+    }
+}
 
 // -----------------------------------------------------------------------------
 // Enum definitions for curves and the functions.
@@ -230,6 +244,7 @@ enum CurveType {
     FiatCPoly1305,
     FiatCP448,
     OpenSSLCurve25519,
+    OpenSSLP448,
 }
 
 #[allow(dead_code)]
@@ -297,6 +312,7 @@ impl CurveType {
             CurveType::FiatCPoly1305 => (fiat_c_poly1305::LOOSE_BOUND, fiat_c_poly1305::SIZE),
             CurveType::FiatCP448 => (fiat_c_p448::LOOSE_BOUND, fiat_c_p448::SIZE),
             CurveType::OpenSSLCurve25519 => (openssl_curve25519::LOOSE_BOUND, openssl_curve25519::SIZE),
+            CurveType::OpenSSLP448 => (openssl_p448::LOOSE_BOUND, openssl_p448::SIZE),
         }
     }
 
@@ -364,6 +380,11 @@ impl CurveType {
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_mul_nasm,
                 openssl_curve25519::open_ssl_curve25519_fe51_mul_CryptOpt
             ),
+            CurveType::OpenSSLP448 => Function::U64Mul(
+                openssl_p448::openssl_p448_mul,
+                openssl_p448::openssl_p448_mul_nasm,
+                openssl_p448::openssl_p448_mul_CryptOpt
+            ),
         }
     }
 
@@ -425,6 +446,11 @@ impl CurveType {
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_square,
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_square_nasm,
                 openssl_curve25519::open_ssl_curve25519_fe51_square_CryptOpt
+            ),
+            CurveType::OpenSSLP448 => Function::U64Square(
+                openssl_p448::openssl_p448_square,
+                openssl_p448::openssl_p448_square_nasm,
+                openssl_p448::openssl_p448_square_CryptOpt
             ),
 
             &CurveType::P448 | &CurveType::Bls12  => todo!(),
@@ -1504,7 +1530,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 || args.len() > 4 {
         println!("Usage: cargo run <curve_name> <operation> [repeat_count]");
-        println!("Available curves: curve25519, curve25519_dalek, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519");
+        println!("Available curves: curve25519, curve25519_dalek, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519, openssl_p448");
         println!("Available operations: mul, square");
         return;
     }
@@ -1522,8 +1548,9 @@ fn main() {
         "fiat_c_poly1305" => CurveType::FiatCPoly1305,
         "fiat_c_p448" => CurveType::FiatCP448,
         "openssl_curve25519" => CurveType::OpenSSLCurve25519,
+        "openssl_p448" => CurveType::OpenSSLP448,
         other => {
-            println!("Unknown curve: {}. Available curves: curve25519, curve25519_dalek, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519", other);
+            println!("Unknown curve: {}. Available curves: curve25519, curve25519_dalek, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519, openssl_p448", other);
             return;
         }
     };
