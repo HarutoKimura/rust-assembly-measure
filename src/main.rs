@@ -1385,6 +1385,132 @@ fn measure_u64_square_functions_interleaved_enhanced(
 
     (gas_stats, nasm_stats, crypt_stats)
 }
+
+/// Interleaved enhanced measurement for five U64 square functions (OpenSSL case)
+fn measure_u64_square_functions_interleaved_enhanced_five(
+    bound: u64,
+    size: usize,
+    llc_func: unsafe extern "C" fn(*mut u64, *const u64),
+    nasm_func: unsafe extern "C" fn(*mut u64, *const u64),
+    hand_func: unsafe extern "C" fn(*mut u64, *const u64),
+    hand_nasm_func: unsafe extern "C" fn(*mut u64, *const u64),
+    cryptopt_func: unsafe extern "C" fn(*mut u64, *const u64),
+    config: &MeasurementConfig,
+) -> (MeasurementStats, MeasurementStats, MeasurementStats, MeasurementStats, MeasurementStats) {
+    use rand::seq::SliceRandom;
+
+    let mut rng = thread_rng();
+
+    // Global warm-up across all five
+    println!("Global warm-up: warming up all functions...");
+    {
+        let mut warmout = vec![0u64; size];
+        for _ in 0..config.warmup_iterations {
+            let input = generate_random_loose_input_u64(bound, size);
+            unsafe {
+                llc_func(warmout.as_mut_ptr(), input.as_ptr());
+                nasm_func(warmout.as_mut_ptr(), input.as_ptr());
+                hand_func(warmout.as_mut_ptr(), input.as_ptr());
+                hand_nasm_func(warmout.as_mut_ptr(), input.as_ptr());
+                cryptopt_func(warmout.as_mut_ptr(), input.as_ptr());
+            }
+            unsafe { _mm_mfence(); }
+        }
+    }
+
+    // Per-function warm-up (no timing)
+    for &f in &[llc_func, nasm_func, hand_func, hand_nasm_func, cryptopt_func] {
+        let mut out = vec![0u64; size];
+        for _ in 0..config.warmup_iterations {
+            let input = generate_random_loose_input_u64(bound, size);
+            unsafe { f(out.as_mut_ptr(), input.as_ptr()); }
+            unsafe { _mm_mfence(); }
+        }
+    }
+
+    // Shared batch size calibration using GAS cycles
+    let mut batch_size = config.initial_batch_size;
+    {
+        let input = generate_random_loose_input_u64(bound, size);
+        let mut out_g = vec![0u64; size];
+        let mut out_n = vec![0u64; size];
+        let mut out_h = vec![0u64; size];
+        let mut out_hn = vec![0u64; size];
+        let mut out_c = vec![0u64; size];
+        let calib_bs = batch_size;
+        let cg = measure_one_batch_u64_square(llc_func, &mut out_g, &input, calib_bs);
+        let _ = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, calib_bs);
+        let _ = measure_one_batch_u64_square(hand_func, &mut out_h, &input, calib_bs);
+        let _ = measure_one_batch_u64_square(hand_nasm_func, &mut out_hn, &input, calib_bs);
+        let _ = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, calib_bs);
+        batch_size = calculate_optimal_batch_size(
+            cg, calib_bs, config.cycle_goal, config.min_batch_size, config.max_batch_size,
+        );
+        let per_call_est = cg as f64 / calib_bs as f64;
+        println!(
+            "Calibrated shared batch size (GAS ref): {} (GAS batch cycles: {}, ~{:.2} cycles/call at bs={})",
+            batch_size, cg, per_call_est, calib_bs
+        );
+        for _ in 0..5 {
+            let _ = measure_one_batch_u64_square(llc_func, &mut out_g, &input, batch_size);
+            let _ = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, batch_size);
+            let _ = measure_one_batch_u64_square(hand_func, &mut out_h, &input, batch_size);
+            let _ = measure_one_batch_u64_square(hand_nasm_func, &mut out_hn, &input, batch_size);
+            let _ = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, batch_size);
+        }
+    }
+
+    println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
+    let mut gas_batches = vec![0u64; config.num_batches];
+    let mut nasm_batches = vec![0u64; config.num_batches];
+    let mut hand_batches = vec![0u64; config.num_batches];
+    let mut hand_nasm_batches = vec![0u64; config.num_batches];
+    let mut crypt_batches = vec![0u64; config.num_batches];
+    let mut used_bs = vec![0usize; config.num_batches];
+
+    for b in 0..config.num_batches {
+        let input = generate_random_loose_input_u64(bound, size);
+        let mut out_g = vec![0u64; size];
+        let mut out_n = vec![0u64; size];
+        let mut out_h = vec![0u64; size];
+        let mut out_hn = vec![0u64; size];
+        let mut out_c = vec![0u64; size];
+
+        let mut order = [0usize, 1usize, 2usize, 3usize, 4usize];
+        order.shuffle(&mut rng);
+        used_bs[b] = batch_size;
+
+        for &which in &order {
+            match which {
+                0 => { gas_batches[b] = measure_one_batch_u64_square(llc_func, &mut out_g, &input, batch_size); }
+                1 => { nasm_batches[b] = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, batch_size); }
+                2 => { hand_batches[b] = measure_one_batch_u64_square(hand_func, &mut out_h, &input, batch_size); }
+                3 => { hand_nasm_batches[b] = measure_one_batch_u64_square(hand_nasm_func, &mut out_hn, &input, batch_size); }
+                4 => { crypt_batches[b] = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, batch_size); }
+                _ => unreachable!(),
+            }
+        }
+
+        if std::env::var("CHECK_OUTPUTS").ok().as_deref() == Some("1") {
+            if out_g != out_n || out_g != out_h || out_g != out_hn || out_g != out_c {
+                eprintln!("Output mismatch detected in batch {} (five square)", b + 1);
+            }
+        }
+
+        let gas_cycles = gas_batches[b];
+        let next = ((config.cycle_goal as f64 / gas_cycles as f64) * batch_size as f64).ceil() as usize;
+        batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
+    }
+
+    let to_per_call = |v: Vec<u64>| -> Vec<u64> { v.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect() };
+    let gas_stats = MeasurementStats::from_measurements(&to_per_call(gas_batches));
+    let nasm_stats = MeasurementStats::from_measurements(&to_per_call(nasm_batches));
+    let hand_stats = MeasurementStats::from_measurements(&to_per_call(hand_batches));
+    let hand_nasm_stats = MeasurementStats::from_measurements(&to_per_call(hand_nasm_batches));
+    let crypt_stats = MeasurementStats::from_measurements(&to_per_call(crypt_batches));
+
+    (gas_stats, nasm_stats, hand_stats, hand_nasm_stats, crypt_stats)
+}
 // -----------------------------------------------------------------------------
 // Top-level measurement functions for a single run (multiply version)
 fn measure_cryptopt_once_mul(curve: &CurveType) -> Result<(u64, u64, u64), Result<(u64, u64, u64, u64), (u64, u64, u64, u64, u64)>> {
@@ -1960,6 +2086,25 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
                         println!("Quality - GAS: {}, NASM: {}, CryptOpt: {}",
                                 gas_stats.quality_assessment(),
                                 nasm_stats.quality_assessment(),
+                                cryptopt_stats.quality_assessment());
+                    },
+                    Function::U64SquareFive(llc_func, nasm_func, hand_func, hand_nasm_func, cryptopt_func) => {
+                        let (gas_stats, nasm_stats, hand_stats, hand_nasm_stats, cryptopt_stats) =
+                            measure_u64_square_functions_interleaved_enhanced_five(bound, size, llc_func, nasm_func, hand_func, hand_nasm_func, cryptopt_func, &config);
+
+                        gas_medians.push(gas_stats.median);
+                        nasm_medians.push(nasm_stats.median);
+                        hand_medians.push(hand_stats.median);
+                        hand_nasm_medians.push(hand_nasm_stats.median);
+                        cryptopt_medians.push(cryptopt_stats.median);
+
+                        println!("Run {} - GAS: {} cycles, NASM: {} cycles, Hand: {} cycles, Hand-NASM: {} cycles, CryptOpt: {} cycles",
+                                run, gas_stats.median, nasm_stats.median, hand_stats.median, hand_nasm_stats.median, cryptopt_stats.median);
+                        println!("Quality - GAS: {}, NASM: {}, Hand: {}, Hand-NASM: {}, CryptOpt: {}",
+                                gas_stats.quality_assessment(),
+                                nasm_stats.quality_assessment(),
+                                hand_stats.quality_assessment(),
+                                hand_nasm_stats.quality_assessment(),
                                 cryptopt_stats.quality_assessment());
                     },
                     _ => {
