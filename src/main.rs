@@ -871,6 +871,140 @@ fn measure_u64_mul_functions_enhanced(
     (gas_stats, nasm_stats, cryptopt_stats)
 }
 
+/// Interleaved enhanced measurement matching CryptOpt Algorithm 3 semantics
+/// - Per-run global warm-up
+/// - Per-function warm-up (20), calibration to cycle goal, final warm-up (5)
+/// - Interleave batches across implementations with Fisher–Yates randomization
+/// - Reuse inputs/output within each batch (no RNG/alloc inside the timed loop)
+fn measure_u64_mul_functions_interleaved_enhanced(
+    bound: u64,
+    size: usize,
+    llc_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    nasm_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    cryptopt_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    config: &MeasurementConfig,
+) -> (MeasurementStats, MeasurementStats, MeasurementStats) {
+    use rand::seq::SliceRandom;
+
+    let mut rng = thread_rng();
+
+    // Global warm-up across all functions
+    println!("Global warm-up: warming up all functions...");
+    {
+        let mut warmout = vec![0u64; size];
+        for _ in 0..config.warmup_iterations {
+            let in0 = generate_random_loose_input_u64(bound, size);
+            let in1 = generate_random_loose_input_u64(bound, size);
+            unsafe {
+                llc_func(warmout.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+                nasm_func(warmout.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+                cryptopt_func(warmout.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+            }
+            unsafe { _mm_mfence(); }
+        }
+    }
+
+    // Per-function warm-up and calibration
+    let mut batch_sizes = [config.initial_batch_size; 3];
+
+    // Helper to calibrate a single function
+    let mut calibrate = |f: unsafe extern "C" fn(*const u64, *const u64, *const u64)| -> usize {
+        // Warm-up (20)
+        {
+            let mut out = vec![0u64; size];
+            for _ in 0..config.warmup_iterations {
+                let in0 = generate_random_loose_input_u64(bound, size);
+                let in1 = generate_random_loose_input_u64(bound, size);
+                unsafe { f(out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr()); }
+                unsafe { _mm_mfence(); }
+            }
+        }
+
+        // Calibration using initial batch size, reusing inputs within the batch
+        let mut out = vec![0u64; size];
+        let in0 = generate_random_loose_input_u64(bound, size);
+        let in1 = generate_random_loose_input_u64(bound, size);
+        let calib_cycles = measure_one_batch_u64_mul_precise(f, &mut out, &in0, &in1, config.initial_batch_size);
+        let mut bs = calculate_optimal_batch_size(
+            calib_cycles,
+            config.initial_batch_size,
+            config.cycle_goal,
+            config.min_batch_size,
+            config.max_batch_size,
+        );
+
+        println!("Calibrated batch size: {} (calibration cycles: {})", bs, calib_cycles);
+
+        // Final warm-up (5) with calibrated batch size
+        for _ in 0..5 {
+            let _ = measure_one_batch_u64_mul_precise(f, &mut out, &in0, &in1, bs);
+        }
+
+        // Avoid degenerate zero or overly small sizes
+        if bs < config.min_batch_size { bs = config.min_batch_size; }
+        bs
+    };
+
+    batch_sizes[0] = calibrate(llc_func);
+    batch_sizes[1] = calibrate(nasm_func);
+    batch_sizes[2] = calibrate(cryptopt_func);
+
+    println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
+
+    // Collect cycles per batch (raw cycles, not per-call yet)
+    let mut gas_batches = vec![0u64; config.num_batches];
+    let mut nasm_batches = vec![0u64; config.num_batches];
+    let mut crypt_batches = vec![0u64; config.num_batches];
+
+    // Interleave across implementations per batch index
+    for b in 0..config.num_batches {
+        // Shared inputs per batch for correctness checks and fairness
+        let in0 = generate_random_loose_input_u64(bound, size);
+        let in1 = generate_random_loose_input_u64(bound, size);
+        let mut out_gas = vec![0u64; size];
+        let mut out_nasm = vec![0u64; size];
+        let mut out_crypt = vec![0u64; size];
+
+        // Define order [0,1,2] → shuffle each batch
+        let mut order = [0usize, 1usize, 2usize];
+        order.shuffle(&mut rng);
+
+        for &which in &order {
+            match which {
+                0 => {
+                    let cycles = measure_one_batch_u64_mul_precise(
+                        llc_func, &mut out_gas, &in0, &in1, batch_sizes[0],
+                    );
+                    gas_batches[b] = cycles;
+                }
+                1 => {
+                    let cycles = measure_one_batch_u64_mul_precise(
+                        nasm_func, &mut out_nasm, &in0, &in1, batch_sizes[1],
+                    );
+                    nasm_batches[b] = cycles;
+                }
+                2 => {
+                    let cycles = measure_one_batch_u64_mul_precise(
+                        cryptopt_func, &mut out_crypt, &in0, &in1, batch_sizes[2],
+                    );
+                    crypt_batches[b] = cycles;
+                }
+                _ => unreachable!(),
+            }
+        }
+    }
+
+    // Convert to per-call cycles
+    let gas_per_call: Vec<u64> = gas_batches.into_iter().map(|c| c / batch_sizes[0] as u64).collect();
+    let nasm_per_call: Vec<u64> = nasm_batches.into_iter().map(|c| c / batch_sizes[1] as u64).collect();
+    let crypt_per_call: Vec<u64> = crypt_batches.into_iter().map(|c| c / batch_sizes[2] as u64).collect();
+
+    let gas_stats = MeasurementStats::from_measurements(&gas_per_call);
+    let nasm_stats = MeasurementStats::from_measurements(&nasm_per_call);
+    let crypt_stats = MeasurementStats::from_measurements(&crypt_per_call);
+
+    (gas_stats, nasm_stats, crypt_stats)
+}
 // -----------------------------------------------------------------------------
 // Top-level measurement functions for a single run (multiply version)
 fn measure_cryptopt_once_mul(curve: &CurveType) -> Result<(u64, u64, u64), Result<(u64, u64, u64, u64), (u64, u64, u64, u64, u64)>> {
@@ -1375,7 +1509,7 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
                 match functions {
                     Function::U64Mul(llc_func, nasm_func, cryptopt_func) => {
                         let (gas_stats, nasm_stats, cryptopt_stats) = 
-                            measure_u64_mul_functions_enhanced(bound, size, llc_func, nasm_func, cryptopt_func, &config);
+                            measure_u64_mul_functions_interleaved_enhanced(bound, size, llc_func, nasm_func, cryptopt_func, &config);
                         
                         gas_medians.push(gas_stats.median);
                         nasm_medians.push(nasm_stats.median);
@@ -1424,35 +1558,19 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
     println!("  CryptOpt Format: {} cycles", cryptopt_mom);
     println!();
     
-    // Performance analysis
-    println!("Performance Analysis:");
-    
-    // Find the best performer
-    let best_performance = gas_mom.min(nasm_mom).min(cryptopt_mom);
-    let best_name = if best_performance == gas_mom {
-        "GAS Format"
-    } else if best_performance == nasm_mom {
-        "NASM Format"
+    // Relative performance: CryptOpt vs GAS/NASM (lower cycles = better)
+    println!("Relative Performance (median-of-medians):");
+    let vs_gas = ((gas_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+    let vs_nasm = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+    if vs_gas >= 0.0 {
+        println!("  CryptOpt vs GAS: +{:.2}% faster ({} vs {} cycles)", vs_gas, cryptopt_mom, gas_mom);
     } else {
-        "CryptOpt Format"
-    };
-    
-    println!("  Best Performance: {} ({} cycles)", best_name, best_performance);
-    
-    // Calculate relative performance
-    let gas_vs_cryptopt = ((gas_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-    let nasm_vs_cryptopt = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-    
-    if gas_vs_cryptopt > 0.0 {
-        println!("  CryptOpt is {:.2}% faster than GAS", gas_vs_cryptopt);
-    } else {
-        println!("  GAS is {:.2}% faster than CryptOpt", gas_vs_cryptopt.abs());
+        println!("  CryptOpt vs GAS: -{:.2}% slower ({} vs {} cycles)", vs_gas.abs(), cryptopt_mom, gas_mom);
     }
-    
-    if nasm_vs_cryptopt > 0.0 {
-        println!("  CryptOpt is {:.2}% faster than NASM", nasm_vs_cryptopt);
+    if vs_nasm >= 0.0 {
+        println!("  CryptOpt vs NASM: +{:.2}% faster ({} vs {} cycles)", vs_nasm, cryptopt_mom, nasm_mom);
     } else {
-        println!("  NASM is {:.2}% faster than CryptOpt", nasm_vs_cryptopt.abs());
+        println!("  CryptOpt vs NASM: -{:.2}% slower ({} vs {} cycles)", vs_nasm.abs(), cryptopt_mom, nasm_mom);
     }
     
     // Measurement stability analysis
