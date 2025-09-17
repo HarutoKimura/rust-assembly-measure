@@ -69,13 +69,10 @@ where
 /// This implements the R3-validation approach from CryptOpt
 pub fn randomize_batch_order(size: usize, rng: &mut ThreadRng) -> Vec<usize> {
     let mut indices: Vec<usize> = (0..size).collect();
-    
-    // Fisher-Yates shuffle
     for i in (1..indices.len()).rev() {
         let j = rng.gen_range(0..=i);
         indices.swap(i, j);
     }
-    
     indices
 }
 

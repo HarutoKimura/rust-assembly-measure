@@ -7,9 +7,7 @@ use std::env;
 mod precise_timing;
 use precise_timing::*;
 
-// Import CryptOpt-style timing module
-mod cryptopt_timing;
-use cryptopt_timing::*;
+// Import CryptOpt-style timing module (removed; not used)
 
 // -----------------------------------------------------------------------------
 // Modules for the curves with external function declarations.
@@ -620,15 +618,15 @@ fn measure_one_batch_u64_square(
     input: &[u64],
     batch_size: usize,
 ) -> u64 {
+    // Precise timing with fences to match enhanced methodology
+    let start = precise_rdtsc();
     unsafe {
-        _rdtsc();
-        let start = _rdtsc();
         for _ in 0..batch_size {
             func(out.as_mut_ptr(), input.as_ptr());
         }
-        let end = _rdtsc();
-        end - start
     }
+    let end = precise_rdtsc();
+    end.saturating_sub(start)
 }
 
 fn measure_three_functions_u64_square(
@@ -1003,6 +1001,126 @@ fn measure_u64_mul_functions_interleaved_enhanced(
     }
 
     // Convert to per-call cycles
+    let gas_per_call: Vec<u64> = gas_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
+    let nasm_per_call: Vec<u64> = nasm_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
+    let crypt_per_call: Vec<u64> = crypt_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
+
+    let gas_stats = MeasurementStats::from_measurements(&gas_per_call);
+    let nasm_stats = MeasurementStats::from_measurements(&nasm_per_call);
+    let crypt_stats = MeasurementStats::from_measurements(&crypt_per_call);
+
+    (gas_stats, nasm_stats, crypt_stats)
+}
+
+/// Interleaved enhanced measurement for U64 square (shared batch size, GAS baseline)
+fn measure_u64_square_functions_interleaved_enhanced(
+    bound: u64,
+    size: usize,
+    llc_func: unsafe extern "C" fn(*mut u64, *const u64),
+    nasm_func: unsafe extern "C" fn(*mut u64, *const u64),
+    cryptopt_func: unsafe extern "C" fn(*mut u64, *const u64),
+    config: &MeasurementConfig,
+) -> (MeasurementStats, MeasurementStats, MeasurementStats) {
+    use rand::seq::SliceRandom;
+
+    let mut rng = thread_rng();
+
+    // Global warm-up
+    println!("Global warm-up: warming up all functions...");
+    {
+        let mut warmout = vec![0u64; size];
+        for _ in 0..config.warmup_iterations {
+            let input = generate_random_loose_input_u64(bound, size);
+            unsafe {
+                llc_func(warmout.as_mut_ptr(), input.as_ptr());
+                nasm_func(warmout.as_mut_ptr(), input.as_ptr());
+                cryptopt_func(warmout.as_mut_ptr(), input.as_ptr());
+            }
+            unsafe { _mm_mfence(); }
+        }
+    }
+
+    // Per-function warm-up (no timing)
+    for &f in &[llc_func, nasm_func, cryptopt_func] {
+        let mut out = vec![0u64; size];
+        for _ in 0..config.warmup_iterations {
+            let input = generate_random_loose_input_u64(bound, size);
+            unsafe { f(out.as_mut_ptr(), input.as_ptr()); }
+            unsafe { _mm_mfence(); }
+        }
+    }
+
+    // Shared batch size calibration using GAS cycles
+    let mut batch_size = config.initial_batch_size;
+    {
+        let input = generate_random_loose_input_u64(bound, size);
+        let mut out_g = vec![0u64; size];
+        let mut out_n = vec![0u64; size];
+        let mut out_c = vec![0u64; size];
+        let cg = measure_one_batch_u64_square(llc_func, &mut out_g, &input, batch_size);
+        let _cn = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, batch_size);
+        let _cc = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, batch_size);
+        batch_size = calculate_optimal_batch_size(
+            cg,
+            batch_size,
+            config.cycle_goal,
+            config.min_batch_size,
+            config.max_batch_size,
+        );
+        println!("Calibrated shared batch size (GAS ref): {} (GAS cycles: {})", batch_size, cg);
+        for _ in 0..5 {
+            let _ = measure_one_batch_u64_square(llc_func, &mut out_g, &input, batch_size);
+            let _ = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, batch_size);
+            let _ = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, batch_size);
+        }
+    }
+
+    println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
+    let mut gas_batches = vec![0u64; config.num_batches];
+    let mut nasm_batches = vec![0u64; config.num_batches];
+    let mut crypt_batches = vec![0u64; config.num_batches];
+    let mut used_bs = vec![0usize; config.num_batches];
+
+    for b in 0..config.num_batches {
+        let input = generate_random_loose_input_u64(bound, size);
+        let mut out_g = vec![0u64; size];
+        let mut out_n = vec![0u64; size];
+        let mut out_c = vec![0u64; size];
+
+        let mut order = [0usize, 1usize, 2usize];
+        order.shuffle(&mut rng);
+
+        used_bs[b] = batch_size;
+        for &which in &order {
+            match which {
+                0 => {
+                    let cycles = measure_one_batch_u64_square(llc_func, &mut out_g, &input, batch_size);
+                    gas_batches[b] = cycles;
+                }
+                1 => {
+                    let cycles = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, batch_size);
+                    nasm_batches[b] = cycles;
+                }
+                2 => {
+                    let cycles = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, batch_size);
+                    crypt_batches[b] = cycles;
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        if std::env::var("CHECK_OUTPUTS").ok().as_deref() == Some("1") {
+            if out_g != out_n || out_g != out_c {
+                eprintln!("Output mismatch detected in batch {} (square)", b + 1);
+            }
+        }
+
+        // GAS as baseline for shared bs update
+        let gas_cycles = gas_batches[b];
+        let next = ((config.cycle_goal as f64 / gas_cycles as f64) * batch_size as f64).ceil() as usize;
+        batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
+    }
+
     let gas_per_call: Vec<u64> = gas_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
     let nasm_per_call: Vec<u64> = nasm_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
     let crypt_per_call: Vec<u64> = crypt_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
@@ -1537,8 +1655,28 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
                 }
             },
             "square" => {
-                println!("Enhanced square measurement not yet implemented");
-                return;
+                let functions = curve.get_square_functions();
+                match functions {
+                    Function::U64Square(llc_func, nasm_func, cryptopt_func) => {
+                        let (gas_stats, nasm_stats, cryptopt_stats) =
+                            measure_u64_square_functions_interleaved_enhanced(bound, size, llc_func, nasm_func, cryptopt_func, &config);
+
+                        gas_medians.push(gas_stats.median);
+                        nasm_medians.push(nasm_stats.median);
+                        cryptopt_medians.push(cryptopt_stats.median);
+
+                        println!("Run {} - GAS: {} cycles, NASM: {} cycles, CryptOpt: {} cycles",
+                                run, gas_stats.median, nasm_stats.median, cryptopt_stats.median);
+                        println!("Quality - GAS: {}, NASM: {}, CryptOpt: {}",
+                                gas_stats.quality_assessment(),
+                                nasm_stats.quality_assessment(),
+                                cryptopt_stats.quality_assessment());
+                    },
+                    _ => {
+                        println!("Enhanced square measurement not yet implemented for this curve's function type");
+                        return;
+                    }
+                }
             },
             _ => {
                 println!("Unknown operation: {}", operation);
