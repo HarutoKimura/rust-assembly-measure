@@ -228,6 +228,65 @@ optimize_system_noise() {
     echo
 }
 
+# Function to create IRQ affinity helper to move interrupts off benchmark core
+create_irq_affinity_helper() {
+    echo -e "${YELLOW}=== Creating IRQ Affinity Helper ===${NC}"
+    if [ ! -f run_benchmark_pinned.sh ]; then
+        echo "run_benchmark_pinned.sh not found; generate pinning script first. Skipping IRQ helper."
+        echo
+        return
+    fi
+
+    # Extract benchmark core from the pinning script
+    BENCHMARK_CORE=$(grep '^BENCHMARK_CORE=' run_benchmark_pinned.sh | cut -d'=' -f2)
+    if [ -z "$BENCHMARK_CORE" ]; then
+        echo "Could not determine BENCHMARK_CORE. Skipping IRQ helper."
+        echo
+        return
+    fi
+
+    cat > move_irqs_off_core.sh << EOF
+#!/bin/bash
+# Move IRQ handling off the benchmark core to reduce interference
+
+set -e
+
+BENCHMARK_CORE=$BENCHMARK_CORE
+TOTAL_CORES=\$(nproc)
+
+echo "Benchmark core: \$BENCHMARK_CORE"
+echo "Total cores: \$TOTAL_CORES"
+
+if [ \$BENCHMARK_CORE -ge \$TOTAL_CORES ]; then
+  echo "Invalid benchmark core index"
+  exit 1
+fi
+
+# Build CPU list excluding the benchmark core (e.g., "0-7" without N)
+CPU_LIST=""
+for c in \$(seq 0 $((BENCHMARK_CORE-1))); do
+  if [ -z "\$CPU_LIST" ]; then CPU_LIST="\$c"; else CPU_LIST="\${CPU_LIST},\$c"; fi
+done
+for c in \$(seq $((BENCHMARK_CORE+1)) $((TOTAL_CORES-1))); do
+  if [ -z "\$CPU_LIST" ]; then CPU_LIST="\$c"; else CPU_LIST="\${CPU_LIST},\$c"; fi
+done
+
+echo "Redirecting IRQs to CPU list: \$CPU_LIST"
+
+for irq in /proc/irq/*/smp_affinity_list; do
+  [ -f "\$irq" ] || continue
+  echo "Setting \$irq"
+  echo "\$CPU_LIST" | sudo tee "\$irq" > /dev/null || true
+done
+
+echo "Done. Note: Some IRQs may ignore affinity settings."
+EOF
+    chmod +x move_irqs_off_core.sh
+    echo "✓ Created 'move_irqs_off_core.sh' to move IRQs off core $BENCHMARK_CORE"
+    echo "Usage: ./move_irqs_off_core.sh"
+    echo
+}
+
 # Function to verify taskset availability
 check_taskset() {
     echo -e "${YELLOW}=== Checking Required Tools ===${NC}"
@@ -361,6 +420,7 @@ main() {
     optimize_system_noise
     create_verification_script
     create_restore_script
+    create_irq_affinity_helper
     
     echo -e "${GREEN}=== Setup Complete ===${NC}"
     echo

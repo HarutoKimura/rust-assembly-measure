@@ -904,50 +904,44 @@ fn measure_u64_mul_functions_interleaved_enhanced(
         }
     }
 
-    // Per-function warm-up and calibration
-    let mut batch_sizes = [config.initial_batch_size; 3];
-
-    // Helper to calibrate a single function
-    let mut calibrate = |f: unsafe extern "C" fn(*const u64, *const u64, *const u64)| -> usize {
-        // Warm-up (20)
-        {
-            let mut out = vec![0u64; size];
-            for _ in 0..config.warmup_iterations {
-                let in0 = generate_random_loose_input_u64(bound, size);
-                let in1 = generate_random_loose_input_u64(bound, size);
-                unsafe { f(out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr()); }
-                unsafe { _mm_mfence(); }
-            }
-        }
-
-        // Calibration using initial batch size, reusing inputs within the batch
+    // Per-function warm-up (no measurement), shared batch size approach
+    for &f in &[llc_func, nasm_func, cryptopt_func] {
         let mut out = vec![0u64; size];
+        for _ in 0..config.warmup_iterations {
+            let in0 = generate_random_loose_input_u64(bound, size);
+            let in1 = generate_random_loose_input_u64(bound, size);
+            unsafe { f(out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr()); }
+            unsafe { _mm_mfence(); }
+        }
+    }
+
+    // Initial shared batch size and calibration round using median of three
+    let mut batch_size = config.initial_batch_size;
+    {
         let in0 = generate_random_loose_input_u64(bound, size);
         let in1 = generate_random_loose_input_u64(bound, size);
-        let calib_cycles = measure_one_batch_u64_mul_precise(f, &mut out, &in0, &in1, config.initial_batch_size);
-        let mut bs = calculate_optimal_batch_size(
-            calib_cycles,
-            config.initial_batch_size,
+        let mut out_g = vec![0u64; size];
+        let mut out_n = vec![0u64; size];
+        let mut out_c = vec![0u64; size];
+        let cg = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, batch_size);
+        let cn = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, batch_size);
+        let cc = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, batch_size);
+        // Use GAS cycles as the baseline reference (shared batch size)
+        batch_size = calculate_optimal_batch_size(
+            cg,
+            batch_size,
             config.cycle_goal,
             config.min_batch_size,
             config.max_batch_size,
         );
-
-        println!("Calibrated batch size: {} (calibration cycles: {})", bs, calib_cycles);
-
-        // Final warm-up (5) with calibrated batch size
+        println!("Calibrated shared batch size (GAS ref): {} (GAS cycles: {})", batch_size, cg);
+        // Final warm-up with shared batch size (5 rounds across functions)
         for _ in 0..5 {
-            let _ = measure_one_batch_u64_mul_precise(f, &mut out, &in0, &in1, bs);
+            let _ = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, batch_size);
+            let _ = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, batch_size);
+            let _ = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, batch_size);
         }
-
-        // Avoid degenerate zero or overly small sizes
-        if bs < config.min_batch_size { bs = config.min_batch_size; }
-        bs
-    };
-
-    batch_sizes[0] = calibrate(llc_func);
-    batch_sizes[1] = calibrate(nasm_func);
-    batch_sizes[2] = calibrate(cryptopt_func);
+    }
 
     println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
 
@@ -955,6 +949,7 @@ fn measure_u64_mul_functions_interleaved_enhanced(
     let mut gas_batches = vec![0u64; config.num_batches];
     let mut nasm_batches = vec![0u64; config.num_batches];
     let mut crypt_batches = vec![0u64; config.num_batches];
+    let mut used_bs = vec![0usize; config.num_batches];
 
     // Interleave across implementations per batch index
     for b in 0..config.num_batches {
@@ -969,35 +964,48 @@ fn measure_u64_mul_functions_interleaved_enhanced(
         let mut order = [0usize, 1usize, 2usize];
         order.shuffle(&mut rng);
 
+        used_bs[b] = batch_size;
         for &which in &order {
             match which {
                 0 => {
                     let cycles = measure_one_batch_u64_mul_precise(
-                        llc_func, &mut out_gas, &in0, &in1, batch_sizes[0],
+                        llc_func, &mut out_gas, &in0, &in1, batch_size,
                     );
                     gas_batches[b] = cycles;
                 }
                 1 => {
                     let cycles = measure_one_batch_u64_mul_precise(
-                        nasm_func, &mut out_nasm, &in0, &in1, batch_sizes[1],
+                        nasm_func, &mut out_nasm, &in0, &in1, batch_size,
                     );
                     nasm_batches[b] = cycles;
                 }
                 2 => {
                     let cycles = measure_one_batch_u64_mul_precise(
-                        cryptopt_func, &mut out_crypt, &in0, &in1, batch_sizes[2],
+                        cryptopt_func, &mut out_crypt, &in0, &in1, batch_size,
                     );
                     crypt_batches[b] = cycles;
                 }
                 _ => unreachable!(),
             }
         }
+
+        // Optional correctness check: compare outputs if enabled
+        if std::env::var("CHECK_OUTPUTS").ok().as_deref() == Some("1") {
+            if out_gas != out_nasm || out_gas != out_crypt {
+                eprintln!("Output mismatch detected in batch {}", b + 1);
+            }
+        }
+
+        // Shared batch size adjustment based on GAS cycles (baseline)
+        let gas_cycles = gas_batches[b];
+        let next = ((config.cycle_goal as f64 / gas_cycles as f64) * batch_size as f64).ceil() as usize;
+        batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
     // Convert to per-call cycles
-    let gas_per_call: Vec<u64> = gas_batches.into_iter().map(|c| c / batch_sizes[0] as u64).collect();
-    let nasm_per_call: Vec<u64> = nasm_batches.into_iter().map(|c| c / batch_sizes[1] as u64).collect();
-    let crypt_per_call: Vec<u64> = crypt_batches.into_iter().map(|c| c / batch_sizes[2] as u64).collect();
+    let gas_per_call: Vec<u64> = gas_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
+    let nasm_per_call: Vec<u64> = nasm_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
+    let crypt_per_call: Vec<u64> = crypt_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
 
     let gas_stats = MeasurementStats::from_measurements(&gas_per_call);
     let nasm_stats = MeasurementStats::from_measurements(&nasm_per_call);

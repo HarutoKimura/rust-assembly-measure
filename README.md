@@ -72,6 +72,18 @@ chmod +x restore_system_defaults.sh || true
 ./verify_benchmark_environment.sh
 ```
 
+Optional: move IRQs off the benchmark core (reduces interrupt noise)
+```bash
+./move_irqs_off_core.sh
+
+# Verify that the benchmark core is not in the affinity lists
+grep -H . /proc/irq/*/smp_affinity_list | head -n 20
+```
+Notes:
+- You may be prompted for sudo.
+- Some IRQs may ignore affinity changes.
+- Re-run after reboot or when devices change.
+
 This creates `run_benchmark_pinned.sh` which pins the benchmark to a dedicated CPU core to reduce noise.
 
 #### 2) Run benchmarks
