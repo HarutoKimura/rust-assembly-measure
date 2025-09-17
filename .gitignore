@@ -19,3 +19,5 @@ output100/
 *.tex
 *.py
 logs/
+*.yml
+*.pkl

@@ -2,24 +2,9 @@
 
 ## Overview
 
-This document describes the enhanced microbenchmarking methodology implemented to address reviewer concerns about the original measurement setup. The improvements are based on the CryptOpt paper's rigorous approach to cryptographic performance measurement.
+This document describes the enhanced microbenchmarking methodology, based on the CryptOpt paper's rigorous approach to cryptographic performance measurement.
 
-## Reviewer Concerns Addressed
-
-The original review highlighted several critical gaps in the microbenchmarking setup:
-
-> ### Incomplete Description of Benchmarking Setup
-> 
-> Microbenchmarking is sensitive to system-level noise. The experimental setup lacks critical details:
-> 
-> * Was CPU core pinning used?
-> * Was Turbo Boost, frequency scaling, SMT, or ASLR disabled?
-> * What number of iterations, batching strategies, and cycle measurement methods were used?
-> * Were warm-up runs performed?
-> 
-> These details are essential for reproducibility and fair comparison, particularly when differences are small.
-
-## Complete Solution Implementation
+## Methodology Components
 
 ### 1. CPU Core Pinning ✓
 
@@ -147,12 +132,22 @@ let calibration_cycles = measure_single_batch(&measurement_func, current_batch_s
 ```
 
 **Details:**
-- **Extensive warm-up:** 50 iterations by default (configurable)
+- **Extensive warm-up:** 20 iterations by default (configurable)
 - **Initialization bias mitigation:** Dedicated warm-up phase before measurement
 - **Calibration phase:** Separate run to determine optimal batch sizing
 - **Memory barrier integration:** Prevents over-optimization during warm-up
 
 **CryptOpt Reference:** While not explicitly termed "warm-up runs," CryptOpt's strategy of collecting "multiple batches" and using "median thereof" directly mitigates "potential warm-up biases."
+
+#### Cache Warm-Up (Three-step)
+
+To avoid cold-cache effects, the enhanced mode follows a three-step cache warm-up that mirrors the paper description:
+
+1. Run the benchmark routine 20 times in a row to pull code and data into caches (configurable via `warmup_iterations`).
+2. Run a calibration iteration to determine and set parameters (e.g., optimal batch size targeting ~10,000 cycles per batch).
+3. Run five additional iterations using the calibrated parameters.
+
+In total, 26 warm-up executions are performed per measured function before recording measurements. Additionally, this repository performs a brief global warm-up across all compared functions (for `warmup_iterations` rounds) prior to the per-function three-step warm-up to further stabilize caches and front-end state.
 
 ## Usage Instructions
 

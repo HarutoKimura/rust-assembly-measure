@@ -56,17 +56,72 @@ CARGO_BINSEC_VALIDATE=1 cargo build
 CARGO_DUDECT_VALIDATE=1 cargo build
 ```
 
-### Running Performance Measurements
+### Benchmarking (Reproducible)
+
+#### 1) Prepare environment (recommended)
 ```bash
-# Run all benchmarks
-cargo run --release
+# Make helper scripts executable
+chmod +x setup_benchmark_environment.sh
+chmod +x verify_benchmark_environment.sh || true
+chmod +x restore_system_defaults.sh || true
 
-# Run specific benchmark suite
-cargo run --release -- --curve curve25519
+# Configure reproducible environment (CPU governor, boost, optional SMT/ASLR, core pinning)
+./setup_benchmark_environment.sh
 
-# Generate detailed timing reports
-cargo run --release -- --detailed
+# Verify current settings
+./verify_benchmark_environment.sh
 ```
+
+This creates `run_benchmark_pinned.sh` which pins the benchmark to a dedicated CPU core to reduce noise.
+
+#### 2) Run benchmarks
+
+- Basic usage (default mode, no explicit warm-up):
+```bash
+cargo run --release <curve_name> <operation> [repeat_count]
+# example
+cargo run --release curve25519 mul 5
+```
+
+- Enhanced mode (recommended; includes warm-up, randomized batching, precise timing):
+```bash
+ENHANCED_MEASUREMENT=1 ./run_benchmark_pinned.sh cargo run --release <curve_name> <operation> [repeat_count]
+# example
+ENHANCED_MEASUREMENT=1 ./run_benchmark_pinned.sh cargo run --release curve25519 mul 5
+```
+
+In enhanced mode, each function is measured with a three-step warm-up matching the paper:
+- 20 warm-up iterations (cache/code warm-up),
+- 1 calibration iteration to set batch size (~10,000 cycles/batch),
+- 5 final warm-up iterations with calibrated parameters,
+then measurement collection. Additionally, a brief global warm-up of all compared functions runs first.
+
+#### 3) Restore defaults (optional)
+```bash
+./restore_system_defaults.sh
+```
+
+#### Available curves and operations
+- Curves: `curve25519`, `curve25519_dalek`, `p448`, `poly1305`, `secp256k1_dettman`, `secp256k1_rust_ec`, `bls12`, `fiat_c_curve25519`, `fiat_c_secp256k1_dettman`, `fiat_c_poly1305`, `fiat_c_p448`, `openssl_curve25519`, `openssl_p448`
+- Operations: `mul`, `square` (note: not all combinations are implemented)
+
+#### Example commands
+```bash
+# Curve25519 multiply, 5 runs, enhanced mode with pinning
+ENHANCED_MEASUREMENT=1 ./run_benchmark_pinned.sh cargo run --release curve25519 mul 5
+
+# P-448 square, 3 runs (if implemented for that variant)
+cargo run --release p448 square 3
+
+# OpenSSL fe51 multiply (5-way comparison path where available)
+ENHANCED_MEASUREMENT=1 ./run_benchmark_pinned.sh cargo run --release openssl_curve25519 mul 5
+```
+
+#### Understanding output
+- Default mode prints median statistics across batches for each run.
+- Enhanced mode prints configuration, per-run medians, measurement quality (CV), and a final report including median-of-medians and confidence intervals.
+
+For additional details on methodology and warm-up, see `ENHANCED_BENCHMARKING_METHODOLOGY.md`.
 
 ### Security Verification
 
@@ -226,7 +281,6 @@ When adding new implementations:
 1. Follow the existing directory structure
 2. Ensure constant-time properties
 3. Add both performance and security tests
-4. Update this README with new algorithms
 
 ## References
 

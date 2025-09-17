@@ -248,14 +248,14 @@ fn build_curve25519_dalek() {
 }
 
 fn build_p448() {
-    // (Only MUL is supported for p448 as per current structure)
+    // ---------- MUL ----------
     // LLC version (mul)
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/rust/p448/llc/rust_fiat_p448_solinas_carry_mul.asm",
+            "src/rust/p448/llc/mul/rust_fiat_p448_solinas_carry_mul.asm",
             "-o",
-            "src/rust/p448/llc/rust_fiat_p448_solinas_carry_mul.o"
+            "src/rust/p448/llc/mul/rust_fiat_p448_solinas_carry_mul.o"
         ])
         .status()
         .unwrap()
@@ -263,8 +263,8 @@ fn build_p448() {
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/p448/llc/librust_fiat_p448_solinas_carry_mul.a",
-            "src/rust/p448/llc/rust_fiat_p448_solinas_carry_mul.o"
+            "src/rust/p448/llc/mul/librust_fiat_p448_solinas_carry_mul.a",
+            "src/rust/p448/llc/mul/rust_fiat_p448_solinas_carry_mul.o"
         ])
         .status()
         .unwrap()
@@ -274,9 +274,9 @@ fn build_p448() {
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/rust/p448/llc-nasm/rust_fiat_p448_solinas_carry_mul_nasm.asm",
+            "src/rust/p448/llc-nasm/mul/rust_fiat_p448_solinas_carry_mul_nasm.asm",
             "-o",
-            "src/rust/p448/llc-nasm/rust_fiat_p448_solinas_carry_mul_nasm.o"
+            "src/rust/p448/llc-nasm/mul/rust_fiat_p448_solinas_carry_mul_nasm.o"
         ])
         .status()
         .unwrap()
@@ -284,8 +284,8 @@ fn build_p448() {
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/p448/llc-nasm/librust_fiat_p448_solinas_carry_mul_nasm.a",
-            "src/rust/p448/llc-nasm/rust_fiat_p448_solinas_carry_mul_nasm.o"
+            "src/rust/p448/llc-nasm/mul/librust_fiat_p448_solinas_carry_mul_nasm.a",
+            "src/rust/p448/llc-nasm/mul/rust_fiat_p448_solinas_carry_mul_nasm.o"
         ])
         .status()
         .unwrap()
@@ -293,13 +293,69 @@ fn build_p448() {
 
     // CryptOpt version (mul) CryptOpt paper parameters
     build_and_validate_with_formal!(
-        "src/rust/p448/cryptopt/seed0001746580882393_ratio14028.asm",
-        "src/rust/p448/cryptopt/seed0001746580882393_ratio14028.o",
-        "src/rust/p448/cryptopt/librust_fiat_p448_solinas_carry_mul_CryptOpt.a",
+        "src/rust/p448/cryptopt/mul/seed0001746580882393_ratio14028.asm",
+        "src/rust/p448/cryptopt/mul/seed0001746580882393_ratio14028.o",
+        "src/rust/p448/cryptopt/mul/librust_fiat_p448_solinas_carry_mul_CryptOpt.a",
         "rust_fiat_p448_solinas_carry_mul_CryptOpt",
         true,   // NASM
         "p448",
         "mul",
+        8,      // field size
+        "0x300000000000000"  // loose bound
+    );
+
+    // ---------- SQUARE ----------
+    // LLC version (square)
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "src/rust/p448/llc/square/rust_fiat_p448_solinas_carry_square.asm",
+            "-o",
+            "src/rust/p448/llc/square/rust_fiat_p448_solinas_carry_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/rust/p448/llc/square/librust_fiat_p448_solinas_carry_square.a",
+            "src/rust/p448/llc/square/rust_fiat_p448_solinas_carry_square.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // NASM version (square)
+    assert!(Command::new("nasm")
+        .args(&[
+            "-f", "elf64",
+            "src/rust/p448/llc-nasm/square/rust_fiat_p448_solinas_carry_square_nasm.asm",
+            "-o",
+            "src/rust/p448/llc-nasm/square/rust_fiat_p448_solinas_carry_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            "src/rust/p448/llc-nasm/square/librust_fiat_p448_solinas_carry_square_nasm.a",
+            "src/rust/p448/llc-nasm/square/rust_fiat_p448_solinas_carry_square_nasm.o"
+        ])
+        .status()
+        .unwrap()
+        .success());
+
+    // CryptOpt version (square)
+    build_and_validate_with_formal!(
+        "src/rust/p448/cryptopt/square/seed0001754278122744_ratio10040.asm",
+        "src/rust/p448/cryptopt/square/seed0001754278122744_ratio10040.o",
+        "src/rust/p448/cryptopt/square/librust_fiat_p448_solinas_carry_square_CryptOpt.a",
+        "rust_fiat_p448_solinas_carry_square_CryptOpt",
+        true,   // NASM
+        "p448",
+        "square",
         8,      // field size
         "0x300000000000000"  // loose bound
     );
@@ -1247,22 +1303,11 @@ fn build_openssl_p448(){
     let dudect_config = DudectConfig::default();
     validate_assembly_constant_time(&dudect_validation_mul, &dudect_config);
     
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/openssl-p448/cryptopt/mul/wrapper.asm",
-            "-o",
-            "src/c/openssl-p448/cryptopt/mul/wrapper.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
     assert!(Command::new("ar")
         .args(&[
             "rcs",
             "src/c/openssl-p448/cryptopt/mul/libopenssl_p448_mul_CryptOpt.a",
-            "src/c/openssl-p448/cryptopt/mul/seed0001754016023536_ratio11739.o",
-            "src/c/openssl-p448/cryptopt/mul/wrapper.o"
+            "src/c/openssl-p448/cryptopt/mul/seed0001754016023536_ratio11739.o"
         ])
         .status()
         .unwrap()
@@ -1335,22 +1380,11 @@ fn build_openssl_p448(){
     let dudect_config = DudectConfig::default();
     validate_assembly_constant_time(&dudect_validation_square, &dudect_config);
     
-    assert!(Command::new("nasm")
-        .args(&[
-            "-f", "elf64",
-            "src/c/openssl-p448/cryptopt/square/wrapper.asm",
-            "-o",
-            "src/c/openssl-p448/cryptopt/square/wrapper.o"
-        ])
-        .status()
-        .unwrap()
-        .success());
     assert!(Command::new("ar")
         .args(&[
             "rcs",
             "src/c/openssl-p448/cryptopt/square/libopenssl_p448_square_CryptOpt.a",
-            "src/c/openssl-p448/cryptopt/square/seed0001754025746283_ratio11326.o",
-            "src/c/openssl-p448/cryptopt/square/wrapper.o"
+            "src/c/openssl-p448/cryptopt/square/seed0001754025746283_ratio11326.o"
         ])
         .status()
         .unwrap()
@@ -1591,10 +1625,13 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/rust/curve25519-dalek/llc-nasm/square");
     println!("cargo:rustc-link-search=native=src/rust/curve25519-dalek/cryptopt/square");
 
-    // P448 (only mul)
-    println!("cargo:rustc-link-search=native=src/rust/p448/llc");
-    println!("cargo:rustc-link-search=native=src/rust/p448/llc-nasm");
-    println!("cargo:rustc-link-search=native=src/rust/p448/cryptopt");
+    // P448
+    println!("cargo:rustc-link-search=native=src/rust/p448/llc/mul");
+    println!("cargo:rustc-link-search=native=src/rust/p448/llc/square");
+    println!("cargo:rustc-link-search=native=src/rust/p448/llc-nasm/mul");
+    println!("cargo:rustc-link-search=native=src/rust/p448/llc-nasm/square");
+    println!("cargo:rustc-link-search=native=src/rust/p448/cryptopt/mul");
+    println!("cargo:rustc-link-search=native=src/rust/p448/cryptopt/square");
 
     // Poly1305
     println!("cargo:rustc-link-search=native=src/rust/poly1305/llc/mul");
@@ -1700,10 +1737,14 @@ fn main() {
     println!("cargo:rustc-link-lib=static=curve25519_dalek_square_nasm");
     println!("cargo:rustc-link-lib=static=curve25519_dalek_square_CryptOpt");
 
-    // P448 (mul only)
+    // P448 (mul)
     println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_mul");
     println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_mul_nasm");
     println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_mul_CryptOpt");
+    // P448 (square)
+    println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_square");
+    println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_square_nasm");
+    println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_square_CryptOpt");
 
     // Poly1305 (mul)
     println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_mul");
