@@ -451,7 +451,7 @@ impl CurveType {
                 openssl_p448::openssl_p448_square_CryptOpt
             ),
 
-            &CurveType::P448 | &CurveType::Bls12  => todo!(),
+            &CurveType::Bls12  => todo!(),
             // CurveType::Bls12 => Function::UsizeSquare(
             //     bls12::bls12_square,
             //     bls12::bls12_square_nasm,
@@ -762,6 +762,127 @@ fn measure_three_functions_usize_mul(
     (median(&cycles_llc), median(&cycles_nasm), median(&cycles_cryptopt))
 }
 
+/// Interleaved enhanced measurement for usize mul (shared batch size, GAS baseline)
+fn measure_usize_mul_functions_interleaved_enhanced(
+    bound: u64,
+    size: usize,
+    llc_func: unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
+    nasm_func: unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
+    cryptopt_func: unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
+    config: &MeasurementConfig,
+) -> (MeasurementStats, MeasurementStats, MeasurementStats) {
+    use rand::seq::SliceRandom;
+
+    let mut rng = thread_rng();
+
+    // Global warm-up
+    println!("Global warm-up: warming up all functions...");
+    {
+        let mut out = vec![0usize; size];
+        for _ in 0..config.warmup_iterations {
+            let in0 = generate_random_loose_input_usize(bound, size);
+            let in1 = generate_random_loose_input_usize(bound, size);
+            unsafe {
+                llc_func(out.as_mut_ptr(), out.len(), in0.as_ptr(), in0.len(), in1.as_ptr(), in1.len());
+                nasm_func(out.as_mut_ptr(), out.len(), in0.as_ptr(), in0.len(), in1.as_ptr(), in1.len());
+                cryptopt_func(out.as_mut_ptr(), out.len(), in0.as_ptr(), in0.len(), in1.as_ptr(), in1.len());
+            }
+            unsafe { _mm_mfence(); }
+        }
+    }
+
+    // Per-function warm-up (no timing)
+    for &f in &[llc_func, nasm_func, cryptopt_func] {
+        let mut out = vec![0usize; size];
+        for _ in 0..config.warmup_iterations {
+            let in0 = generate_random_loose_input_usize(bound, size);
+            let in1 = generate_random_loose_input_usize(bound, size);
+            unsafe { f(out.as_mut_ptr(), out.len(), in0.as_ptr(), in0.len(), in1.as_ptr(), in1.len()); }
+            unsafe { _mm_mfence(); }
+        }
+    }
+
+    // Shared batch size calibration using GAS cycles
+    let mut batch_size = config.initial_batch_size;
+    {
+        let mut out = vec![0usize; size];
+        let in0 = generate_random_loose_input_usize(bound, size);
+        let in1 = generate_random_loose_input_usize(bound, size);
+        let cg = measure_one_batch_usize_mul(llc_func, &mut out, &in0, &in1, batch_size);
+        let _ = measure_one_batch_usize_mul(nasm_func, &mut out, &in0, &in1, batch_size);
+        let _ = measure_one_batch_usize_mul(cryptopt_func, &mut out, &in0, &in1, batch_size);
+        batch_size = calculate_optimal_batch_size(
+            cg,
+            batch_size,
+            config.cycle_goal,
+            config.min_batch_size,
+            config.max_batch_size,
+        );
+        println!("Calibrated shared batch size (GAS ref): {} (GAS cycles: {})", batch_size, cg);
+        for _ in 0..5 {
+            let _ = measure_one_batch_usize_mul(llc_func, &mut out, &in0, &in1, batch_size);
+            let _ = measure_one_batch_usize_mul(nasm_func, &mut out, &in0, &in1, batch_size);
+            let _ = measure_one_batch_usize_mul(cryptopt_func, &mut out, &in0, &in1, batch_size);
+        }
+    }
+
+    println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
+    let mut gas_batches = vec![0u64; config.num_batches];
+    let mut nasm_batches = vec![0u64; config.num_batches];
+    let mut crypt_batches = vec![0u64; config.num_batches];
+    let mut used_bs = vec![0usize; config.num_batches];
+
+    for b in 0..config.num_batches {
+        let mut out_g = vec![0usize; size];
+        let mut out_n = vec![0usize; size];
+        let mut out_c = vec![0usize; size];
+        let in0 = generate_random_loose_input_usize(bound, size);
+        let in1 = generate_random_loose_input_usize(bound, size);
+
+        let mut order = [0usize, 1usize, 2usize];
+        order.shuffle(&mut rng);
+
+        used_bs[b] = batch_size;
+        for &which in &order {
+            match which {
+                0 => {
+                    let cycles = measure_one_batch_usize_mul(llc_func, &mut out_g, &in0, &in1, batch_size);
+                    gas_batches[b] = cycles;
+                }
+                1 => {
+                    let cycles = measure_one_batch_usize_mul(nasm_func, &mut out_n, &in0, &in1, batch_size);
+                    nasm_batches[b] = cycles;
+                }
+                2 => {
+                    let cycles = measure_one_batch_usize_mul(cryptopt_func, &mut out_c, &in0, &in1, batch_size);
+                    crypt_batches[b] = cycles;
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        if std::env::var("CHECK_OUTPUTS").ok().as_deref() == Some("1") {
+            if out_g != out_n || out_g != out_c {
+                eprintln!("Output mismatch detected in batch {} (usize mul)", b + 1);
+            }
+        }
+
+        let gas_cycles = gas_batches[b];
+        let next = ((config.cycle_goal as f64 / gas_cycles as f64) * batch_size as f64).ceil() as usize;
+        batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
+    }
+
+    let gas_per_call: Vec<u64> = gas_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
+    let nasm_per_call: Vec<u64> = nasm_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
+    let crypt_per_call: Vec<u64> = crypt_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
+
+    let gas_stats = MeasurementStats::from_measurements(&gas_per_call);
+    let nasm_stats = MeasurementStats::from_measurements(&nasm_per_call);
+    let crypt_stats = MeasurementStats::from_measurements(&crypt_per_call);
+
+    (gas_stats, nasm_stats, crypt_stats)
+}
+
 // -----------------------------------------------------------------------------
 // Enhanced measurement using CryptOpt methodology
 
@@ -913,7 +1034,7 @@ fn measure_u64_mul_functions_interleaved_enhanced(
         }
     }
 
-    // Initial shared batch size and calibration round using median of three
+    // Initial shared batch size and calibration round using GAS cycles
     let mut batch_size = config.initial_batch_size;
     {
         let in0 = generate_random_loose_input_u64(bound, size);
@@ -921,18 +1042,23 @@ fn measure_u64_mul_functions_interleaved_enhanced(
         let mut out_g = vec![0u64; size];
         let mut out_n = vec![0u64; size];
         let mut out_c = vec![0u64; size];
-        let cg = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, batch_size);
-        let cn = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, batch_size);
-        let cc = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, batch_size);
+        let calib_bs = batch_size;
+        let cg = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, calib_bs);
+        let _cn = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, calib_bs);
+        let _cc = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, calib_bs);
         // Use GAS cycles as the baseline reference (shared batch size)
         batch_size = calculate_optimal_batch_size(
             cg,
-            batch_size,
+            calib_bs,
             config.cycle_goal,
             config.min_batch_size,
             config.max_batch_size,
         );
-        println!("Calibrated shared batch size (GAS ref): {} (GAS cycles: {})", batch_size, cg);
+        let per_call_est = cg as f64 / calib_bs as f64;
+        println!(
+            "Calibrated shared batch size (GAS ref): {} (GAS batch cycles: {}, ~{:.2} cycles/call at bs={})",
+            batch_size, cg, per_call_est, calib_bs
+        );
         // Final warm-up with shared batch size (5 rounds across functions)
         for _ in 0..5 {
             let _ = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, batch_size);
@@ -1648,6 +1774,21 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
                                 nasm_stats.quality_assessment(),
                                 cryptopt_stats.quality_assessment());
                     },
+                    Function::UsizeMul(llc_func, nasm_func, cryptopt_func) => {
+                        let (gas_stats, nasm_stats, cryptopt_stats) =
+                            measure_usize_mul_functions_interleaved_enhanced(bound, size, llc_func, nasm_func, cryptopt_func, &config);
+
+                        gas_medians.push(gas_stats.median);
+                        nasm_medians.push(nasm_stats.median);
+                        cryptopt_medians.push(cryptopt_stats.median);
+
+                        println!("Run {} - GAS: {} cycles, NASM: {} cycles, CryptOpt: {} cycles",
+                                run, gas_stats.median, nasm_stats.median, cryptopt_stats.median);
+                        println!("Quality - GAS: {}, NASM: {}, CryptOpt: {}",
+                                gas_stats.quality_assessment(),
+                                nasm_stats.quality_assessment(),
+                                cryptopt_stats.quality_assessment());
+                    }
                     _ => {
                         println!("Enhanced measurement not yet implemented for this curve's function type");
                         return;
