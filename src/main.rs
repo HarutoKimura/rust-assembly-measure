@@ -7,11 +7,26 @@ use std::env;
 mod precise_timing;
 use precise_timing::*;
 
+// High-level orchestration (how pieces fit together):
+// - This binary selects a curve and operation from CLI, then chooses one of two paths:
+//   (A) legacy CryptOpt-style measurement (fixed batch size, simple medians), or
+//   (B) enhanced interleaved methodology from `precise_timing` (warm-up, calibration
+//       to cycle goal, randomized batch order, per-call cycles, statistical analysis).
+// - Curves are exposed as FFI modules that declare multiple alternative implementations
+//   (GAS/LLC, NASM, optional hand-optimized variants, CryptOpt). `CurveType` maps a CLI
+//   name to its input bounds and the function tuple for mul/square via `get_*_functions`.
+// - Measurement helpers in this file execute the chosen functions in batches and compute
+//   medians. The enhanced flows reuse `MeasurementConfig`, `MeasurementStats`, and
+//   utilities from `precise_timing` to provide robust, comparable results.
+
 // Import CryptOpt-style timing module (removed; not used)
 
 // -----------------------------------------------------------------------------
 // Modules for the curves with external function declarations.
 // (These signatures should match actual FFI declarations.)
+// Each module corresponds to one curve/field and lists raw extern "C" symbols for
+// multiple codegen variants. `CurveType::get_mul_functions` / `get_square_functions`
+// select a tuple from these for downstream measurement.
 mod curve25519 {
     pub const LOOSE_BOUND: u64 = 0x18000000000000;
     pub const SIZE: usize = 4;
@@ -228,6 +243,11 @@ mod openssl_p448 {
 
 // -----------------------------------------------------------------------------
 // Enum definitions for curves and the functions.
+// Curve/Function selection overview:
+// - `CurveType` binds a curve to its loose input bound and limb size.
+// - `Function` is a tagged tuple describing which implementation variants (3–5)
+//   are available for that curve/operation.
+// The measurement runners switch on `Function` to call the right batch runner.
 #[derive(Debug)]
 enum CurveType {
     Curve25519,
@@ -463,6 +483,9 @@ impl CurveType {
 
 // -----------------------------------------------------------------------------
 // Utility functions
+// - Random loose input generators: create uniformly random limbs within the
+//   curve-specific "loose" bounds used by the original FiatCrypto code.
+// - `median`: helper used by the simpler legacy-style aggregations.
 
 fn generate_random_loose_input_u64(bound: u64, size: usize) -> Vec<u64> {
     let mut rng = thread_rng();
@@ -496,7 +519,7 @@ fn measure_one_batch_u64_mul_precise(
     in1: &[u64],
     batch_size: usize,
 ) -> u64 {
-    // Use precise timing with memory barriers
+    // Use precise timing with memory barriers (delegates to `precise_rdtsc`)
     let start = precise_rdtsc();
     
     unsafe {
@@ -529,6 +552,7 @@ fn measure_three_functions_u64_mul(
     batch_size: usize,
     nob: usize,
 ) -> (u64, u64, u64) {
+    // Legacy-style: fixed batch size, regenerate inputs each batch, take median of batch cycles
     let mut cycles_llc = Vec::with_capacity(nob);
     let mut cycles_nasm = Vec::with_capacity(nob);
     let mut cycles_cryptopt = Vec::with_capacity(nob);
@@ -1007,7 +1031,7 @@ fn measure_u64_mul_functions_interleaved_enhanced(
 
     let mut rng = thread_rng();
 
-    // Global warm-up across all functions
+    // Global warm-up across all functions (stabilize instruction/data caches, predictors)
     println!("Global warm-up: warming up all functions...");
     {
         let mut warmout = vec![0u64; size];
@@ -1084,7 +1108,7 @@ fn measure_u64_mul_functions_interleaved_enhanced(
         let mut out_nasm = vec![0u64; size];
         let mut out_crypt = vec![0u64; size];
 
-        // Define order [0,1,2] → shuffle each batch
+        // Define order [0,1,2] → shuffle each batch (Fisher–Yates via rand::SliceRandom)
         let mut order = [0usize, 1usize, 2usize];
         order.shuffle(&mut rng);
 
@@ -1113,7 +1137,7 @@ fn measure_u64_mul_functions_interleaved_enhanced(
             }
         }
 
-        // Optional correctness check: compare outputs if enabled
+        // Optional correctness check: compare outputs if enabled (CHECK_OUTPUTS=1)
         if std::env::var("CHECK_OUTPUTS").ok().as_deref() == Some("1") {
             if out_gas != out_nasm || out_gas != out_crypt {
                 eprintln!("Output mismatch detected in batch {}", b + 1);
@@ -1153,7 +1177,7 @@ fn measure_u64_mul_functions_interleaved_enhanced_five(
 
     let mut rng = thread_rng();
 
-    // Global warm-up
+    // Global warm-up (all five implementations)
     println!("Global warm-up: warming up all functions...");
     {
         let mut warmout = vec![0u64; size];
@@ -1983,6 +2007,7 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
 // Enhanced measurement runner using CryptOpt methodology
 
 fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize) {
+    // Build the enhanced measurement configuration (used across all runs)
     let config = MeasurementConfig {
         cycle_goal: 10_000,     // CryptOpt's cycle goal
         num_batches: 31,        // CryptOpt's number of batches
@@ -2011,6 +2036,8 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
     for run in 1..=repeats {
         println!("=== Run {}/{} ===", run, repeats);
         
+        // Per-run: select operation, dispatch to interleaved enhanced measurement for
+        // the specific curve's available function tuple(s).
         match operation {
             "mul" => {
                 let functions = curve.get_mul_functions();
@@ -2314,6 +2341,7 @@ fn main() {
         println!("Measuring {:?} for operation '{}' with CryptOpt approach...", curve_type, op);
         println!("Using batch size = 200 and nBatches = 31, repeated {} time(s).", repeats);
 
+        // Legacy pathway uses fixed-size batch runners defined above
         match op {
             "mul" => run_repeated_measurements_mul(&curve_type, repeats),
             "square" => run_repeated_measurements_square(&curve_type, repeats),

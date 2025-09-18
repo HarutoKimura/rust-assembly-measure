@@ -6,7 +6,20 @@
 // - Proper warm-up procedures
 // - Dynamic batch size scaling based on cycle goal
 // - Enhanced noise mitigation
-
+//
+// Module overview and integration:
+// - This module provides the measurement primitives used by `src/main.rs`.
+// - `MeasurementConfig` carries run parameters (cycle goal, batches, warmups).
+// - `precise_rdtsc` wraps RDTSC with an mfence to reduce reordering noise.
+// - `warmup_function` runs code paths without timing to stabilize caches/branch predictors.
+// - `randomize_batch_order` shuffles batch execution (R3) to decorrelate drift.
+// - `calculate_optimal_batch_size` scales batch size to hit the target cycle goal.
+// - `measure_single_batch` times a closure repeated `batch_size` times.
+// - `measure_with_cryptopt_method` orchestrates warmup → calibrate → warmup → randomized batches
+//   and returns per-call cycles; `main.rs` converts these into `MeasurementStats`.
+// - `MeasurementStats` summarizes raw and filtered results and provides CV and CI.
+// - `MultiMeasurement` measures several implementations (e.g., GAS/NASM/CryptOpt) with the same
+//   configuration so `main.rs` can present fair, comparable statistics.
 use rand::prelude::*;
 use core::arch::x86_64::{_rdtsc, _mm_mfence};
 
