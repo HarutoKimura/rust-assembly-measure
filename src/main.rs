@@ -799,32 +799,7 @@ fn measure_usize_mul_functions_interleaved_enhanced(
 
     let mut rng = thread_rng();
 
-    // Global warm-up
-    println!("Global warm-up: warming up all functions...");
-    {
-        let mut out = vec![0usize; size];
-        for _ in 0..config.warmup_iterations {
-            let in0 = generate_random_loose_input_usize(bound, size);
-            let in1 = generate_random_loose_input_usize(bound, size);
-            unsafe {
-                llc_func(out.as_mut_ptr(), out.len(), in0.as_ptr(), in0.len(), in1.as_ptr(), in1.len());
-                nasm_func(out.as_mut_ptr(), out.len(), in0.as_ptr(), in0.len(), in1.as_ptr(), in1.len());
-                cryptopt_func(out.as_mut_ptr(), out.len(), in0.as_ptr(), in0.len(), in1.as_ptr(), in1.len());
-            }
-            unsafe { _mm_mfence(); }
-        }
-    }
-
-    // Per-function warm-up (no timing)
-    for &f in &[llc_func, nasm_func, cryptopt_func] {
-        let mut out = vec![0usize; size];
-        for _ in 0..config.warmup_iterations {
-            let in0 = generate_random_loose_input_usize(bound, size);
-            let in1 = generate_random_loose_input_usize(bound, size);
-            unsafe { f(out.as_mut_ptr(), out.len(), in0.as_ptr(), in0.len(), in1.as_ptr(), in1.len()); }
-            unsafe { _mm_mfence(); }
-        }
-    }
+    // Warm-up phases removed per request (match original CryptOpt style)
 
     // Shared batch size calibration using GAS cycles
     let mut batch_size = config.initial_batch_size;
@@ -843,11 +818,6 @@ fn measure_usize_mul_functions_interleaved_enhanced(
             config.max_batch_size,
         );
         println!("Calibrated shared batch size (GAS ref): {} (GAS cycles: {})", batch_size, cg);
-        for _ in 0..5 {
-            let _ = measure_one_batch_usize_mul(llc_func, &mut out, &in0, &in1, batch_size);
-            let _ = measure_one_batch_usize_mul(nasm_func, &mut out, &in0, &in1, batch_size);
-            let _ = measure_one_batch_usize_mul(cryptopt_func, &mut out, &in0, &in1, batch_size);
-        }
     }
 
     println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
@@ -1031,32 +1001,7 @@ fn measure_u64_mul_functions_interleaved_enhanced(
 
     let mut rng = thread_rng();
 
-    // Global warm-up across all functions (stabilize instruction/data caches, predictors)
-    println!("Global warm-up: warming up all functions...");
-    {
-        let mut warmout = vec![0u64; size];
-        for _ in 0..config.warmup_iterations {
-            let in0 = generate_random_loose_input_u64(bound, size);
-            let in1 = generate_random_loose_input_u64(bound, size);
-            unsafe {
-                llc_func(warmout.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
-                nasm_func(warmout.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
-                cryptopt_func(warmout.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
-            }
-            unsafe { _mm_mfence(); }
-        }
-    }
-
-    // Per-function warm-up (no measurement), shared batch size approach
-    for &f in &[llc_func, nasm_func, cryptopt_func] {
-        let mut out = vec![0u64; size];
-        for _ in 0..config.warmup_iterations {
-            let in0 = generate_random_loose_input_u64(bound, size);
-            let in1 = generate_random_loose_input_u64(bound, size);
-            unsafe { f(out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr()); }
-            unsafe { _mm_mfence(); }
-        }
-    }
+    // Warm-up phases removed per request (match original CryptOpt style)
 
     // Initial shared batch size and calibration round using GAS cycles
     let mut batch_size = config.initial_batch_size;
@@ -1083,12 +1028,7 @@ fn measure_u64_mul_functions_interleaved_enhanced(
             "Calibrated shared batch size (GAS ref): {} (GAS batch cycles: {}, ~{:.2} cycles/call at bs={})",
             batch_size, cg, per_call_est, calib_bs
         );
-        // Final warm-up with shared batch size (5 rounds across functions)
-        for _ in 0..5 {
-            let _ = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, batch_size);
-            let _ = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, batch_size);
-            let _ = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, batch_size);
-        }
+        // No final warm-up
     }
 
     println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
@@ -1303,30 +1243,7 @@ fn measure_u64_square_functions_interleaved_enhanced(
 
     let mut rng = thread_rng();
 
-    // Global warm-up
-    println!("Global warm-up: warming up all functions...");
-    {
-        let mut warmout = vec![0u64; size];
-        for _ in 0..config.warmup_iterations {
-            let input = generate_random_loose_input_u64(bound, size);
-            unsafe {
-                llc_func(warmout.as_mut_ptr(), input.as_ptr());
-                nasm_func(warmout.as_mut_ptr(), input.as_ptr());
-                cryptopt_func(warmout.as_mut_ptr(), input.as_ptr());
-            }
-            unsafe { _mm_mfence(); }
-        }
-    }
-
-    // Per-function warm-up (no timing)
-    for &f in &[llc_func, nasm_func, cryptopt_func] {
-        let mut out = vec![0u64; size];
-        for _ in 0..config.warmup_iterations {
-            let input = generate_random_loose_input_u64(bound, size);
-            unsafe { f(out.as_mut_ptr(), input.as_ptr()); }
-            unsafe { _mm_mfence(); }
-        }
-    }
+    // Warm-up phases removed per request (match original CryptOpt style)
 
     // Shared batch size calibration using GAS cycles
     let mut batch_size = config.initial_batch_size;
@@ -1346,11 +1263,6 @@ fn measure_u64_square_functions_interleaved_enhanced(
             config.max_batch_size,
         );
         println!("Calibrated shared batch size (GAS ref): {} (GAS cycles: {})", batch_size, cg);
-        for _ in 0..5 {
-            let _ = measure_one_batch_u64_square(llc_func, &mut out_g, &input, batch_size);
-            let _ = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, batch_size);
-            let _ = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, batch_size);
-        }
     }
 
     println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
@@ -1425,32 +1337,7 @@ fn measure_u64_square_functions_interleaved_enhanced_five(
 
     let mut rng = thread_rng();
 
-    // Global warm-up across all five
-    println!("Global warm-up: warming up all functions...");
-    {
-        let mut warmout = vec![0u64; size];
-        for _ in 0..config.warmup_iterations {
-            let input = generate_random_loose_input_u64(bound, size);
-            unsafe {
-                llc_func(warmout.as_mut_ptr(), input.as_ptr());
-                nasm_func(warmout.as_mut_ptr(), input.as_ptr());
-                hand_func(warmout.as_mut_ptr(), input.as_ptr());
-                hand_nasm_func(warmout.as_mut_ptr(), input.as_ptr());
-                cryptopt_func(warmout.as_mut_ptr(), input.as_ptr());
-            }
-            unsafe { _mm_mfence(); }
-        }
-    }
-
-    // Per-function warm-up (no timing)
-    for &f in &[llc_func, nasm_func, hand_func, hand_nasm_func, cryptopt_func] {
-        let mut out = vec![0u64; size];
-        for _ in 0..config.warmup_iterations {
-            let input = generate_random_loose_input_u64(bound, size);
-            unsafe { f(out.as_mut_ptr(), input.as_ptr()); }
-            unsafe { _mm_mfence(); }
-        }
-    }
+    // Warm-up phases removed per request (match original CryptOpt style)
 
     // Shared batch size calibration using GAS cycles
     let mut batch_size = config.initial_batch_size;
@@ -2334,7 +2221,7 @@ fn main() {
     
     if use_enhanced {
         println!("Measuring {:?} for operation '{}' with ENHANCED CryptOpt methodology...", curve_type, op);
-        println!("Features: Memory barriers, randomized batching, proper warm-up, statistical analysis\n");
+        println!("Features: Memory barriers, randomized batching, cycle-goal calibration, statistical analysis\n");
         
         run_enhanced_measurements(&curve_type, op, repeats);
     } else {

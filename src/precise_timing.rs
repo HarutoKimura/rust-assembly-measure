@@ -65,18 +65,12 @@ pub fn precise_rdtsc() -> u64 {
     }
 }
 
-/// Warm-up function to mitigate initialization bias
-/// Runs the target function multiple times without measuring
-pub fn warmup_function<F>(mut warmup_func: F, iterations: usize)
+/// Warm-up support was removed to match the requested behavior (original CryptOpt style).
+/// This stub is kept for compatibility but performs no work.
+pub fn warmup_function<F>(_warmup_func: F, _iterations: usize)
 where
     F: FnMut(),
-{
-    for _ in 0..iterations {
-        warmup_func();
-        // Add a small barrier to prevent over-optimization
-        unsafe { _mm_mfence(); }
-    }
-}
+{}
 
 /// Fisher-Yates shuffle for randomizing batch execution order
 /// This implements the R3-validation approach from CryptOpt
@@ -137,7 +131,7 @@ where
 pub fn measure_with_cryptopt_method<F, G>(
     config: &MeasurementConfig,
     mut measurement_func: F,
-    mut warmup_func: G,
+    _warmup_func: G,
 ) -> Vec<u64>
 where
     F: FnMut(),
@@ -146,11 +140,8 @@ where
     let mut rng = thread_rng();
     let mut current_batch_size = config.initial_batch_size;
     
-    // Phase 1: Warm-up to mitigate initialization bias
-    println!("Performing warm-up ({} iterations)...", config.warmup_iterations);
-    warmup_function(|| warmup_func(), config.warmup_iterations);
-    
-    // Phase 2: Calibration run to determine optimal batch size
+    // Warm-up removed; jump directly to calibration
+    // Phase 1: Calibration run to determine optimal batch size
     println!("Calibrating batch size for cycle goal of {} cycles...", config.cycle_goal);
     let calibration_cycles = measure_single_batch(&mut measurement_func, current_batch_size);
     current_batch_size = calculate_optimal_batch_size(
@@ -165,13 +156,7 @@ where
              current_batch_size, 
              calibration_cycles as f64 * current_batch_size as f64 / config.initial_batch_size as f64);
     
-    // Phase 3: Additional targeted warm-up with optimal batch size
-    println!("Final warm-up with optimal batch size...");
-    for _ in 0..5 {
-        measure_single_batch(&mut measurement_func, current_batch_size);
-    }
-    
-    // Phase 4: Collect measurements with randomized execution order
+    // Phase 2: Collect measurements with randomized execution order
     println!("Collecting {} batches with randomized execution order...", config.num_batches);
     
     // Create randomized execution order (R3-validation)
