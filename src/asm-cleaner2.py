@@ -35,6 +35,8 @@ def clean_assembly_lines(lines, output_path=None):
     
     # Track if we're in a function
     current_function = None
+    # Track a GLOBAL just emitted so the next function label matches exactly
+    pending_global_symbol = None
     
     for i, line in enumerate(lines):
         original_strip = line.strip()
@@ -56,6 +58,7 @@ def clean_assembly_lines(lines, output_path=None):
                 if symbol_suffix:
                     sym = f"{sym}{symbol_suffix}"
                 cleaned_output_lines.append(f"GLOBAL {sym}")
+                pending_global_symbol = sym
             continue
             
         if original_strip.startswith('.type'):
@@ -92,7 +95,11 @@ def clean_assembly_lines(lines, output_path=None):
                     label_name = f"{current_function}{label_name}"
             else:
                 # This is a function label
-                if symbol_suffix:
+                if pending_global_symbol:
+                    # Force-align the first function label after GLOBAL
+                    label_name = pending_global_symbol
+                    pending_global_symbol = None
+                elif symbol_suffix:
                     label_name = f"{label_name}{symbol_suffix}"
                 current_function = label_name
             # Check if previous line was ALIGN - if so, insert label after ALIGN

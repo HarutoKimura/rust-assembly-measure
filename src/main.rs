@@ -32,12 +32,12 @@ mod curve25519 {
     pub const SIZE: usize = 4;
     extern "C" {
         // Multiply functions
-        pub fn rust_fiat_curve25519_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_curve25519_carry_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_curve25519_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_curve25519_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn rust_fiat_curve25519_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
-        pub fn rust_fiat_curve25519_carry_square(arg0: *mut u64, arg1: *const u64);
-        pub fn rust_fiat_curve25519_carry_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_fiat_curve25519_carry_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_fiat_curve25519_carry_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn rust_fiat_curve25519_carry_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
 
     }
@@ -63,12 +63,12 @@ mod p448 {
     pub const SIZE: usize = 8;
     extern "C" {
         // Multiply functions
-        pub fn rust_fiat_p448_solinas_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_p448_solinas_carry_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_p448_solinas_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_p448_solinas_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn rust_fiat_p448_solinas_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
-        pub fn rust_fiat_p448_solinas_carry_square(arg0: *mut u64, arg1: *const u64);
-        pub fn rust_fiat_p448_solinas_carry_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_fiat_p448_solinas_carry_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_fiat_p448_solinas_carry_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn rust_fiat_p448_solinas_carry_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
@@ -337,8 +337,8 @@ impl CurveType {
     fn get_mul_functions(&self) -> Function {
         match self {
             CurveType::Curve25519 => Function::U64Mul(
-                curve25519::rust_fiat_curve25519_carry_mul,
-                curve25519::rust_fiat_curve25519_carry_mul_nasm,
+                curve25519::rust_fiat_curve25519_carry_mul_vec,
+                curve25519::rust_fiat_curve25519_carry_mul_vec_nasm,
                 curve25519::rust_fiat_curve25519_carry_mul_CryptOpt
             ),
             CurveType::Curve25519Dalek => Function::U64Mul(
@@ -347,8 +347,8 @@ impl CurveType {
                 curve25519_dalek::curve25519_dalek_mul_CryptOpt
             ),
             CurveType::P448 => Function::U64Mul(
-                p448::rust_fiat_p448_solinas_carry_mul,
-                p448::rust_fiat_p448_solinas_carry_mul_nasm,
+                p448::rust_fiat_p448_solinas_carry_mul_vec,
+                p448::rust_fiat_p448_solinas_carry_mul_vec_nasm,
                 p448::rust_fiat_p448_solinas_carry_mul_CryptOpt
             ),
             CurveType::Poly1305 => Function::U64Mul(
@@ -409,13 +409,13 @@ impl CurveType {
     fn get_square_functions(&self) -> Function {
         match self {
             CurveType::Curve25519 => Function::U64Square(
-                curve25519::rust_fiat_curve25519_carry_square,
-                curve25519::rust_fiat_curve25519_carry_square_nasm,
+                curve25519::rust_fiat_curve25519_carry_square_vec,
+                curve25519::rust_fiat_curve25519_carry_square_vec_nasm,
                 curve25519::rust_fiat_curve25519_carry_square_CryptOpt
             ),
             CurveType::P448 => Function::U64Square(
-                p448::rust_fiat_p448_solinas_carry_square,
-                p448::rust_fiat_p448_solinas_carry_square_nasm,
+                p448::rust_fiat_p448_solinas_carry_square_vec,
+                p448::rust_fiat_p448_solinas_carry_square_vec_nasm,
                 p448::rust_fiat_p448_solinas_carry_square_CryptOpt
             ),
             CurveType::Poly1305 => Function::U64Square(
