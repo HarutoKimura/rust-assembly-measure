@@ -2,7 +2,7 @@ import re
 import sys
 import os # Import the os module for path manipulation
 
-def clean_assembly_lines(lines):
+def clean_assembly_lines(lines, output_path=None):
     """
     Cleans assembly lines by removing comments, unnecessary keywords,
     and formatting whitespace. Converts AT&T syntax to NASM format.
@@ -16,14 +16,22 @@ def clean_assembly_lines(lines):
     cleaned_output_lines = []
     num_lines = len(lines)
     
-    # Add NASM header
-    cleaned_output_lines.append("default rel")
-    cleaned_output_lines.append("%define XMMWORD")
-    cleaned_output_lines.append("%define YMMWORD") 
-    cleaned_output_lines.append("%define ZMMWORD")
+    # Track input assembly dialect
+    intel_syntax = False
+    
+    # Should we suffix the exported symbol with _nasm?
+    suffix_symbol = False
+    symbol_suffix = ""
+    if output_path is not None:
+        try:
+            suffix_symbol = os.path.basename(output_path).endswith('_nasm.asm')
+            symbol_suffix = "_nasm" if suffix_symbol else ""
+        except Exception:
+            suffix_symbol = False
+            symbol_suffix = ""
+    
+    # Add NASM header (no blank lines to satisfy formatting request)
     cleaned_output_lines.append("section .text")
-    cleaned_output_lines.append("")
-    cleaned_output_lines.append("")
     
     # Track if we're in a function
     current_function = None
@@ -31,12 +39,23 @@ def clean_assembly_lines(lines):
     for i, line in enumerate(lines):
         original_strip = line.strip()
 
+        # Detect GAS Intel vs AT&T syntax toggles
+        if original_strip.startswith('.intel_syntax'):
+            intel_syntax = True
+            continue
+        if original_strip.startswith('.att_syntax'):
+            intel_syntax = False
+            continue
+
         # Handle specific directives
         if original_strip.startswith('.globl'):
             # Convert .globl to global
             parts = original_strip.split()
             if len(parts) >= 2:
-                cleaned_output_lines.append(f"global {parts[1]}")
+                sym = parts[1]
+                if symbol_suffix:
+                    sym = f"{sym}{symbol_suffix}"
+                cleaned_output_lines.append(f"GLOBAL {sym}")
             continue
             
         if original_strip.startswith('.type'):
@@ -73,6 +92,8 @@ def clean_assembly_lines(lines):
                     label_name = f"{current_function}{label_name}"
             else:
                 # This is a function label
+                if symbol_suffix:
+                    label_name = f"{label_name}{symbol_suffix}"
                 current_function = label_name
             # Check if previous line was ALIGN - if so, insert label after ALIGN
             if cleaned_output_lines and cleaned_output_lines[-1].startswith('ALIGN'):
@@ -120,6 +141,7 @@ def clean_assembly_lines(lines):
         def convert_and_reorder_instruction(instr: str) -> str:
             """Convert AT&T memory operands to NASM and reorder operands."""
             nonlocal current_function
+            nonlocal intel_syntax
             
             # Split mnemonic and operands
             parts = instr.strip().split(None, 1)
@@ -161,7 +183,7 @@ def clean_assembly_lines(lines):
             
             # Handle special instruction cases
             if mnemonic == 'lea':
-                # lea uses plain brackets without QWORD
+                # lea uses plain brackets; ensure no size tokens
                 for i, op in enumerate(converted_ops):
                     if op.startswith('QWORD['):
                         converted_ops[i] = op.replace('QWORD', '')
@@ -173,12 +195,14 @@ def clean_assembly_lines(lines):
                     if current_function:
                         converted_ops[0] = f"{current_function}{converted_ops[0]}"
             
-            # Reorder operands for Intel syntax
+            # Reorder operands only for AT&T-style inputs
+            # Intel-style inputs (from `.intel_syntax noprefix`) already use dest, src
             no_swap_instructions = ['mul', 'imul', 'div', 'idiv', 'cmp', 'test']
-            
-            if len(converted_ops) == 2 and mnemonic not in no_swap_instructions:
-                # Swap for Intel syntax: dest, src
-                converted_ops = [converted_ops[1], converted_ops[0]]
+
+            if not intel_syntax:
+                if len(converted_ops) == 2 and mnemonic not in no_swap_instructions:
+                    # Swap for Intel syntax: dest, src
+                    converted_ops = [converted_ops[1], converted_ops[0]]
             
             return f"\t{mnemonic} {','.join(converted_ops)}"
         
@@ -228,9 +252,9 @@ def clean_assembly_lines(lines):
                 parts.append(disp)
             
             if parts:
-                return f"QWORD[{'+'.join(parts)}]"
+                return f"[{'+'.join(parts)}]"
             else:
-                return "QWORD[0]"
+                return "[0]"
 
         # Skip if already processed (like imul)
         if not (imul_processed or cleaned_line.endswith(':')):
@@ -238,6 +262,9 @@ def clean_assembly_lines(lines):
 
         # Remove local labels like 0:, 1:, etc.
         cleaned_line = re.sub(r'\b\d+:', '', cleaned_line)
+
+        # Strip any residual size keywords (qword/dword/word/byte)
+        cleaned_line = re.sub(r'\b(qword|dword|word|byte)\b\s*', '', cleaned_line, flags=re.IGNORECASE)
 
         # Remove extra whitespace
         cleaned_line = re.sub(r'\s+', ' ', cleaned_line.strip())
@@ -279,7 +306,7 @@ def main():
         sys.exit(1)
 
     # Clean the assembly code
-    cleaned_code = clean_assembly_lines(input_lines)
+    cleaned_code = clean_assembly_lines(input_lines, output_path=output_path)
 
     # Write the cleaned code to the output file
     try:

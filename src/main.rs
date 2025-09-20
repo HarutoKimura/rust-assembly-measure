@@ -48,12 +48,12 @@ mod curve25519_dalek {
     pub const SIZE: usize = 4;
     extern "C" {
         // Multiply functions
-        pub fn curve25519_dalek_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn curve25519_dalek_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn curve25519_dalek_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn curve25519_dalek_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn curve25519_dalek_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
-        pub fn curve25519_dalek_square(arg0: *mut u64, arg1: *const u64);
-        pub fn curve25519_dalek_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn curve25519_dalek_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn curve25519_dalek_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn curve25519_dalek_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
@@ -342,8 +342,8 @@ impl CurveType {
                 curve25519::rust_fiat_curve25519_carry_mul_CryptOpt
             ),
             CurveType::Curve25519Dalek => Function::U64Mul(
-                curve25519_dalek::curve25519_dalek_mul,
-                curve25519_dalek::curve25519_dalek_mul_nasm,
+                curve25519_dalek::curve25519_dalek_mul_vec,
+                curve25519_dalek::curve25519_dalek_mul_vec_nasm,
                 curve25519_dalek::curve25519_dalek_mul_CryptOpt
             ),
             CurveType::P448 => Function::U64Mul(
@@ -429,8 +429,8 @@ impl CurveType {
                 secp256k1_dettman::rust_fiat_secp256k1_dettman_square_CryptOpt
             ),
             CurveType::Curve25519Dalek => Function::U64Square(
-                curve25519_dalek::curve25519_dalek_square,
-                curve25519_dalek::curve25519_dalek_square_nasm,
+                curve25519_dalek::curve25519_dalek_square_vec,
+                curve25519_dalek::curve25519_dalek_square_vec_nasm,
                 curve25519_dalek::curve25519_dalek_square_CryptOpt
             ),
             CurveType::Secp256k1RustEc => Function::U64Square(
@@ -801,15 +801,16 @@ fn measure_usize_mul_functions_interleaved_enhanced(
 
     // Warm-up phases removed per request (match original CryptOpt style)
 
-    // Shared batch size calibration using GAS cycles
+    // Shared batch size calibration using max cycles across implementations
     let mut batch_size = config.initial_batch_size;
     {
         let mut out = vec![0usize; size];
         let in0 = generate_random_loose_input_usize(bound, size);
         let in1 = generate_random_loose_input_usize(bound, size);
-        let cg = measure_one_batch_usize_mul(llc_func, &mut out, &in0, &in1, batch_size);
-        let _ = measure_one_batch_usize_mul(nasm_func, &mut out, &in0, &in1, batch_size);
-        let _ = measure_one_batch_usize_mul(cryptopt_func, &mut out, &in0, &in1, batch_size);
+        let cg_gas = measure_one_batch_usize_mul(llc_func, &mut out, &in0, &in1, batch_size);
+        let cg_nasm = measure_one_batch_usize_mul(nasm_func, &mut out, &in0, &in1, batch_size);
+        let cg_crypt = measure_one_batch_usize_mul(cryptopt_func, &mut out, &in0, &in1, batch_size);
+        let cg = cg_gas.max(cg_nasm).max(cg_crypt);
         batch_size = calculate_optimal_batch_size(
             cg,
             batch_size,
@@ -817,7 +818,7 @@ fn measure_usize_mul_functions_interleaved_enhanced(
             config.min_batch_size,
             config.max_batch_size,
         );
-        println!("Calibrated shared batch size (GAS ref): {} (GAS cycles: {})", batch_size, cg);
+        println!("Calibrated shared batch size (max-of-impls): {} (max cycles: {})", batch_size, cg);
     }
 
     println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
@@ -861,8 +862,8 @@ fn measure_usize_mul_functions_interleaved_enhanced(
             }
         }
 
-        let gas_cycles = gas_batches[b];
-        let next = ((config.cycle_goal as f64 / gas_cycles as f64) * batch_size as f64).ceil() as usize;
+        let batch_max = gas_batches[b].max(nasm_batches[b]).max(crypt_batches[b]);
+        let next = ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
@@ -1146,7 +1147,7 @@ fn measure_u64_mul_functions_interleaved_enhanced_five(
         }
     }
 
-    // Shared batch size calibration using GAS cycles
+    // Shared batch size calibration using max cycles across implementations
     let mut batch_size = config.initial_batch_size;
     {
         let in0 = generate_random_loose_input_u64(bound, size);
@@ -1157,26 +1158,20 @@ fn measure_u64_mul_functions_interleaved_enhanced_five(
         let mut out_hn = vec![0u64; size];
         let mut out_c = vec![0u64; size];
         let calib_bs = batch_size;
-        let cg = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, calib_bs);
-        let _ = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, calib_bs);
-        let _ = measure_one_batch_u64_mul_precise(hand_func, &mut out_h, &in0, &in1, calib_bs);
-        let _ = measure_one_batch_u64_mul_precise(hand_nasm_func, &mut out_hn, &in0, &in1, calib_bs);
-        let _ = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, calib_bs);
+        let cg_g = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, calib_bs);
+        let cg_n = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, calib_bs);
+        let cg_h = measure_one_batch_u64_mul_precise(hand_func, &mut out_h, &in0, &in1, calib_bs);
+        let cg_hn = measure_one_batch_u64_mul_precise(hand_nasm_func, &mut out_hn, &in0, &in1, calib_bs);
+        let cg_c = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, calib_bs);
+        let cg = cg_g.max(cg_n).max(cg_h).max(cg_hn).max(cg_c);
         batch_size = calculate_optimal_batch_size(
             cg, calib_bs, config.cycle_goal, config.min_batch_size, config.max_batch_size,
         );
         let per_call_est = cg as f64 / calib_bs as f64;
         println!(
-            "Calibrated shared batch size (GAS ref): {} (GAS batch cycles: {}, ~{:.2} cycles/call at bs={})",
+            "Calibrated shared batch size (max-of-impls): {} (max batch cycles: {}, ~{:.2} cycles/call at bs={})",
             batch_size, cg, per_call_est, calib_bs
         );
-        for _ in 0..5 {
-            let _ = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, batch_size);
-            let _ = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, batch_size);
-            let _ = measure_one_batch_u64_mul_precise(hand_func, &mut out_h, &in0, &in1, batch_size);
-            let _ = measure_one_batch_u64_mul_precise(hand_nasm_func, &mut out_hn, &in0, &in1, batch_size);
-            let _ = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, batch_size);
-        }
     }
 
     println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
@@ -1216,8 +1211,12 @@ fn measure_u64_mul_functions_interleaved_enhanced_five(
             }
         }
 
-        let gas_cycles = gas_batches[b];
-        let next = ((config.cycle_goal as f64 / gas_cycles as f64) * batch_size as f64).ceil() as usize;
+        let batch_max = gas_batches[b]
+            .max(nasm_batches[b])
+            .max(hand_batches[b])
+            .max(hand_nasm_batches[b])
+            .max(crypt_batches[b]);
+        let next = ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
@@ -1245,7 +1244,7 @@ fn measure_u64_square_functions_interleaved_enhanced(
 
     // Warm-up phases removed per request (match original CryptOpt style)
 
-    // Shared batch size calibration using GAS cycles
+    // Shared batch size calibration using max cycles across implementations
     let mut batch_size = config.initial_batch_size;
     {
         let input = generate_random_loose_input_u64(bound, size);
@@ -1305,9 +1304,9 @@ fn measure_u64_square_functions_interleaved_enhanced(
             }
         }
 
-        // GAS as baseline for shared bs update
-        let gas_cycles = gas_batches[b];
-        let next = ((config.cycle_goal as f64 / gas_cycles as f64) * batch_size as f64).ceil() as usize;
+        // Max-of-impls baseline for shared bs update
+        let batch_max = gas_batches[b].max(nasm_batches[b]).max(crypt_batches[b]);
+        let next = ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
@@ -1349,26 +1348,20 @@ fn measure_u64_square_functions_interleaved_enhanced_five(
         let mut out_hn = vec![0u64; size];
         let mut out_c = vec![0u64; size];
         let calib_bs = batch_size;
-        let cg = measure_one_batch_u64_square(llc_func, &mut out_g, &input, calib_bs);
-        let _ = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, calib_bs);
-        let _ = measure_one_batch_u64_square(hand_func, &mut out_h, &input, calib_bs);
-        let _ = measure_one_batch_u64_square(hand_nasm_func, &mut out_hn, &input, calib_bs);
-        let _ = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, calib_bs);
+        let cg_g = measure_one_batch_u64_square(llc_func, &mut out_g, &input, calib_bs);
+        let cg_n = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, calib_bs);
+        let cg_h = measure_one_batch_u64_square(hand_func, &mut out_h, &input, calib_bs);
+        let cg_hn = measure_one_batch_u64_square(hand_nasm_func, &mut out_hn, &input, calib_bs);
+        let cg_c = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, calib_bs);
+        let cg = cg_g.max(cg_n).max(cg_h).max(cg_hn).max(cg_c);
         batch_size = calculate_optimal_batch_size(
             cg, calib_bs, config.cycle_goal, config.min_batch_size, config.max_batch_size,
         );
         let per_call_est = cg as f64 / calib_bs as f64;
         println!(
-            "Calibrated shared batch size (GAS ref): {} (GAS batch cycles: {}, ~{:.2} cycles/call at bs={})",
+            "Calibrated shared batch size (max-of-impls): {} (max batch cycles: {}, ~{:.2} cycles/call at bs={})",
             batch_size, cg, per_call_est, calib_bs
         );
-        for _ in 0..5 {
-            let _ = measure_one_batch_u64_square(llc_func, &mut out_g, &input, batch_size);
-            let _ = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, batch_size);
-            let _ = measure_one_batch_u64_square(hand_func, &mut out_h, &input, batch_size);
-            let _ = measure_one_batch_u64_square(hand_nasm_func, &mut out_hn, &input, batch_size);
-            let _ = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, batch_size);
-        }
     }
 
     println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
@@ -1408,8 +1401,12 @@ fn measure_u64_square_functions_interleaved_enhanced_five(
             }
         }
 
-        let gas_cycles = gas_batches[b];
-        let next = ((config.cycle_goal as f64 / gas_cycles as f64) * batch_size as f64).ceil() as usize;
+        let batch_max = gas_batches[b]
+            .max(nasm_batches[b])
+            .max(hand_batches[b])
+            .max(hand_nasm_batches[b])
+            .max(crypt_batches[b]);
+        let next = ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 

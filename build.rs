@@ -139,9 +139,9 @@ fn build_curve25519_dalek() {
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/rust/curve25519-dalek/llc/mul/curve25519_dalek_mul.asm",
+            "src/rust/curve25519-dalek/llc/mul/curve25519_dalek_mul_vec.asm",
             "-o",
-            "src/rust/curve25519-dalek/llc/mul/curve25519_dalek_mul.o"
+            "src/rust/curve25519-dalek/llc/mul/curve25519_dalek_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -149,8 +149,8 @@ fn build_curve25519_dalek() {
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/curve25519-dalek/llc/mul/libcurve25519_dalek_mul.a",
-            "src/rust/curve25519-dalek/llc/mul/curve25519_dalek_mul.o"
+            "src/rust/curve25519-dalek/llc/mul/libcurve25519_dalek_mul_vec.a",
+            "src/rust/curve25519-dalek/llc/mul/curve25519_dalek_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -160,9 +160,9 @@ fn build_curve25519_dalek() {
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/rust/curve25519-dalek/llc-nasm/mul/curve25519_dalek_mul_nasm.asm",
+            "src/rust/curve25519-dalek/llc-nasm/mul/curve25519_dalek_mul_vec_nasm.asm",
             "-o",
-            "src/rust/curve25519-dalek/llc-nasm/mul/curve25519_dalek_mul_nasm.o"
+            "src/rust/curve25519-dalek/llc-nasm/mul/curve25519_dalek_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -170,8 +170,8 @@ fn build_curve25519_dalek() {
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/curve25519-dalek/llc-nasm/mul/libcurve25519_dalek_mul_nasm.a",
-            "src/rust/curve25519-dalek/llc-nasm/mul/curve25519_dalek_mul_nasm.o"
+            "src/rust/curve25519-dalek/llc-nasm/mul/libcurve25519_dalek_mul_vec_nasm.a",
+            "src/rust/curve25519-dalek/llc-nasm/mul/curve25519_dalek_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -195,9 +195,9 @@ fn build_curve25519_dalek() {
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/rust/curve25519-dalek/llc/square/curve25519_dalek_square.asm", // Assumed path
+            "src/rust/curve25519-dalek/llc/square/curve25519_dalek_square_vec.asm", // Assumed path
             "-o",
-            "src/rust/curve25519-dalek/llc/square/curve25519_dalek_square.o"
+            "src/rust/curve25519-dalek/llc/square/curve25519_dalek_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -205,8 +205,8 @@ fn build_curve25519_dalek() {
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/curve25519-dalek/llc/square/libcurve25519_dalek_square.a",
-            "src/rust/curve25519-dalek/llc/square/curve25519_dalek_square.o"
+            "src/rust/curve25519-dalek/llc/square/libcurve25519_dalek_square_vec.a",
+            "src/rust/curve25519-dalek/llc/square/curve25519_dalek_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -216,9 +216,9 @@ fn build_curve25519_dalek() {
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/rust/curve25519-dalek/llc-nasm/square/curve25519_dalek_square_nasm.asm",
+            "src/rust/curve25519-dalek/llc-nasm/square/curve25519_dalek_square_vec_nasm.asm",
             "-o",
-            "src/rust/curve25519-dalek/llc-nasm/square/curve25519_dalek_square_nasm.o"
+            "src/rust/curve25519-dalek/llc-nasm/square/curve25519_dalek_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -226,8 +226,8 @@ fn build_curve25519_dalek() {
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/curve25519-dalek/llc-nasm/square/libcurve25519_dalek_square_nasm.a",
-            "src/rust/curve25519-dalek/llc-nasm/square/curve25519_dalek_square_nasm.o"
+            "src/rust/curve25519-dalek/llc-nasm/square/libcurve25519_dalek_square_vec_nasm.a",
+            "src/rust/curve25519-dalek/llc-nasm/square/curve25519_dalek_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1730,11 +1730,11 @@ fn main() {
 
     // Curve25519-dalek (mul)
     println!("cargo:rustc-link-lib=static=curve25519_dalek_mul");
-    println!("cargo:rustc-link-lib=static=curve25519_dalek_mul_nasm");
+    println!("cargo:rustc-link-lib=static=curve25519_dalek_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=curve25519_dalek_mul_CryptOpt");
     // Curve25519-dalek (square)
     println!("cargo:rustc-link-lib=static=curve25519_dalek_square");
-    println!("cargo:rustc-link-lib=static=curve25519_dalek_square_nasm");
+    println!("cargo:rustc-link-lib=static=curve25519_dalek_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=curve25519_dalek_square_CryptOpt");
 
     // P448 (mul)
