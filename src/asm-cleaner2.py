@@ -270,8 +270,7 @@ def clean_assembly_lines(lines, output_path=None):
         # Remove local labels like 0:, 1:, etc.
         cleaned_line = re.sub(r'\b\d+:', '', cleaned_line)
 
-        # Strip any residual size keywords (qword/dword/word/byte)
-        cleaned_line = re.sub(r'\b(qword|dword|word|byte)\b\s*', '', cleaned_line, flags=re.IGNORECASE)
+        # Keep size keywords (qword/dword/word/byte) to avoid NASM ambiguity on mem ops
 
         # Remove extra whitespace
         cleaned_line = re.sub(r'\s+', ' ', cleaned_line.strip())

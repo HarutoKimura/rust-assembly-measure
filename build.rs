@@ -367,9 +367,9 @@ fn build_poly1305() {
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/rust/poly1305/llc/mul/rust_fiat_poly1305_carry_mul.asm",
+            "src/rust/poly1305/llc/mul/rust_fiat_poly1305_carry_mul_vec.asm",
             "-o",
-            "src/rust/poly1305/llc/mul/rust_fiat_poly1305_carry_mul.o"
+            "src/rust/poly1305/llc/mul/rust_fiat_poly1305_carry_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -377,8 +377,8 @@ fn build_poly1305() {
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/poly1305/llc/mul/librust_fiat_poly1305_carry_mul.a",
-            "src/rust/poly1305/llc/mul/rust_fiat_poly1305_carry_mul.o"
+            "src/rust/poly1305/llc/mul/librust_fiat_poly1305_carry_mul_vec.a",
+            "src/rust/poly1305/llc/mul/rust_fiat_poly1305_carry_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -388,9 +388,9 @@ fn build_poly1305() {
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/rust/poly1305/llc-nasm/mul/rust_fiat_poly1305_carry_mul_nasm.asm",
+            "src/rust/poly1305/llc-nasm/mul/rust_fiat_poly1305_carry_mul_vec_nasm.asm",
             "-o",
-            "src/rust/poly1305/llc-nasm/mul/rust_fiat_poly1305_carry_mul_nasm.o"
+            "src/rust/poly1305/llc-nasm/mul/rust_fiat_poly1305_carry_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -398,8 +398,8 @@ fn build_poly1305() {
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/poly1305/llc-nasm/mul/librust_fiat_poly1305_carry_mul_nasm.a",
-            "src/rust/poly1305/llc-nasm/mul/rust_fiat_poly1305_carry_mul_nasm.o"
+            "src/rust/poly1305/llc-nasm/mul/librust_fiat_poly1305_carry_mul_vec_nasm.a",
+            "src/rust/poly1305/llc-nasm/mul/rust_fiat_poly1305_carry_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -423,9 +423,9 @@ fn build_poly1305() {
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/rust/poly1305/llc/square/rust_fiat_poly1305_carry_square.asm",
+            "src/rust/poly1305/llc/square/rust_fiat_poly1305_carry_square_vec.asm",
             "-o",
-            "src/rust/poly1305/llc/square/rust_fiat_poly1305_carry_square.o"
+            "src/rust/poly1305/llc/square/rust_fiat_poly1305_carry_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -433,8 +433,8 @@ fn build_poly1305() {
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/poly1305/llc/square/librust_fiat_poly1305_carry_square.a",
-            "src/rust/poly1305/llc/square/rust_fiat_poly1305_carry_square.o"
+            "src/rust/poly1305/llc/square/librust_fiat_poly1305_carry_square_vec.a",
+            "src/rust/poly1305/llc/square/rust_fiat_poly1305_carry_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -444,9 +444,9 @@ fn build_poly1305() {
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/rust/poly1305/llc-nasm/square/rust_fiat_poly1305_carry_square_nasm.asm",
+            "src/rust/poly1305/llc-nasm/square/rust_fiat_poly1305_carry_square_vec_nasm.asm",
             "-o",
-            "src/rust/poly1305/llc-nasm/square/rust_fiat_poly1305_carry_square_nasm.o"
+            "src/rust/poly1305/llc-nasm/square/rust_fiat_poly1305_carry_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -454,8 +454,8 @@ fn build_poly1305() {
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/poly1305/llc-nasm/square/librust_fiat_poly1305_carry_square_nasm.a",
-            "src/rust/poly1305/llc-nasm/square/rust_fiat_poly1305_carry_square_nasm.o"
+            "src/rust/poly1305/llc-nasm/square/librust_fiat_poly1305_carry_square_vec_nasm.a",
+            "src/rust/poly1305/llc-nasm/square/rust_fiat_poly1305_carry_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -481,9 +481,9 @@ fn build_bls12(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/rust/bls12/llc/mul/bls12_mul.asm",
+            "src/rust/bls12/llc/mul/bls12_mul_vec.asm",
             "-o",
-            "src/rust/bls12/llc/mul/bls12_mul.o"
+            "src/rust/bls12/llc/mul/bls12_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -491,8 +491,8 @@ fn build_bls12(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/bls12/llc/mul/libbls12_mul.a",
-            "src/rust/bls12/llc/mul/bls12_mul.o"
+            "src/rust/bls12/llc/mul/libbls12_mul_vec.a",
+            "src/rust/bls12/llc/mul/bls12_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -502,9 +502,9 @@ fn build_bls12(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/rust/bls12/llc-nasm/mul/bls12_mul_nasm.asm",
+            "src/rust/bls12/llc-nasm/mul/bls12_mul_vec_nasm.asm",
             "-o",
-            "src/rust/bls12/llc-nasm/mul/bls12_mul_nasm.o"
+            "src/rust/bls12/llc-nasm/mul/bls12_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -512,8 +512,8 @@ fn build_bls12(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/bls12/llc-nasm/mul/libbls12_mul_nasm.a",
-            "src/rust/bls12/llc-nasm/mul/bls12_mul_nasm.o"
+            "src/rust/bls12/llc-nasm/mul/libbls12_mul_vec_nasm.a",
+            "src/rust/bls12/llc-nasm/mul/bls12_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -525,7 +525,7 @@ fn build_bls12(){
         "src/rust/bls12/cryptopt/mul/seed0001746613146277_ratio06057.o",
         "src/rust/bls12/cryptopt/mul/libbls12_mul_CryptOpt.a",
         "bls12_mul_CryptOpt",
-        true,   // NASM
+        true,   // NASM 
         "bls12",
         "mul",
         6,      // field size
@@ -539,9 +539,9 @@ fn build_secp256k1_dettman(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/rust/secp256k1_dettman/llc/mul/rust_fiat_secp256k1_dettman_mul.asm",
+            "src/rust/secp256k1_dettman/llc/mul/rust_fiat_secp256k1_dettman_mul_vec.asm",
             "-o",
-            "src/rust/secp256k1_dettman/llc/mul/rust_fiat_secp256k1_dettman_mul.o"
+            "src/rust/secp256k1_dettman/llc/mul/rust_fiat_secp256k1_dettman_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -549,8 +549,8 @@ fn build_secp256k1_dettman(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/secp256k1_dettman/llc/mul/librust_fiat_secp256k1_dettman_mul.a",
-            "src/rust/secp256k1_dettman/llc/mul/rust_fiat_secp256k1_dettman_mul.o"
+            "src/rust/secp256k1_dettman/llc/mul/librust_fiat_secp256k1_dettman_mul_vec.a",
+            "src/rust/secp256k1_dettman/llc/mul/rust_fiat_secp256k1_dettman_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -560,9 +560,9 @@ fn build_secp256k1_dettman(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/rust/secp256k1_dettman/llc-nasm/mul/rust_fiat_secp256k1_dettman_mul_nasm.asm",
+            "src/rust/secp256k1_dettman/llc-nasm/mul/rust_fiat_secp256k1_dettman_mul_vec_nasm.asm",
             "-o",
-            "src/rust/secp256k1_dettman/llc-nasm/mul/rust_fiat_secp256k1_dettman_mul_nasm.o"
+            "src/rust/secp256k1_dettman/llc-nasm/mul/rust_fiat_secp256k1_dettman_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -570,8 +570,8 @@ fn build_secp256k1_dettman(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/secp256k1_dettman/llc-nasm/mul/librust_fiat_secp256k1_dettman_mul_nasm.a",
-            "src/rust/secp256k1_dettman/llc-nasm/mul/rust_fiat_secp256k1_dettman_mul_nasm.o"
+            "src/rust/secp256k1_dettman/llc-nasm/mul/librust_fiat_secp256k1_dettman_mul_vec_nasm.a",
+            "src/rust/secp256k1_dettman/llc-nasm/mul/rust_fiat_secp256k1_dettman_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -595,9 +595,9 @@ fn build_secp256k1_dettman(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/rust/secp256k1_dettman/llc/square/rust_fiat_secp256k1_dettman_square.asm",
+            "src/rust/secp256k1_dettman/llc/square/rust_fiat_secp256k1_dettman_square_vec.asm",
             "-o",
-            "src/rust/secp256k1_dettman/llc/square/rust_fiat_secp256k1_dettman_square.o"
+            "src/rust/secp256k1_dettman/llc/square/rust_fiat_secp256k1_dettman_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -605,8 +605,8 @@ fn build_secp256k1_dettman(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/secp256k1_dettman/llc/square/librust_fiat_secp256k1_dettman_square.a",
-            "src/rust/secp256k1_dettman/llc/square/rust_fiat_secp256k1_dettman_square.o"
+            "src/rust/secp256k1_dettman/llc/square/librust_fiat_secp256k1_dettman_square_vec.a",
+            "src/rust/secp256k1_dettman/llc/square/rust_fiat_secp256k1_dettman_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -616,9 +616,9 @@ fn build_secp256k1_dettman(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/rust/secp256k1_dettman/llc-nasm/square/rust_fiat_secp256k1_dettman_square_nasm.asm",
+            "src/rust/secp256k1_dettman/llc-nasm/square/rust_fiat_secp256k1_dettman_square_vec_nasm.asm",
             "-o",
-            "src/rust/secp256k1_dettman/llc-nasm/square/rust_fiat_secp256k1_dettman_square_nasm.o"
+            "src/rust/secp256k1_dettman/llc-nasm/square/rust_fiat_secp256k1_dettman_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -626,8 +626,8 @@ fn build_secp256k1_dettman(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/secp256k1_dettman/llc-nasm/square/librust_fiat_secp256k1_dettman_square_nasm.a",
-            "src/rust/secp256k1_dettman/llc-nasm/square/rust_fiat_secp256k1_dettman_square_nasm.o"
+            "src/rust/secp256k1_dettman/llc-nasm/square/librust_fiat_secp256k1_dettman_square_vec_nasm.a",
+            "src/rust/secp256k1_dettman/llc-nasm/square/rust_fiat_secp256k1_dettman_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -653,9 +653,9 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/rust/rust_ec_secp256k1/llc/mul/rust_ec_secp256k1_mul_inner.asm",
+            "src/rust/rust_ec_secp256k1/llc/mul/rust_ec_secp256k1_mul_inner_vec.asm",
             "-o",
-            "src/rust/rust_ec_secp256k1/llc/mul/rust_ec_secp256k1_mul_inner.o"
+            "src/rust/rust_ec_secp256k1/llc/mul/rust_ec_secp256k1_mul_inner_vec.o"
         ])
         .status()
         .unwrap()
@@ -663,8 +663,8 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/rust_ec_secp256k1/llc/mul/librust_ec_secp256k1_mul_inner.a",
-            "src/rust/rust_ec_secp256k1/llc/mul/rust_ec_secp256k1_mul_inner.o"
+            "src/rust/rust_ec_secp256k1/llc/mul/librust_ec_secp256k1_mul_inner_vec.a",
+            "src/rust/rust_ec_secp256k1/llc/mul/rust_ec_secp256k1_mul_inner_vec.o"
         ])
         .status()
         .unwrap()
@@ -674,9 +674,9 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/rust/rust_ec_secp256k1/llc-nasm/mul/rust_ec_secp256k1_mul_inner_nasm.asm",
+            "src/rust/rust_ec_secp256k1/llc-nasm/mul/rust_ec_secp256k1_mul_inner_vec_nasm.asm",
             "-o",
-            "src/rust/rust_ec_secp256k1/llc-nasm/mul/rust_ec_secp256k1_mul_inner_nasm.o"
+            "src/rust/rust_ec_secp256k1/llc-nasm/mul/rust_ec_secp256k1_mul_inner_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -684,8 +684,8 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/rust_ec_secp256k1/llc-nasm/mul/librust_ec_secp256k1_mul_inner_nasm.a",
-            "src/rust/rust_ec_secp256k1/llc-nasm/mul/rust_ec_secp256k1_mul_inner_nasm.o"
+            "src/rust/rust_ec_secp256k1/llc-nasm/mul/librust_ec_secp256k1_mul_inner_vec_nasm.a",
+            "src/rust/rust_ec_secp256k1/llc-nasm/mul/rust_ec_secp256k1_mul_inner_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -709,9 +709,9 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/rust/rust_ec_secp256k1/llc/square/rust_ec_secp256k1_square.asm",
+            "src/rust/rust_ec_secp256k1/llc/square/rust_ec_secp256k1_square_vec.asm",
             "-o",
-            "src/rust/rust_ec_secp256k1/llc/square/rust_ec_secp256k1_square.o"
+            "src/rust/rust_ec_secp256k1/llc/square/rust_ec_secp256k1_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -719,8 +719,8 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/rust_ec_secp256k1/llc/square/librust_ec_secp256k1_square.a",
-            "src/rust/rust_ec_secp256k1/llc/square/rust_ec_secp256k1_square.o"
+            "src/rust/rust_ec_secp256k1/llc/square/librust_ec_secp256k1_square_vec.a",
+            "src/rust/rust_ec_secp256k1/llc/square/rust_ec_secp256k1_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -730,9 +730,9 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/rust/rust_ec_secp256k1/llc-nasm/square/rust_ec_secp256k1_square_nasm.asm",
+            "src/rust/rust_ec_secp256k1/llc-nasm/square/rust_ec_secp256k1_square_vec_nasm.asm",
             "-o",
-            "src/rust/rust_ec_secp256k1/llc-nasm/square/rust_ec_secp256k1_square_nasm.o"
+            "src/rust/rust_ec_secp256k1/llc-nasm/square/rust_ec_secp256k1_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -740,8 +740,8 @@ fn build_rust_ec_secp256k1(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/rust/rust_ec_secp256k1/llc-nasm/square/librust_ec_secp256k1_square_nasm.a",
-            "src/rust/rust_ec_secp256k1/llc-nasm/square/rust_ec_secp256k1_square_nasm.o"
+            "src/rust/rust_ec_secp256k1/llc-nasm/square/librust_ec_secp256k1_square_vec_nasm.a",
+            "src/rust/rust_ec_secp256k1/llc-nasm/square/rust_ec_secp256k1_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -768,9 +768,9 @@ fn build_fiat_c_curve25519(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/fiat-curve25519/llc/mul/fiat_c_curve25519_carry_mul.asm",
+            "src/c/fiat-curve25519/llc/mul/fiat_c_curve25519_carry_mul_vec.asm",
             "-o",
-            "src/c/fiat-curve25519/llc/mul/fiat_c_curve25519_carry_mul.o"
+            "src/c/fiat-curve25519/llc/mul/fiat_c_curve25519_carry_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -778,8 +778,8 @@ fn build_fiat_c_curve25519(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-curve25519/llc/mul/libfiat_c_curve25519_carry_mul.a",
-            "src/c/fiat-curve25519/llc/mul/fiat_c_curve25519_carry_mul.o"
+            "src/c/fiat-curve25519/llc/mul/libfiat_c_curve25519_carry_mul_vec.a",
+            "src/c/fiat-curve25519/llc/mul/fiat_c_curve25519_carry_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -789,9 +789,9 @@ fn build_fiat_c_curve25519(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/fiat-curve25519/llc-nasm/mul/fiat_c_curve25519_carry_mul_nasm.asm",
+            "src/c/fiat-curve25519/llc-nasm/mul/fiat_c_curve25519_carry_mul_vec_nasm.asm",
             "-o",
-                    "src/c/fiat-curve25519/llc-nasm/mul/fiat_c_curve25519_carry_mul_nasm.o"
+                    "src/c/fiat-curve25519/llc-nasm/mul/fiat_c_curve25519_carry_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -799,8 +799,8 @@ fn build_fiat_c_curve25519(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-curve25519/llc-nasm/mul/libfiat_c_curve25519_carry_mul_nasm.a",
-            "src/c/fiat-curve25519/llc-nasm/mul/fiat_c_curve25519_carry_mul_nasm.o"
+            "src/c/fiat-curve25519/llc-nasm/mul/libfiat_c_curve25519_carry_mul_vec_nasm.a",
+            "src/c/fiat-curve25519/llc-nasm/mul/fiat_c_curve25519_carry_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -824,9 +824,9 @@ fn build_fiat_c_curve25519(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/fiat-curve25519/llc/square/fiat_c_curve25519_carry_square.asm",
+            "src/c/fiat-curve25519/llc/square/fiat_c_curve25519_carry_square_vec.asm",
             "-o",
-            "src/c/fiat-curve25519/llc/square/fiat_c_curve25519_carry_square.o"
+            "src/c/fiat-curve25519/llc/square/fiat_c_curve25519_carry_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -834,8 +834,8 @@ fn build_fiat_c_curve25519(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-curve25519/llc/square/libfiat_c_curve25519_carry_square.a",
-            "src/c/fiat-curve25519/llc/square/fiat_c_curve25519_carry_square.o"
+            "src/c/fiat-curve25519/llc/square/libfiat_c_curve25519_carry_square_vec.a",
+            "src/c/fiat-curve25519/llc/square/fiat_c_curve25519_carry_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -845,9 +845,9 @@ fn build_fiat_c_curve25519(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/fiat-curve25519/llc-nasm/square/fiat_c_curve25519_carry_square_nasm.asm",
+            "src/c/fiat-curve25519/llc-nasm/square/fiat_c_curve25519_carry_square_vec_nasm.asm",
             "-o",
-            "src/c/fiat-curve25519/llc-nasm/square/fiat_c_curve25519_carry_square_nasm.o"
+            "src/c/fiat-curve25519/llc-nasm/square/fiat_c_curve25519_carry_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -855,8 +855,8 @@ fn build_fiat_c_curve25519(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-curve25519/llc-nasm/square/libfiat_c_curve25519_carry_square_nasm.a",
-            "src/c/fiat-curve25519/llc-nasm/square/fiat_c_curve25519_carry_square_nasm.o"
+            "src/c/fiat-curve25519/llc-nasm/square/libfiat_c_curve25519_carry_square_vec_nasm.a",
+            "src/c/fiat-curve25519/llc-nasm/square/fiat_c_curve25519_carry_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -884,9 +884,9 @@ fn build_fiat_c_secp256k1_dettman(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/fiat-secp256k1_dettman/llc/mul/fiat_c_secp256k1_dettman_mul.asm",
+            "src/c/fiat-secp256k1_dettman/llc/mul/fiat_c_secp256k1_dettman_mul_vec.asm",
             "-o",
-            "src/c/fiat-secp256k1_dettman/llc/mul/fiat_c_secp256k1_dettman_mul.o"
+            "src/c/fiat-secp256k1_dettman/llc/mul/fiat_c_secp256k1_dettman_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -894,8 +894,8 @@ fn build_fiat_c_secp256k1_dettman(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-secp256k1_dettman/llc/mul/libfiat_c_secp256k1_dettman_mul.a",
-            "src/c/fiat-secp256k1_dettman/llc/mul/fiat_c_secp256k1_dettman_mul.o"
+            "src/c/fiat-secp256k1_dettman/llc/mul/libfiat_c_secp256k1_dettman_mul_vec.a",
+            "src/c/fiat-secp256k1_dettman/llc/mul/fiat_c_secp256k1_dettman_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -905,9 +905,9 @@ fn build_fiat_c_secp256k1_dettman(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/fiat_c_secp256k1_dettman_mul_nasm.asm",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/fiat_c_secp256k1_dettman_mul_vec_nasm.asm",
             "-o",
-            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/fiat_c_secp256k1_dettman_mul_nasm.o"
+            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/fiat_c_secp256k1_dettman_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -915,8 +915,8 @@ fn build_fiat_c_secp256k1_dettman(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/libfiat_c_secp256k1_dettman_mul_nasm.a",
-            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/fiat_c_secp256k1_dettman_mul_nasm.o"
+            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/libfiat_c_secp256k1_dettman_mul_vec_nasm.a",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/mul/fiat_c_secp256k1_dettman_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -940,9 +940,9 @@ fn build_fiat_c_secp256k1_dettman(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/fiat-secp256k1_dettman/llc/square/fiat_c_secp256k1_dettman_square.asm",
+            "src/c/fiat-secp256k1_dettman/llc/square/fiat_c_secp256k1_dettman_square_vec.asm",
             "-o",
-            "src/c/fiat-secp256k1_dettman/llc/square/fiat_c_secp256k1_dettman_square.o"
+            "src/c/fiat-secp256k1_dettman/llc/square/fiat_c_secp256k1_dettman_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -950,8 +950,8 @@ fn build_fiat_c_secp256k1_dettman(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-secp256k1_dettman/llc/square/libfiat_c_secp256k1_dettman_square.a",
-            "src/c/fiat-secp256k1_dettman/llc/square/fiat_c_secp256k1_dettman_square.o"
+            "src/c/fiat-secp256k1_dettman/llc/square/libfiat_c_secp256k1_dettman_square_vec.a",
+            "src/c/fiat-secp256k1_dettman/llc/square/fiat_c_secp256k1_dettman_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -961,9 +961,9 @@ fn build_fiat_c_secp256k1_dettman(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/fiat-secp256k1_dettman/llc-nasm/square/fiat_c_secp256k1_dettman_square_nasm.asm",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/square/fiat_c_secp256k1_dettman_square_vec_nasm.asm",
             "-o",
-            "src/c/fiat-secp256k1_dettman/llc-nasm/square/fiat_c_secp256k1_dettman_square_nasm.o"
+            "src/c/fiat-secp256k1_dettman/llc-nasm/square/fiat_c_secp256k1_dettman_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -971,8 +971,8 @@ fn build_fiat_c_secp256k1_dettman(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-secp256k1_dettman/llc-nasm/square/libfiat_c_secp256k1_dettman_square_nasm.a",
-            "src/c/fiat-secp256k1_dettman/llc-nasm/square/fiat_c_secp256k1_dettman_square_nasm.o"
+            "src/c/fiat-secp256k1_dettman/llc-nasm/square/libfiat_c_secp256k1_dettman_square_vec_nasm.a",
+            "src/c/fiat-secp256k1_dettman/llc-nasm/square/fiat_c_secp256k1_dettman_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -999,9 +999,9 @@ fn build_fiat_c_poly1305(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/fiat-poly1305/llc/mul/fiat_c_poly1305_carry_mul.asm",
+            "src/c/fiat-poly1305/llc/mul/fiat_c_poly1305_carry_mul_vec.asm",
             "-o",
-            "src/c/fiat-poly1305/llc/mul/fiat_c_poly1305_carry_mul.o"
+            "src/c/fiat-poly1305/llc/mul/fiat_c_poly1305_carry_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -1009,8 +1009,8 @@ fn build_fiat_c_poly1305(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-poly1305/llc/mul/libfiat_c_poly1305_carry_mul.a",
-            "src/c/fiat-poly1305/llc/mul/fiat_c_poly1305_carry_mul.o"
+            "src/c/fiat-poly1305/llc/mul/libfiat_c_poly1305_carry_mul_vec.a",
+            "src/c/fiat-poly1305/llc/mul/fiat_c_poly1305_carry_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -1020,9 +1020,9 @@ fn build_fiat_c_poly1305(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/fiat-poly1305/llc-nasm/mul/fiat_c_poly1305_carry_mul_nasm.asm",
+            "src/c/fiat-poly1305/llc-nasm/mul/fiat_c_poly1305_carry_mul_vec_nasm.asm",
             "-o",
-            "src/c/fiat-poly1305/llc-nasm/mul/fiat_c_poly1305_carry_mul_nasm.o"
+            "src/c/fiat-poly1305/llc-nasm/mul/fiat_c_poly1305_carry_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1030,8 +1030,8 @@ fn build_fiat_c_poly1305(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-poly1305/llc-nasm/mul/libfiat_c_poly1305_carry_mul_nasm.a",
-            "src/c/fiat-poly1305/llc-nasm/mul/fiat_c_poly1305_carry_mul_nasm.o"
+            "src/c/fiat-poly1305/llc-nasm/mul/libfiat_c_poly1305_carry_mul_vec_nasm.a",
+            "src/c/fiat-poly1305/llc-nasm/mul/fiat_c_poly1305_carry_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1055,9 +1055,9 @@ fn build_fiat_c_poly1305(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/fiat-poly1305/llc/square/fiat_c_poly1305_carry_square.asm",
+            "src/c/fiat-poly1305/llc/square/fiat_c_poly1305_carry_square_vec.asm",
             "-o",
-            "src/c/fiat-poly1305/llc/square/fiat_c_poly1305_carry_square.o"
+            "src/c/fiat-poly1305/llc/square/fiat_c_poly1305_carry_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -1065,8 +1065,8 @@ fn build_fiat_c_poly1305(){
     assert!(Command::new("ar") 
         .args(&[
             "rcs",
-            "src/c/fiat-poly1305/llc/square/libfiat_c_poly1305_carry_square.a",
-            "src/c/fiat-poly1305/llc/square/fiat_c_poly1305_carry_square.o"
+            "src/c/fiat-poly1305/llc/square/libfiat_c_poly1305_carry_square_vec.a",
+            "src/c/fiat-poly1305/llc/square/fiat_c_poly1305_carry_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -1076,9 +1076,9 @@ fn build_fiat_c_poly1305(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/fiat-poly1305/llc-nasm/square/fiat_c_poly1305_carry_square_nasm.asm",
+            "src/c/fiat-poly1305/llc-nasm/square/fiat_c_poly1305_carry_square_vec_nasm.asm",
             "-o",
-            "src/c/fiat-poly1305/llc-nasm/square/fiat_c_poly1305_carry_square_nasm.o"
+            "src/c/fiat-poly1305/llc-nasm/square/fiat_c_poly1305_carry_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1086,8 +1086,8 @@ fn build_fiat_c_poly1305(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-poly1305/llc-nasm/square/libfiat_c_poly1305_carry_square_nasm.a",
-            "src/c/fiat-poly1305/llc-nasm/square/fiat_c_poly1305_carry_square_nasm.o"
+            "src/c/fiat-poly1305/llc-nasm/square/libfiat_c_poly1305_carry_square_vec_nasm.a",
+            "src/c/fiat-poly1305/llc-nasm/square/fiat_c_poly1305_carry_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1113,9 +1113,9 @@ fn build_fiat_c_p448(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/fiat-p448/llc/mul/fiat_c_p448_solinas_carry_mul.asm",
+            "src/c/fiat-p448/llc/mul/fiat_c_p448_solinas_carry_mul_vec.asm",
             "-o",
-            "src/c/fiat-p448/llc/mul/fiat_c_p448_solinas_carry_mul.o"
+            "src/c/fiat-p448/llc/mul/fiat_c_p448_solinas_carry_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -1123,8 +1123,8 @@ fn build_fiat_c_p448(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-p448/llc/mul/libfiat_c_p448_solinas_carry_mul.a",
-            "src/c/fiat-p448/llc/mul/fiat_c_p448_solinas_carry_mul.o"
+            "src/c/fiat-p448/llc/mul/libfiat_c_p448_solinas_carry_mul_vec.a",
+            "src/c/fiat-p448/llc/mul/fiat_c_p448_solinas_carry_mul_vec.o"
         ])
         .status()
         .unwrap()
@@ -1134,9 +1134,9 @@ fn build_fiat_c_p448(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/fiat-p448/llc-nasm/mul/fiat_c_p448_solinas_carry_mul_nasm.asm",
+            "src/c/fiat-p448/llc-nasm/mul/fiat_c_p448_solinas_carry_mul_vec_nasm.asm",
             "-o",
-            "src/c/fiat-p448/llc-nasm/mul/fiat_c_p448_solinas_carry_mul_nasm.o"
+            "src/c/fiat-p448/llc-nasm/mul/fiat_c_p448_solinas_carry_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1144,8 +1144,8 @@ fn build_fiat_c_p448(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-p448/llc-nasm/mul/libfiat_c_p448_solinas_carry_mul_nasm.a",
-            "src/c/fiat-p448/llc-nasm/mul/fiat_c_p448_solinas_carry_mul_nasm.o"
+            "src/c/fiat-p448/llc-nasm/mul/libfiat_c_p448_solinas_carry_mul_vec_nasm.a",
+            "src/c/fiat-p448/llc-nasm/mul/fiat_c_p448_solinas_carry_mul_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1169,9 +1169,9 @@ fn build_fiat_c_p448(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/fiat-p448/llc/square/fiat_c_p448_solinas_carry_square.asm",
+            "src/c/fiat-p448/llc/square/fiat_c_p448_solinas_carry_square_vec.asm",
             "-o",
-            "src/c/fiat-p448/llc/square/fiat_c_p448_solinas_carry_square.o"
+            "src/c/fiat-p448/llc/square/fiat_c_p448_solinas_carry_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -1180,8 +1180,8 @@ fn build_fiat_c_p448(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-p448/llc/square/libfiat_c_p448_solinas_carry_square.a",
-            "src/c/fiat-p448/llc/square/fiat_c_p448_solinas_carry_square.o"
+            "src/c/fiat-p448/llc/square/libfiat_c_p448_solinas_carry_square_vec.a",
+            "src/c/fiat-p448/llc/square/fiat_c_p448_solinas_carry_square_vec.o"
         ])
         .status()
         .unwrap()
@@ -1191,9 +1191,9 @@ fn build_fiat_c_p448(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/fiat-p448/llc-nasm/square/fiat_c_p448_solinas_carry_square_nasm.asm",
+            "src/c/fiat-p448/llc-nasm/square/fiat_c_p448_solinas_carry_square_vec_nasm.asm",
             "-o",
-            "src/c/fiat-p448/llc-nasm/square/fiat_c_p448_solinas_carry_square_nasm.o"
+            "src/c/fiat-p448/llc-nasm/square/fiat_c_p448_solinas_carry_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1201,8 +1201,8 @@ fn build_fiat_c_p448(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/fiat-p448/llc-nasm/square/libfiat_c_p448_solinas_carry_square_nasm.a",
-            "src/c/fiat-p448/llc-nasm/square/fiat_c_p448_solinas_carry_square_nasm.o"
+            "src/c/fiat-p448/llc-nasm/square/libfiat_c_p448_solinas_carry_square_vec_nasm.a",
+            "src/c/fiat-p448/llc-nasm/square/fiat_c_p448_solinas_carry_square_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1241,9 +1241,9 @@ fn build_openssl_p448(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/openssl-p448/llc/mul/openssl_p448_mul_ssa.asm",
+            "src/c/openssl-p448/llc/mul/openssl_p448_mul_ssa_vec.asm",
             "-o",
-            "src/c/openssl-p448/llc/mul/openssl_p448_mul_ssa.o"
+            "src/c/openssl-p448/llc/mul/openssl_p448_mul_ssa_vec.o"
         ])
         .status()
         .unwrap()
@@ -1251,8 +1251,8 @@ fn build_openssl_p448(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/openssl-p448/llc/mul/libopenssl_p448_mul.a",
-            "src/c/openssl-p448/llc/mul/openssl_p448_mul_ssa.o"
+            "src/c/openssl-p448/llc/mul/libopenssl_p448_mul_vec.a",
+            "src/c/openssl-p448/llc/mul/openssl_p448_mul_ssa_vec.o"
         ])
         .status()
         .unwrap()
@@ -1262,9 +1262,9 @@ fn build_openssl_p448(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/openssl-p448/llc-nasm/mul/openssl_p448_mul_ssa_nasm.asm",
+            "src/c/openssl-p448/llc-nasm/mul/openssl_p448_mul_ssa_vec_nasm.asm",
             "-o",
-            "src/c/openssl-p448/llc-nasm/mul/openssl_p448_mul_ssa_nasm.o"
+            "src/c/openssl-p448/llc-nasm/mul/openssl_p448_mul_ssa_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1272,8 +1272,8 @@ fn build_openssl_p448(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/openssl-p448/llc-nasm/mul/libopenssl_p448_mul_nasm.a",
-            "src/c/openssl-p448/llc-nasm/mul/openssl_p448_mul_ssa_nasm.o"
+            "src/c/openssl-p448/llc-nasm/mul/libopenssl_p448_mul_vec_nasm.a",
+            "src/c/openssl-p448/llc-nasm/mul/openssl_p448_mul_ssa_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1318,9 +1318,9 @@ fn build_openssl_p448(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/openssl-p448/llc/square/openssl_p448_square_ssa.asm",
+            "src/c/openssl-p448/llc/square/openssl_p448_square_ssa_vec.asm",
             "-o",
-            "src/c/openssl-p448/llc/square/openssl_p448_square_ssa.o"
+            "src/c/openssl-p448/llc/square/openssl_p448_square_ssa_vec.o"
         ])
         .status()
         .unwrap()
@@ -1328,8 +1328,8 @@ fn build_openssl_p448(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/openssl-p448/llc/square/libopenssl_p448_square.a",
-            "src/c/openssl-p448/llc/square/openssl_p448_square_ssa.o"
+            "src/c/openssl-p448/llc/square/libopenssl_p448_square_vec.a",
+            "src/c/openssl-p448/llc/square/openssl_p448_square_ssa_vec.o"
         ])
         .status()
         .unwrap()
@@ -1339,9 +1339,9 @@ fn build_openssl_p448(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/openssl-p448/llc-nasm/square/openssl_p448_square_ssa_nasm.asm",
+            "src/c/openssl-p448/llc-nasm/square/openssl_p448_square_ssa_vec_nasm.asm",
             "-o",
-            "src/c/openssl-p448/llc-nasm/square/openssl_p448_square_ssa_nasm.o"
+            "src/c/openssl-p448/llc-nasm/square/openssl_p448_square_ssa_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1349,8 +1349,8 @@ fn build_openssl_p448(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/openssl-p448/llc-nasm/square/libopenssl_p448_square_nasm.a",
-            "src/c/openssl-p448/llc-nasm/square/openssl_p448_square_ssa_nasm.o"
+            "src/c/openssl-p448/llc-nasm/square/libopenssl_p448_square_vec_nasm.a",
+            "src/c/openssl-p448/llc-nasm/square/openssl_p448_square_ssa_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1436,9 +1436,9 @@ fn build_openssl_curve25519(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/openssl-curve25519/llc/mul/open_ssl_curve25519_fe51_mul_ssa.asm",
+            "src/c/openssl-curve25519/llc/mul/open_ssl_curve25519_fe51_mul_ssa_vec.asm",
             "-o",
-            "src/c/openssl-curve25519/llc/mul/open_ssl_curve25519_fe51_mul_ssa.o"
+            "src/c/openssl-curve25519/llc/mul/open_ssl_curve25519_fe51_mul_ssa_vec.o"
         ])
         .status()
         .unwrap()
@@ -1446,8 +1446,8 @@ fn build_openssl_curve25519(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/openssl-curve25519/llc/mul/libopenssl_curve25519_fe51_mul.a",
-            "src/c/openssl-curve25519/llc/mul/open_ssl_curve25519_fe51_mul_ssa.o"
+            "src/c/openssl-curve25519/llc/mul/libopenssl_curve25519_fe51_mul_vec.a",
+            "src/c/openssl-curve25519/llc/mul/open_ssl_curve25519_fe51_mul_ssa_vec.o"
         ])
         .status()
         .unwrap()
@@ -1457,9 +1457,9 @@ fn build_openssl_curve25519(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/openssl-curve25519/llc-nasm/mul/open_ssl_curve25519_fe51_mul_ssa_nasm.asm",
+            "src/c/openssl-curve25519/llc-nasm/mul/open_ssl_curve25519_fe51_mul_ssa_vec_nasm.asm",
             "-o",
-            "src/c/openssl-curve25519/llc-nasm/mul/open_ssl_curve25519_fe51_mul_ssa_nasm.o"
+            "src/c/openssl-curve25519/llc-nasm/mul/open_ssl_curve25519_fe51_mul_ssa_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1467,8 +1467,8 @@ fn build_openssl_curve25519(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/openssl-curve25519/llc-nasm/mul/libopenssl_curve25519_fe51_mul_nasm.a",
-            "src/c/openssl-curve25519/llc-nasm/mul/open_ssl_curve25519_fe51_mul_ssa_nasm.o"
+            "src/c/openssl-curve25519/llc-nasm/mul/libopenssl_curve25519_fe51_mul_vec_nasm.a",
+            "src/c/openssl-curve25519/llc-nasm/mul/open_ssl_curve25519_fe51_mul_ssa_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1515,9 +1515,9 @@ fn build_openssl_curve25519(){
     assert!(Command::new("clang")
         .args(&[
             "-c",
-            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa.asm",
+            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa_vec.asm",
             "-o",
-            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa.o"
+            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa_vec.o"
         ])
         .status()
         .unwrap()
@@ -1525,8 +1525,8 @@ fn build_openssl_curve25519(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/openssl-curve25519/llc/square/libopenssl_curve25519_fe51_square.a",
-            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa.o"
+            "src/c/openssl-curve25519/llc/square/libopenssl_curve25519_fe51_square_vec.a",
+            "src/c/openssl-curve25519/llc/square/open_ssl_curve25519_fe51_square_ssa_vec.o"
         ])
         .status()
         .unwrap()
@@ -1536,9 +1536,9 @@ fn build_openssl_curve25519(){
     assert!(Command::new("nasm")
         .args(&[
             "-f", "elf64",
-            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_nasm.asm",
+            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_vec_nasm.asm",
             "-o",
-            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_nasm.o"
+            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1546,8 +1546,8 @@ fn build_openssl_curve25519(){
     assert!(Command::new("ar")
         .args(&[
             "rcs",
-            "src/c/openssl-curve25519/llc-nasm/square/libopenssl_curve25519_fe51_square_nasm.a",
-            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_nasm.o"
+            "src/c/openssl-curve25519/llc-nasm/square/libopenssl_curve25519_fe51_square_vec_nasm.a",
+            "src/c/openssl-curve25519/llc-nasm/square/open_ssl_curve25519_fe51_square_ssa_vec_nasm.o"
         ])
         .status()
         .unwrap()
@@ -1747,101 +1747,101 @@ fn main() {
     println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_square_CryptOpt");
 
     // Poly1305 (mul)
-    println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_mul");
-    println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_mul_nasm");
+    println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_mul_vec");
+    println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_mul_CryptOpt");
     // Poly1305 (square)
-    println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_square");
-    println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_square_nasm");
+    println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_square_vec");
+    println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_square_CryptOpt");
 
     // BLS12 (mul)
-    println!("cargo:rustc-link-lib=static=bls12_mul");
-    println!("cargo:rustc-link-lib=static=bls12_mul_nasm");
+    println!("cargo:rustc-link-lib=static=bls12_mul_vec");
+    println!("cargo:rustc-link-lib=static=bls12_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=bls12_mul_CryptOpt");
 
     // Secp256k1 Dettman (mul)
-    println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_mul");
-    println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_mul_nasm");
+    println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_mul_vec");
+    println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_mul_CryptOpt");
 
     // Secp256k1 Dettman (square)
-    println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_square");
-    println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_square_nasm");
+    println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_square_vec");
+    println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_square_CryptOpt");
 
     // Rust EC Secp256k1 (mul)
-    println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_mul_inner");
-    println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_mul_inner_nasm");
+    println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_mul_inner_vec");
+    println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_mul_inner_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_mul_inner_CryptOpt");
 
     // Rust EC Secp256k1 (square)
-    println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square");
-    println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square_nasm");
+    println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square_vec");
+    println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square_CryptOpt");
 
     // Fiat C Curve25519 (mul)
-    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul");
-    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_vec");
+    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_CryptOpt");
 
     // Fiat C Curve25519 (square)
-    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_square");
-    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_square_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_square_vec");
+    println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_square_CryptOpt");
 
     // Fiat C Secp256k1 Dettman (mul)
-    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_mul");
-    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_mul_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_mul_vec");
+    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_mul_CryptOpt");
 
     // Fiat C Secp256k1 Dettman (square)
-    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_square");
-    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_square_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_square_vec");
+    println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_square_CryptOpt");
 
     // Fiat C Poly1305 (mul)
-    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_mul");
-    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_mul_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_mul_vec");
+    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_mul_CryptOpt");
 
     // Fiat C Poly1305 (square)
-    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_square");
-    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_square_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_square_vec");
+    println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_square_CryptOpt");
 
     // Fiat C P448 (mul)
-    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul");
-    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul_vec");
+    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_p448_carry_mul_CryptOpt");
 
     // Fiat C P448 (square)
-    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square");
-    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_nasm");
+    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_vec");
+    println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_CryptOpt");
 
     // OpenSSL Curve25519 (mul)
-    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul");
-    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_nasm");
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_vec");
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_hand_optimised");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_hand_optimised_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_CryptOpt");
 
     // OpenSSL Curve25519 (square)
-    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square");
-    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_nasm");
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_vec");
+    println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_hand_optimised");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_hand_optimised_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_CryptOpt");
 
     // OpenSSL P448 (mul)
-    println!("cargo:rustc-link-lib=static=openssl_p448_mul");
-    println!("cargo:rustc-link-lib=static=openssl_p448_mul_nasm");
+    println!("cargo:rustc-link-lib=static=openssl_p448_mul_vec");
+    println!("cargo:rustc-link-lib=static=openssl_p448_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=openssl_p448_mul_CryptOpt");
 
     // OpenSSL P448 (square)
-    println!("cargo:rustc-link-lib=static=openssl_p448_square");
-    println!("cargo:rustc-link-lib=static=openssl_p448_square_nasm");
+    println!("cargo:rustc-link-lib=static=openssl_p448_square_vec");
+    println!("cargo:rustc-link-lib=static=openssl_p448_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=openssl_p448_square_CryptOpt");
 
     // -------------------------------------------------------------------------

@@ -21,3 +21,4 @@ output100/
 logs/
 *.yml
 *.pkl
+**/output_*/

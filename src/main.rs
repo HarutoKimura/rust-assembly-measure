@@ -78,12 +78,12 @@ mod fiat_c_p448 {
     pub const SIZE: usize = 8;
     extern "C" {
         // Multiply functions
-        pub fn fiat_c_p448_solinas_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_p448_solinas_carry_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_p448_solinas_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_p448_solinas_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn fiat_c_p448_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
-        pub fn fiat_c_p448_solinas_carry_square(arg0: *mut u64, arg1: *const u64);
-        pub fn fiat_c_p448_solinas_carry_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_p448_solinas_carry_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_p448_solinas_carry_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn fiat_c_p448_solinas_carry_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
@@ -93,14 +93,14 @@ mod openssl_curve25519 {
     pub const SIZE: usize = 5;
     extern "C" {
         // Multiply functions
-        pub fn open_ssl_curve25519_fe51_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn open_ssl_curve25519_fe51_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn open_ssl_curve25519_fe51_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn open_ssl_curve25519_fe51_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn open_ssl_curve25519_hand_optmised_fe51_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn open_ssl_curve25519_hand_optmised_fe51_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn open_ssl_curve25519_fe51_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
-        pub fn open_ssl_curve25519_fe51_square(arg0: *mut u64, arg1: *const u64);
-        pub fn open_ssl_curve25519_fe51_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn open_ssl_curve25519_fe51_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn open_ssl_curve25519_fe51_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn open_ssl_curve25519_hand_optmised_fe51_square(arg0: *mut u64, arg1: *const u64);
         pub fn open_ssl_curve25519_hand_optmised_fe51_square_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn open_ssl_curve25519_fe51_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
@@ -112,12 +112,12 @@ mod fiat_c_curve25519 {
     pub const SIZE: usize = 4;
     extern "C" {
         // Multiply functions
-        pub fn fiat_c_curve25519_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_curve25519_carry_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_curve25519_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_curve25519_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn fiat_c_curve25519_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
-        pub fn fiat_c_curve25519_carry_square(arg0: *mut u64, arg1: *const u64);
-        pub fn fiat_c_curve25519_carry_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_curve25519_carry_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_curve25519_carry_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn fiat_c_curve25519_carry_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
@@ -127,12 +127,12 @@ mod poly1305 {
     pub const SIZE: usize = 3;
     extern "C" {
         // Multiply functions
-        pub fn rust_fiat_poly1305_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_poly1305_carry_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_poly1305_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_poly1305_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn rust_fiat_poly1305_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
-        pub fn rust_fiat_poly1305_carry_square(arg0: *mut u64, arg1: *const u64);
-        pub fn rust_fiat_poly1305_carry_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_fiat_poly1305_carry_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_fiat_poly1305_carry_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn rust_fiat_poly1305_carry_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
@@ -142,12 +142,12 @@ mod fiat_c_poly1305 {
     pub const SIZE: usize = 3;
     extern "C" {
         // Multiply functions
-        pub fn fiat_c_poly1305_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_poly1305_carry_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_poly1305_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_poly1305_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn fiat_c_poly1305_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
-        pub fn fiat_c_poly1305_carry_square(arg0: *mut u64, arg1: *const u64);
-        pub fn fiat_c_poly1305_carry_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_poly1305_carry_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_poly1305_carry_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn fiat_c_poly1305_carry_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
@@ -158,12 +158,12 @@ mod secp256k1_dettman {
     pub const SIZE: usize = 5;
     extern "C" {
         // Multiply functions
-        pub fn rust_fiat_secp256k1_dettman_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_secp256k1_dettman_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_secp256k1_dettman_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_secp256k1_dettman_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn rust_fiat_secp256k1_dettman_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // // Square functions
-        pub fn rust_fiat_secp256k1_dettman_square(arg0: *mut u64, arg1: *const u64);
-        pub fn rust_fiat_secp256k1_dettman_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_fiat_secp256k1_dettman_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_fiat_secp256k1_dettman_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn rust_fiat_secp256k1_dettman_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
@@ -173,13 +173,13 @@ mod rust_ec_secp256k1 {
     pub const SIZE: usize = 5;
     extern "C" {
         // Multiply functions
-        pub fn rust_ec_secp256k1_mul_inner(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_ec_secp256k1_mul_inner_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_ec_secp256k1_mul_inner_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_ec_secp256k1_mul_inner_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn rust_ec_secp256k1_mul_inner_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
 
         // Square functions
-        pub fn rust_ec_secp256k1_square(arg0: *mut u64, arg1: *const u64);
-        pub fn rust_ec_secp256k1_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_ec_secp256k1_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn rust_ec_secp256k1_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn rust_ec_secp256k1_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
@@ -189,13 +189,13 @@ mod fiat_c_secp256k1_dettman {
     pub const SIZE: usize = 5;
     extern "C" {
         // Multiply functions
-        pub fn fiat_c_secp256k1_dettman_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_secp256k1_dettman_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_secp256k1_dettman_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_secp256k1_dettman_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn fiat_c_secp256k1_dettman_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
 
         // Square functions
-        pub fn fiat_c_secp256k1_dettman_square(arg0: *mut u64, arg1: *const u64);
-        pub fn fiat_c_secp256k1_dettman_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_secp256k1_dettman_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_c_secp256k1_dettman_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn fiat_c_secp256k1_dettman_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
@@ -208,10 +208,10 @@ mod bls12 {
     pub const SIZE: usize = 6;
     extern "C" {
         // Multiply functions (using usize)
-        pub fn bls12_mul(out0: *mut usize, out0_len: usize,
+        pub fn bls12_mul_vec(out0: *mut usize, out0_len: usize,
                          in0: *const usize, in0_len: usize,
                          in1: *const usize, in1_len: usize);
-        pub fn bls12_mul_nasm(out0: *mut usize, out0_len: usize,
+        pub fn bls12_mul_vec_nasm(out0: *mut usize, out0_len: usize,
                               in0: *const usize, in0_len: usize,
                               in1: *const usize, in1_len: usize);
         pub fn bls12_mul_CryptOpt(out0: *mut usize, out0_len: usize,
@@ -231,12 +231,12 @@ mod openssl_p448 {
     pub const SIZE: usize = 8;
     extern "C" {
         // Multiply functions
-        pub fn openssl_p448_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn openssl_p448_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn openssl_p448_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn openssl_p448_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         pub fn openssl_p448_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
-        pub fn openssl_p448_square(arg0: *mut u64, arg1: *const u64);
-        pub fn openssl_p448_square_nasm(arg0: *mut u64, arg1: *const u64);
+        pub fn openssl_p448_square_vec(arg0: *mut u64, arg1: *const u64);
+        pub fn openssl_p448_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn openssl_p448_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
     }
 }
@@ -352,55 +352,55 @@ impl CurveType {
                 p448::rust_fiat_p448_solinas_carry_mul_CryptOpt
             ),
             CurveType::Poly1305 => Function::U64Mul(
-                poly1305::rust_fiat_poly1305_carry_mul,
-                poly1305::rust_fiat_poly1305_carry_mul_nasm,
+                poly1305::rust_fiat_poly1305_carry_mul_vec,
+                poly1305::rust_fiat_poly1305_carry_mul_vec_nasm,
                 poly1305::rust_fiat_poly1305_carry_mul_CryptOpt
             ),
             CurveType::Secp256k1Dettman => Function::U64Mul(
-                secp256k1_dettman::rust_fiat_secp256k1_dettman_mul,
-                secp256k1_dettman::rust_fiat_secp256k1_dettman_mul_nasm,
+                secp256k1_dettman::rust_fiat_secp256k1_dettman_mul_vec,
+                secp256k1_dettman::rust_fiat_secp256k1_dettman_mul_vec_nasm,
                 secp256k1_dettman::rust_fiat_secp256k1_dettman_mul_CryptOpt
             ),
             CurveType::Secp256k1RustEc => Function::U64Mul(
-                rust_ec_secp256k1::rust_ec_secp256k1_mul_inner,
-                rust_ec_secp256k1::rust_ec_secp256k1_mul_inner_nasm,
+                rust_ec_secp256k1::rust_ec_secp256k1_mul_inner_vec,
+                rust_ec_secp256k1::rust_ec_secp256k1_mul_inner_vec_nasm,
                 rust_ec_secp256k1::rust_ec_secp256k1_mul_inner_CryptOpt
             ),
             CurveType::Bls12 => Function::UsizeMul(
-                bls12::bls12_mul,
-                bls12::bls12_mul_nasm,
+                bls12::bls12_mul_vec,
+                bls12::bls12_mul_vec_nasm,
                 bls12::bls12_mul_CryptOpt
             ),
             CurveType::FiatCCurve25519 => Function::U64Mul(
-                fiat_c_curve25519::fiat_c_curve25519_carry_mul,
-                fiat_c_curve25519::fiat_c_curve25519_carry_mul_nasm,
+                fiat_c_curve25519::fiat_c_curve25519_carry_mul_vec,
+                fiat_c_curve25519::fiat_c_curve25519_carry_mul_vec_nasm,
                 fiat_c_curve25519::fiat_c_curve25519_carry_mul_CryptOpt
             ),
             CurveType::FiatCSecp256k1Dettman => Function::U64Mul(
-                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul,
-                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul_nasm,
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul_vec,
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul_vec_nasm,
                 fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul_CryptOpt
             ),
             CurveType::FiatCPoly1305 => Function::U64Mul(
-                fiat_c_poly1305::fiat_c_poly1305_carry_mul,
-                fiat_c_poly1305::fiat_c_poly1305_carry_mul_nasm,
+                fiat_c_poly1305::fiat_c_poly1305_carry_mul_vec,
+                fiat_c_poly1305::fiat_c_poly1305_carry_mul_vec_nasm,
                 fiat_c_poly1305::fiat_c_poly1305_carry_mul_CryptOpt
             ),
             CurveType::FiatCP448 => Function::U64Mul(
-                fiat_c_p448::fiat_c_p448_solinas_carry_mul,
-                fiat_c_p448::fiat_c_p448_solinas_carry_mul_nasm,
+                fiat_c_p448::fiat_c_p448_solinas_carry_mul_vec,
+                fiat_c_p448::fiat_c_p448_solinas_carry_mul_vec_nasm,
                 fiat_c_p448::fiat_c_p448_carry_mul_CryptOpt
             ),
             CurveType::OpenSSLCurve25519 => Function::U64MulFive(
-                openssl_curve25519::open_ssl_curve25519_fe51_mul,
-                openssl_curve25519::open_ssl_curve25519_fe51_mul_nasm,
+                openssl_curve25519::open_ssl_curve25519_fe51_mul_vec,
+                openssl_curve25519::open_ssl_curve25519_fe51_mul_vec_nasm,
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_mul,
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_mul_nasm,
                 openssl_curve25519::open_ssl_curve25519_fe51_mul_CryptOpt
             ),
             CurveType::OpenSSLP448 => Function::U64Mul(
-                openssl_p448::openssl_p448_mul,
-                openssl_p448::openssl_p448_mul_nasm,
+                openssl_p448::openssl_p448_mul_vec,
+                openssl_p448::openssl_p448_mul_vec_nasm,
                 openssl_p448::openssl_p448_mul_CryptOpt
             ),
         }
@@ -419,13 +419,13 @@ impl CurveType {
                 p448::rust_fiat_p448_solinas_carry_square_CryptOpt
             ),
             CurveType::Poly1305 => Function::U64Square(
-                poly1305::rust_fiat_poly1305_carry_square,
-                poly1305::rust_fiat_poly1305_carry_square_nasm,
+                poly1305::rust_fiat_poly1305_carry_square_vec,
+                poly1305::rust_fiat_poly1305_carry_square_vec_nasm,
                 poly1305::rust_fiat_poly1305_carry_square_CryptOpt
             ),
             CurveType::Secp256k1Dettman => Function::U64Square(
-                secp256k1_dettman::rust_fiat_secp256k1_dettman_square,
-                secp256k1_dettman::rust_fiat_secp256k1_dettman_square_nasm,
+                secp256k1_dettman::rust_fiat_secp256k1_dettman_square_vec,
+                secp256k1_dettman::rust_fiat_secp256k1_dettman_square_vec_nasm,
                 secp256k1_dettman::rust_fiat_secp256k1_dettman_square_CryptOpt
             ),
             CurveType::Curve25519Dalek => Function::U64Square(
@@ -434,40 +434,40 @@ impl CurveType {
                 curve25519_dalek::curve25519_dalek_square_CryptOpt
             ),
             CurveType::Secp256k1RustEc => Function::U64Square(
-                rust_ec_secp256k1::rust_ec_secp256k1_square,
-                rust_ec_secp256k1::rust_ec_secp256k1_square_nasm,
+                rust_ec_secp256k1::rust_ec_secp256k1_square_vec,
+                rust_ec_secp256k1::rust_ec_secp256k1_square_vec_nasm,
                 rust_ec_secp256k1::rust_ec_secp256k1_square_CryptOpt
             ),
             CurveType::FiatCCurve25519 => Function::U64Square(
-                fiat_c_curve25519::fiat_c_curve25519_carry_square,
-                fiat_c_curve25519::fiat_c_curve25519_carry_square_nasm,
+                fiat_c_curve25519::fiat_c_curve25519_carry_square_vec,
+                fiat_c_curve25519::fiat_c_curve25519_carry_square_vec_nasm,
                 fiat_c_curve25519::fiat_c_curve25519_carry_square_CryptOpt
             ),
             CurveType::FiatCSecp256k1Dettman => Function::U64Square(
-                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square,
-                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_nasm,
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_vec,
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_vec_nasm,
                 fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_CryptOpt
             ),
             CurveType::FiatCPoly1305 => Function::U64Square(
-                fiat_c_poly1305::fiat_c_poly1305_carry_square,
-                fiat_c_poly1305::fiat_c_poly1305_carry_square_nasm,
+                fiat_c_poly1305::fiat_c_poly1305_carry_square_vec,
+                fiat_c_poly1305::fiat_c_poly1305_carry_square_vec_nasm,
                 fiat_c_poly1305::fiat_c_poly1305_carry_square_CryptOpt
             ),
             CurveType::FiatCP448 => Function::U64Square(
-                fiat_c_p448::fiat_c_p448_solinas_carry_square,
-                fiat_c_p448::fiat_c_p448_solinas_carry_square_nasm,
+                fiat_c_p448::fiat_c_p448_solinas_carry_square_vec,
+                fiat_c_p448::fiat_c_p448_solinas_carry_square_vec_nasm,
                 fiat_c_p448::fiat_c_p448_solinas_carry_square_CryptOpt
             ),
             CurveType::OpenSSLCurve25519 => Function::U64SquareFive(
-                openssl_curve25519::open_ssl_curve25519_fe51_square,
-                openssl_curve25519::open_ssl_curve25519_fe51_square_nasm,
+                openssl_curve25519::open_ssl_curve25519_fe51_square_vec,
+                openssl_curve25519::open_ssl_curve25519_fe51_square_vec_nasm,
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_square,
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_square_nasm,
                 openssl_curve25519::open_ssl_curve25519_fe51_square_CryptOpt
             ),
             CurveType::OpenSSLP448 => Function::U64Square(
-                openssl_p448::openssl_p448_square,
-                openssl_p448::openssl_p448_square_nasm,
+                openssl_p448::openssl_p448_square_vec,
+                openssl_p448::openssl_p448_square_vec_nasm,
                 openssl_p448::openssl_p448_square_CryptOpt
             ),
 
