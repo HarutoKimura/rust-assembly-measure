@@ -197,6 +197,9 @@ mod cryptopt_fiat_curve25519_generated {
             arg2: *const u64,
         );
         pub fn fiat_curve25519_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_curve25519_carry_square_gcc(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_curve25519_carry_square_clang(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_curve25519_carry_square(arg0: *mut u64, arg1: *const u64);
     }
 }
 
@@ -605,9 +608,11 @@ impl CurveType {
                 fiat_c_curve25519::fiat_c_curve25519_carry_square_vec_nasm,
                 fiat_c_curve25519::fiat_c_curve25519_carry_square_CryptOpt,
             ),
-            CurveType::CryptoptFiatCurve25519 => {
-                panic!("Square operation not available for cryptopt_fiat_curve25519")
-            }
+            CurveType::CryptoptFiatCurve25519 => Function::U64Square(
+                cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square_gcc,
+                cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square_clang,
+                cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square,
+            ),
             CurveType::FiatCSecp256k1Dettman => Function::U64Square(
                 fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_vec,
                 fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_vec_nasm,
@@ -655,6 +660,22 @@ impl CurveType {
     }
 
     fn mul_short_labels(&self) -> (&'static str, &'static str, &'static str) {
+        match self {
+            CurveType::CryptoptFiatCurve25519 => ("GCC", "Clang", "CryptOpt"),
+            _ => ("GAS", "NASM", "CryptOpt"),
+        }
+    }
+
+    fn square_display_labels(&self) -> (&'static str, &'static str, &'static str) {
+        match self {
+            CurveType::CryptoptFiatCurve25519 => {
+                ("GCC Baseline", "Clang Baseline", "CryptOpt Ratio12993")
+            }
+            _ => ("GAS Format", "NASM Format", "CryptOpt Format"),
+        }
+    }
+
+    fn square_short_labels(&self) -> (&'static str, &'static str, &'static str) {
         match self {
             CurveType::CryptoptFiatCurve25519 => ("GCC", "Clang", "CryptOpt"),
             _ => ("GAS", "NASM", "CryptOpt"),
@@ -1613,10 +1634,12 @@ fn measure_u64_square_functions_interleaved_enhanced(
     nasm_func: unsafe extern "C" fn(*mut u64, *const u64),
     cryptopt_func: unsafe extern "C" fn(*mut u64, *const u64),
     config: &MeasurementConfig,
+    labels: (&str, &str, &str),
 ) -> (MeasurementStats, MeasurementStats, MeasurementStats) {
     use rand::seq::SliceRandom;
 
     let mut rng = thread_rng();
+    let (label_llc, _label_nasm, _label_crypt) = labels;
 
     // Warm-up phases removed per request (match original CryptOpt style)
 
@@ -1638,8 +1661,8 @@ fn measure_u64_square_functions_interleaved_enhanced(
             config.max_batch_size,
         );
         println!(
-            "Calibrated shared batch size (GAS ref): {} (GAS cycles: {})",
-            batch_size, cg
+            "Calibrated shared batch size ({} ref): {} ({} cycles: {})",
+            label_llc, batch_size, label_llc, cg
         );
     }
 
@@ -2340,6 +2363,8 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
     match measure_cryptopt_once_square(curve) {
         Ok(_) => {
             // Regular 3-function case
+            let labels = curve.square_display_labels();
+            let short_labels = curve.square_short_labels();
             let mut llc_results = Vec::with_capacity(repeats);
             let mut nasm_results = Vec::with_capacity(repeats);
             let mut cryptopt_results = Vec::with_capacity(repeats);
@@ -2359,9 +2384,12 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
                 "\n=== Performance Statistics (square) after {} runs ===",
                 repeats
             );
-            print_performance_stats("GAS format ASM", &llc_stats);
-            print_performance_stats("NASM format ASM", &nasm_stats);
-            print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
+            let llc_label = format!("{} ASM", labels.0);
+            let nasm_label = format!("{} ASM", labels.1);
+            let crypt_label = format!("{} ASM", labels.2);
+            print_performance_stats(&llc_label, &llc_stats);
+            print_performance_stats(&nasm_label, &nasm_stats);
+            print_performance_stats(&crypt_label, &cryptopt_stats);
 
             println!("\n=== Comparative Analysis ===");
             let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64)
@@ -2372,24 +2400,28 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
                 * 100.0;
             if diff_cryptopt_llc > 0.0 {
                 println!(
-                    "CryptOpt is {:.2}% faster than GAS (based on median).",
-                    diff_cryptopt_llc
+                    "{} is {:.2}% faster than {} (based on median).",
+                    short_labels.2, diff_cryptopt_llc, short_labels.0
                 );
             } else {
                 println!(
-                    "CryptOpt is {:.2}% slower than GAS (based on median).",
-                    diff_cryptopt_llc.abs()
+                    "{} is {:.2}% slower than {} (based on median).",
+                    short_labels.2,
+                    diff_cryptopt_llc.abs(),
+                    short_labels.0
                 );
             }
             if diff_cryptopt_nasm > 0.0 {
                 println!(
-                    "CryptOpt is {:.2}% faster than NASM (based on median).",
-                    diff_cryptopt_nasm
+                    "{} is {:.2}% faster than {} (based on median).",
+                    short_labels.2, diff_cryptopt_nasm, short_labels.1
                 );
             } else {
                 println!(
-                    "CryptOpt is {:.2}% slower than NASM (based on median).",
-                    diff_cryptopt_nasm.abs()
+                    "{} is {:.2}% slower than {} (based on median).",
+                    short_labels.2,
+                    diff_cryptopt_nasm.abs(),
+                    short_labels.1
                 );
             }
 
@@ -2427,16 +2459,19 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
 
             if llc_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
                 println!(
-                    "GAS is significantly faster than CryptOpt (95% CI non-overlapping, p = {})",
-                    p_gas_str
+                    "{} is significantly faster than {} (95% CI non-overlapping, p = {})",
+                    short_labels.0, short_labels.2, p_gas_str
                 );
             } else if cryptopt_stats.confidence_interval_95.1 < llc_stats.confidence_interval_95.0 {
                 println!(
-                    "CryptOpt is significantly faster than GAS (95% CI non-overlapping, p = {})",
-                    p_gas_str
+                    "{} is significantly faster than {} (95% CI non-overlapping, p = {})",
+                    short_labels.2, short_labels.0, p_gas_str
                 );
             } else {
-                println!("No significant difference between GAS and CryptOpt (95% CI overlapping, p = {})", p_gas_str);
+                println!(
+                    "No significant difference between {} and {} (95% CI overlapping, p = {})",
+                    short_labels.0, short_labels.2, p_gas_str
+                );
             }
 
             // NASM vs CryptOpt
@@ -2450,17 +2485,20 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
 
             if nasm_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
                 println!(
-                    "NASM is significantly faster than CryptOpt (95% CI non-overlapping, p = {})",
-                    p_nasm_str
+                    "{} is significantly faster than {} (95% CI non-overlapping, p = {})",
+                    short_labels.1, short_labels.2, p_nasm_str
                 );
             } else if cryptopt_stats.confidence_interval_95.1 < nasm_stats.confidence_interval_95.0
             {
                 println!(
-                    "CryptOpt is significantly faster than NASM (95% CI non-overlapping, p = {})",
-                    p_nasm_str
+                    "{} is significantly faster than {} (95% CI non-overlapping, p = {})",
+                    short_labels.2, short_labels.1, p_nasm_str
                 );
             } else {
-                println!("No significant difference between NASM and CryptOpt (95% CI overlapping, p = {})", p_nasm_str);
+                println!(
+                    "No significant difference between {} and {} (95% CI overlapping, p = {})",
+                    short_labels.1, short_labels.2, p_nasm_str
+                );
             }
 
             println!("\nNote: p-values < 0.05 indicate statistically significant differences at the 95% confidence level.");
@@ -2675,8 +2713,16 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
     let mut hand_medians: Vec<u64> = Vec::with_capacity(repeats);
     let mut hand_nasm_medians: Vec<u64> = Vec::with_capacity(repeats);
     let mut cryptopt_medians = Vec::with_capacity(repeats);
-    let mut summary_labels = curve.mul_display_labels();
-    let mut summary_short_labels = curve.mul_short_labels();
+    let mut summary_labels = if operation == "square" {
+        curve.square_display_labels()
+    } else {
+        curve.mul_display_labels()
+    };
+    let mut summary_short_labels = if operation == "square" {
+        curve.square_short_labels()
+    } else {
+        curve.mul_short_labels()
+    };
 
     for run in 1..=repeats {
         println!("=== Run {}/{} ===", run, repeats);
@@ -2799,6 +2845,8 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
                 let functions = curve.get_square_functions();
                 match functions {
                     Function::U64Square(llc_func, nasm_func, cryptopt_func) => {
+                        let labels = curve.square_display_labels();
+                        let short_labels = curve.square_short_labels();
                         let (gas_stats, nasm_stats, cryptopt_stats) =
                             measure_u64_square_functions_interleaved_enhanced(
                                 bound,
@@ -2807,6 +2855,7 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
                                 nasm_func,
                                 cryptopt_func,
                                 &config,
+                                labels,
                             );
 
                         gas_medians.push(gas_stats.median);
@@ -2814,15 +2863,26 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
                         cryptopt_medians.push(cryptopt_stats.median);
 
                         println!(
-                            "Run {} - GAS: {} cycles, NASM: {} cycles, CryptOpt: {} cycles",
-                            run, gas_stats.median, nasm_stats.median, cryptopt_stats.median
+                            "Run {} - {}: {} cycles, {}: {} cycles, {}: {} cycles",
+                            run,
+                            labels.0,
+                            gas_stats.median,
+                            labels.1,
+                            nasm_stats.median,
+                            labels.2,
+                            cryptopt_stats.median
                         );
                         println!(
-                            "Quality - GAS: {}, NASM: {}, CryptOpt: {}",
+                            "Quality - {}: {}, {}: {}, {}: {}",
+                            labels.0,
                             gas_stats.quality_assessment(),
+                            labels.1,
                             nasm_stats.quality_assessment(),
+                            labels.2,
                             cryptopt_stats.quality_assessment()
                         );
+                        summary_labels = labels;
+                        summary_short_labels = short_labels;
                     }
                     Function::U64SquareFive(
                         llc_func,
