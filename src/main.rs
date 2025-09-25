@@ -1,6 +1,6 @@
-use rand::Rng;
+use core::arch::x86_64::{_mm_mfence, _rdtsc};
 use rand::thread_rng;
-use core::arch::x86_64::{_rdtsc, _mm_mfence};
+use rand::Rng;
 use std::env;
 
 // Import the new precise timing module
@@ -32,9 +32,21 @@ mod curve25519 {
     pub const SIZE: usize = 4;
     extern "C" {
         // Multiply functions
-        pub fn rust_fiat_curve25519_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_curve25519_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_curve25519_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_curve25519_carry_mul_vec(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn rust_fiat_curve25519_carry_mul_vec_nasm(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn rust_fiat_curve25519_carry_mul_CryptOpt(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
         // Square functions
         pub fn rust_fiat_curve25519_carry_square_vec(arg0: *mut u64, arg1: *const u64);
         pub fn rust_fiat_curve25519_carry_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
@@ -63,9 +75,21 @@ mod p448 {
     pub const SIZE: usize = 8;
     extern "C" {
         // Multiply functions
-        pub fn rust_fiat_p448_solinas_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_p448_solinas_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_p448_solinas_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_p448_solinas_carry_mul_vec(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn rust_fiat_p448_solinas_carry_mul_vec_nasm(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn rust_fiat_p448_solinas_carry_mul_CryptOpt(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
         // Square functions
         pub fn rust_fiat_p448_solinas_carry_square_vec(arg0: *mut u64, arg1: *const u64);
         pub fn rust_fiat_p448_solinas_carry_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
@@ -78,8 +102,16 @@ mod fiat_c_p448 {
     pub const SIZE: usize = 8;
     extern "C" {
         // Multiply functions
-        pub fn fiat_c_p448_solinas_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_p448_solinas_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_p448_solinas_carry_mul_vec(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn fiat_c_p448_solinas_carry_mul_vec_nasm(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
         pub fn fiat_c_p448_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
         // Square functions
         pub fn fiat_c_p448_solinas_carry_square_vec(arg0: *mut u64, arg1: *const u64);
@@ -93,11 +125,31 @@ mod openssl_curve25519 {
     pub const SIZE: usize = 5;
     extern "C" {
         // Multiply functions
-        pub fn open_ssl_curve25519_fe51_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn open_ssl_curve25519_fe51_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn open_ssl_curve25519_hand_optmised_fe51_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn open_ssl_curve25519_hand_optmised_fe51_mul_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn open_ssl_curve25519_fe51_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn open_ssl_curve25519_fe51_mul_vec(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn open_ssl_curve25519_fe51_mul_vec_nasm(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn open_ssl_curve25519_hand_optmised_fe51_mul(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn open_ssl_curve25519_hand_optmised_fe51_mul_nasm(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn open_ssl_curve25519_fe51_mul_CryptOpt(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
         // Square functions
         pub fn open_ssl_curve25519_fe51_square_vec(arg0: *mut u64, arg1: *const u64);
         pub fn open_ssl_curve25519_fe51_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
@@ -112,13 +164,39 @@ mod fiat_c_curve25519 {
     pub const SIZE: usize = 4;
     extern "C" {
         // Multiply functions
-        pub fn fiat_c_curve25519_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_curve25519_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_curve25519_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_curve25519_carry_mul_vec(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn fiat_c_curve25519_carry_mul_vec_nasm(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn fiat_c_curve25519_carry_mul_CryptOpt(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
         // Square functions
         pub fn fiat_c_curve25519_carry_square_vec(arg0: *mut u64, arg1: *const u64);
         pub fn fiat_c_curve25519_carry_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
         pub fn fiat_c_curve25519_carry_square_CryptOpt(arg0: *mut u64, arg1: *const u64);
+    }
+}
+
+mod cryptopt_fiat_curve25519_generated {
+    pub const LOOSE_BOUND: u64 = 0x18000000000000;
+    pub const SIZE: usize = 5;
+    extern "C" {
+        pub fn fiat_curve25519_carry_mul_gcc(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_curve25519_carry_mul_clang(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn fiat_curve25519_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
     }
 }
 
@@ -127,9 +205,21 @@ mod poly1305 {
     pub const SIZE: usize = 3;
     extern "C" {
         // Multiply functions
-        pub fn rust_fiat_poly1305_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_poly1305_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_poly1305_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_poly1305_carry_mul_vec(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn rust_fiat_poly1305_carry_mul_vec_nasm(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn rust_fiat_poly1305_carry_mul_CryptOpt(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
         // Square functions
         pub fn rust_fiat_poly1305_carry_square_vec(arg0: *mut u64, arg1: *const u64);
         pub fn rust_fiat_poly1305_carry_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
@@ -143,8 +233,16 @@ mod fiat_c_poly1305 {
     extern "C" {
         // Multiply functions
         pub fn fiat_c_poly1305_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_poly1305_carry_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_poly1305_carry_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_poly1305_carry_mul_vec_nasm(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn fiat_c_poly1305_carry_mul_CryptOpt(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
         // Square functions
         pub fn fiat_c_poly1305_carry_square_vec(arg0: *mut u64, arg1: *const u64);
         pub fn fiat_c_poly1305_carry_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
@@ -152,15 +250,26 @@ mod fiat_c_poly1305 {
     }
 }
 
-
 mod secp256k1_dettman {
     pub const LOOSE_BOUND: u64 = 0x1ffffffffffffe;
     pub const SIZE: usize = 5;
     extern "C" {
         // Multiply functions
-        pub fn rust_fiat_secp256k1_dettman_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_secp256k1_dettman_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_fiat_secp256k1_dettman_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_fiat_secp256k1_dettman_mul_vec(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn rust_fiat_secp256k1_dettman_mul_vec_nasm(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn rust_fiat_secp256k1_dettman_mul_CryptOpt(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
         // // Square functions
         pub fn rust_fiat_secp256k1_dettman_square_vec(arg0: *mut u64, arg1: *const u64);
         pub fn rust_fiat_secp256k1_dettman_square_vec_nasm(arg0: *mut u64, arg1: *const u64);
@@ -173,9 +282,21 @@ mod rust_ec_secp256k1 {
     pub const SIZE: usize = 5;
     extern "C" {
         // Multiply functions
-        pub fn rust_ec_secp256k1_mul_inner_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_ec_secp256k1_mul_inner_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn rust_ec_secp256k1_mul_inner_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn rust_ec_secp256k1_mul_inner_vec(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn rust_ec_secp256k1_mul_inner_vec_nasm(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn rust_ec_secp256k1_mul_inner_CryptOpt(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
 
         // Square functions
         pub fn rust_ec_secp256k1_square_vec(arg0: *mut u64, arg1: *const u64);
@@ -189,9 +310,21 @@ mod fiat_c_secp256k1_dettman {
     pub const SIZE: usize = 5;
     extern "C" {
         // Multiply functions
-        pub fn fiat_c_secp256k1_dettman_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_secp256k1_dettman_mul_vec_nasm(arg0: *const u64, arg1: *const u64, arg2: *const u64);
-        pub fn fiat_c_secp256k1_dettman_mul_CryptOpt(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_c_secp256k1_dettman_mul_vec(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn fiat_c_secp256k1_dettman_mul_vec_nasm(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
+        pub fn fiat_c_secp256k1_dettman_mul_CryptOpt(
+            arg0: *const u64,
+            arg1: *const u64,
+            arg2: *const u64,
+        );
 
         // Square functions
         pub fn fiat_c_secp256k1_dettman_square_vec(arg0: *mut u64, arg1: *const u64);
@@ -200,23 +333,35 @@ mod fiat_c_secp256k1_dettman {
     }
 }
 
-
-
-
 mod bls12 {
     pub const LOOSE_BOUND: u64 = 0x10000000000000;
     pub const SIZE: usize = 6;
     extern "C" {
         // Multiply functions (using usize)
-        pub fn bls12_mul_vec(out0: *mut usize, out0_len: usize,
-                         in0: *const usize, in0_len: usize,
-                         in1: *const usize, in1_len: usize);
-        pub fn bls12_mul_vec_nasm(out0: *mut usize, out0_len: usize,
-                              in0: *const usize, in0_len: usize,
-                              in1: *const usize, in1_len: usize);
-        pub fn bls12_mul_CryptOpt(out0: *mut usize, out0_len: usize,
-                                  in0: *const usize, in0_len: usize,
-                                  in1: *const usize, in1_len: usize);
+        pub fn bls12_mul_vec(
+            out0: *mut usize,
+            out0_len: usize,
+            in0: *const usize,
+            in0_len: usize,
+            in1: *const usize,
+            in1_len: usize,
+        );
+        pub fn bls12_mul_vec_nasm(
+            out0: *mut usize,
+            out0_len: usize,
+            in0: *const usize,
+            in0_len: usize,
+            in1: *const usize,
+            in1_len: usize,
+        );
+        pub fn bls12_mul_CryptOpt(
+            out0: *mut usize,
+            out0_len: usize,
+            in0: *const usize,
+            in0_len: usize,
+            in1: *const usize,
+            in1_len: usize,
+        );
         // // Square functions (using usize)
         // pub fn bls12_square(out0: *mut usize, out0_len: usize,
         //                     in0: *const usize, in0_len: usize);
@@ -258,6 +403,7 @@ enum CurveType {
     Secp256k1RustEc,
     Bls12,
     FiatCCurve25519,
+    CryptoptFiatCurve25519,
     FiatCSecp256k1Dettman,
     FiatCPoly1305,
     FiatCP448,
@@ -270,43 +416,43 @@ enum Function {
     U64Mul(
         unsafe extern "C" fn(*const u64, *const u64, *const u64),
         unsafe extern "C" fn(*const u64, *const u64, *const u64),
-        unsafe extern "C" fn(*const u64, *const u64, *const u64)
+        unsafe extern "C" fn(*const u64, *const u64, *const u64),
     ),
     U64Square(
         unsafe extern "C" fn(*mut u64, *const u64),
         unsafe extern "C" fn(*mut u64, *const u64),
-        unsafe extern "C" fn(*mut u64, *const u64)
+        unsafe extern "C" fn(*mut u64, *const u64),
     ),
     UsizeMul(
         unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
         unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
-        unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize)
+        unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
     ),
     U64MulFour(
         unsafe extern "C" fn(*const u64, *const u64, *const u64),
         unsafe extern "C" fn(*const u64, *const u64, *const u64),
         unsafe extern "C" fn(*const u64, *const u64, *const u64),
-        unsafe extern "C" fn(*const u64, *const u64, *const u64)
+        unsafe extern "C" fn(*const u64, *const u64, *const u64),
     ),
     U64SquareFour(
         unsafe extern "C" fn(*mut u64, *const u64),
         unsafe extern "C" fn(*mut u64, *const u64),
         unsafe extern "C" fn(*mut u64, *const u64),
-        unsafe extern "C" fn(*mut u64, *const u64)
+        unsafe extern "C" fn(*mut u64, *const u64),
     ),
     U64MulFive(
         unsafe extern "C" fn(*const u64, *const u64, *const u64),
         unsafe extern "C" fn(*const u64, *const u64, *const u64),
         unsafe extern "C" fn(*const u64, *const u64, *const u64),
         unsafe extern "C" fn(*const u64, *const u64, *const u64),
-        unsafe extern "C" fn(*const u64, *const u64, *const u64)
+        unsafe extern "C" fn(*const u64, *const u64, *const u64),
     ),
     U64SquareFive(
         unsafe extern "C" fn(*mut u64, *const u64),
         unsafe extern "C" fn(*mut u64, *const u64),
         unsafe extern "C" fn(*mut u64, *const u64),
         unsafe extern "C" fn(*mut u64, *const u64),
-        unsafe extern "C" fn(*mut u64, *const u64)
+        unsafe extern "C" fn(*mut u64, *const u64),
     ),
     // UsizeSquare(
     //     unsafe extern "C" fn(*mut usize, usize, *const usize, usize),
@@ -322,14 +468,25 @@ impl CurveType {
             CurveType::Curve25519Dalek => (curve25519_dalek::LOOSE_BOUND, curve25519_dalek::SIZE),
             CurveType::P448 => (p448::LOOSE_BOUND, p448::SIZE),
             CurveType::Poly1305 => (poly1305::LOOSE_BOUND, poly1305::SIZE),
-            CurveType::Secp256k1Dettman => (secp256k1_dettman::LOOSE_BOUND, secp256k1_dettman::SIZE),
+            CurveType::Secp256k1Dettman => {
+                (secp256k1_dettman::LOOSE_BOUND, secp256k1_dettman::SIZE)
+            }
             CurveType::Secp256k1RustEc => (rust_ec_secp256k1::LOOSE_BOUND, rust_ec_secp256k1::SIZE),
             CurveType::Bls12 => (bls12::LOOSE_BOUND, bls12::SIZE),
             CurveType::FiatCCurve25519 => (fiat_c_curve25519::LOOSE_BOUND, fiat_c_curve25519::SIZE),
-            CurveType::FiatCSecp256k1Dettman => (fiat_c_secp256k1_dettman::LOOSE_BOUND, fiat_c_secp256k1_dettman::SIZE),
+            CurveType::CryptoptFiatCurve25519 => (
+                cryptopt_fiat_curve25519_generated::LOOSE_BOUND,
+                cryptopt_fiat_curve25519_generated::SIZE,
+            ),
+            CurveType::FiatCSecp256k1Dettman => (
+                fiat_c_secp256k1_dettman::LOOSE_BOUND,
+                fiat_c_secp256k1_dettman::SIZE,
+            ),
             CurveType::FiatCPoly1305 => (fiat_c_poly1305::LOOSE_BOUND, fiat_c_poly1305::SIZE),
             CurveType::FiatCP448 => (fiat_c_p448::LOOSE_BOUND, fiat_c_p448::SIZE),
-            CurveType::OpenSSLCurve25519 => (openssl_curve25519::LOOSE_BOUND, openssl_curve25519::SIZE),
+            CurveType::OpenSSLCurve25519 => {
+                (openssl_curve25519::LOOSE_BOUND, openssl_curve25519::SIZE)
+            }
             CurveType::OpenSSLP448 => (openssl_p448::LOOSE_BOUND, openssl_p448::SIZE),
         }
     }
@@ -339,69 +496,74 @@ impl CurveType {
             CurveType::Curve25519 => Function::U64Mul(
                 curve25519::rust_fiat_curve25519_carry_mul_vec,
                 curve25519::rust_fiat_curve25519_carry_mul_vec_nasm,
-                curve25519::rust_fiat_curve25519_carry_mul_CryptOpt
+                curve25519::rust_fiat_curve25519_carry_mul_CryptOpt,
             ),
             CurveType::Curve25519Dalek => Function::U64Mul(
                 curve25519_dalek::curve25519_dalek_mul_vec,
                 curve25519_dalek::curve25519_dalek_mul_vec_nasm,
-                curve25519_dalek::curve25519_dalek_mul_CryptOpt
+                curve25519_dalek::curve25519_dalek_mul_CryptOpt,
             ),
             CurveType::P448 => Function::U64Mul(
                 p448::rust_fiat_p448_solinas_carry_mul_vec,
                 p448::rust_fiat_p448_solinas_carry_mul_vec_nasm,
-                p448::rust_fiat_p448_solinas_carry_mul_CryptOpt
+                p448::rust_fiat_p448_solinas_carry_mul_CryptOpt,
             ),
             CurveType::Poly1305 => Function::U64Mul(
                 poly1305::rust_fiat_poly1305_carry_mul_vec,
                 poly1305::rust_fiat_poly1305_carry_mul_vec_nasm,
-                poly1305::rust_fiat_poly1305_carry_mul_CryptOpt
+                poly1305::rust_fiat_poly1305_carry_mul_CryptOpt,
             ),
             CurveType::Secp256k1Dettman => Function::U64Mul(
                 secp256k1_dettman::rust_fiat_secp256k1_dettman_mul_vec,
                 secp256k1_dettman::rust_fiat_secp256k1_dettman_mul_vec_nasm,
-                secp256k1_dettman::rust_fiat_secp256k1_dettman_mul_CryptOpt
+                secp256k1_dettman::rust_fiat_secp256k1_dettman_mul_CryptOpt,
             ),
             CurveType::Secp256k1RustEc => Function::U64Mul(
                 rust_ec_secp256k1::rust_ec_secp256k1_mul_inner_vec,
                 rust_ec_secp256k1::rust_ec_secp256k1_mul_inner_vec_nasm,
-                rust_ec_secp256k1::rust_ec_secp256k1_mul_inner_CryptOpt
+                rust_ec_secp256k1::rust_ec_secp256k1_mul_inner_CryptOpt,
             ),
             CurveType::Bls12 => Function::UsizeMul(
                 bls12::bls12_mul_vec,
                 bls12::bls12_mul_vec_nasm,
-                bls12::bls12_mul_CryptOpt
+                bls12::bls12_mul_CryptOpt,
             ),
             CurveType::FiatCCurve25519 => Function::U64Mul(
                 fiat_c_curve25519::fiat_c_curve25519_carry_mul_vec,
                 fiat_c_curve25519::fiat_c_curve25519_carry_mul_vec_nasm,
-                fiat_c_curve25519::fiat_c_curve25519_carry_mul_CryptOpt
+                fiat_c_curve25519::fiat_c_curve25519_carry_mul_CryptOpt,
+            ),
+            CurveType::CryptoptFiatCurve25519 => Function::U64Mul(
+                cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul_gcc,
+                cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul_clang,
+                cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul,
             ),
             CurveType::FiatCSecp256k1Dettman => Function::U64Mul(
                 fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul_vec,
                 fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul_vec_nasm,
-                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul_CryptOpt
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul_CryptOpt,
             ),
             CurveType::FiatCPoly1305 => Function::U64Mul(
                 fiat_c_poly1305::fiat_c_poly1305_carry_mul_vec,
                 fiat_c_poly1305::fiat_c_poly1305_carry_mul_vec_nasm,
-                fiat_c_poly1305::fiat_c_poly1305_carry_mul_CryptOpt
+                fiat_c_poly1305::fiat_c_poly1305_carry_mul_CryptOpt,
             ),
             CurveType::FiatCP448 => Function::U64Mul(
                 fiat_c_p448::fiat_c_p448_solinas_carry_mul_vec,
                 fiat_c_p448::fiat_c_p448_solinas_carry_mul_vec_nasm,
-                fiat_c_p448::fiat_c_p448_carry_mul_CryptOpt
+                fiat_c_p448::fiat_c_p448_carry_mul_CryptOpt,
             ),
             CurveType::OpenSSLCurve25519 => Function::U64MulFive(
                 openssl_curve25519::open_ssl_curve25519_fe51_mul_vec,
                 openssl_curve25519::open_ssl_curve25519_fe51_mul_vec_nasm,
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_mul,
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_mul_nasm,
-                openssl_curve25519::open_ssl_curve25519_fe51_mul_CryptOpt
+                openssl_curve25519::open_ssl_curve25519_fe51_mul_CryptOpt,
             ),
             CurveType::OpenSSLP448 => Function::U64Mul(
                 openssl_p448::openssl_p448_mul_vec,
                 openssl_p448::openssl_p448_mul_vec_nasm,
-                openssl_p448::openssl_p448_mul_CryptOpt
+                openssl_p448::openssl_p448_mul_CryptOpt,
             ),
         }
     }
@@ -411,72 +573,91 @@ impl CurveType {
             CurveType::Curve25519 => Function::U64Square(
                 curve25519::rust_fiat_curve25519_carry_square_vec,
                 curve25519::rust_fiat_curve25519_carry_square_vec_nasm,
-                curve25519::rust_fiat_curve25519_carry_square_CryptOpt
+                curve25519::rust_fiat_curve25519_carry_square_CryptOpt,
             ),
             CurveType::P448 => Function::U64Square(
                 p448::rust_fiat_p448_solinas_carry_square_vec,
                 p448::rust_fiat_p448_solinas_carry_square_vec_nasm,
-                p448::rust_fiat_p448_solinas_carry_square_CryptOpt
+                p448::rust_fiat_p448_solinas_carry_square_CryptOpt,
             ),
             CurveType::Poly1305 => Function::U64Square(
                 poly1305::rust_fiat_poly1305_carry_square_vec,
                 poly1305::rust_fiat_poly1305_carry_square_vec_nasm,
-                poly1305::rust_fiat_poly1305_carry_square_CryptOpt
+                poly1305::rust_fiat_poly1305_carry_square_CryptOpt,
             ),
             CurveType::Secp256k1Dettman => Function::U64Square(
                 secp256k1_dettman::rust_fiat_secp256k1_dettman_square_vec,
                 secp256k1_dettman::rust_fiat_secp256k1_dettman_square_vec_nasm,
-                secp256k1_dettman::rust_fiat_secp256k1_dettman_square_CryptOpt
+                secp256k1_dettman::rust_fiat_secp256k1_dettman_square_CryptOpt,
             ),
             CurveType::Curve25519Dalek => Function::U64Square(
                 curve25519_dalek::curve25519_dalek_square_vec,
                 curve25519_dalek::curve25519_dalek_square_vec_nasm,
-                curve25519_dalek::curve25519_dalek_square_CryptOpt
+                curve25519_dalek::curve25519_dalek_square_CryptOpt,
             ),
             CurveType::Secp256k1RustEc => Function::U64Square(
                 rust_ec_secp256k1::rust_ec_secp256k1_square_vec,
                 rust_ec_secp256k1::rust_ec_secp256k1_square_vec_nasm,
-                rust_ec_secp256k1::rust_ec_secp256k1_square_CryptOpt
+                rust_ec_secp256k1::rust_ec_secp256k1_square_CryptOpt,
             ),
             CurveType::FiatCCurve25519 => Function::U64Square(
                 fiat_c_curve25519::fiat_c_curve25519_carry_square_vec,
                 fiat_c_curve25519::fiat_c_curve25519_carry_square_vec_nasm,
-                fiat_c_curve25519::fiat_c_curve25519_carry_square_CryptOpt
+                fiat_c_curve25519::fiat_c_curve25519_carry_square_CryptOpt,
             ),
+            CurveType::CryptoptFiatCurve25519 => {
+                panic!("Square operation not available for cryptopt_fiat_curve25519")
+            }
             CurveType::FiatCSecp256k1Dettman => Function::U64Square(
                 fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_vec,
                 fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_vec_nasm,
-                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_CryptOpt
+                fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_CryptOpt,
             ),
             CurveType::FiatCPoly1305 => Function::U64Square(
                 fiat_c_poly1305::fiat_c_poly1305_carry_square_vec,
                 fiat_c_poly1305::fiat_c_poly1305_carry_square_vec_nasm,
-                fiat_c_poly1305::fiat_c_poly1305_carry_square_CryptOpt
+                fiat_c_poly1305::fiat_c_poly1305_carry_square_CryptOpt,
             ),
             CurveType::FiatCP448 => Function::U64Square(
                 fiat_c_p448::fiat_c_p448_solinas_carry_square_vec,
                 fiat_c_p448::fiat_c_p448_solinas_carry_square_vec_nasm,
-                fiat_c_p448::fiat_c_p448_solinas_carry_square_CryptOpt
+                fiat_c_p448::fiat_c_p448_solinas_carry_square_CryptOpt,
             ),
             CurveType::OpenSSLCurve25519 => Function::U64SquareFive(
                 openssl_curve25519::open_ssl_curve25519_fe51_square_vec,
                 openssl_curve25519::open_ssl_curve25519_fe51_square_vec_nasm,
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_square,
                 openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_square_nasm,
-                openssl_curve25519::open_ssl_curve25519_fe51_square_CryptOpt
+                openssl_curve25519::open_ssl_curve25519_fe51_square_CryptOpt,
             ),
             CurveType::OpenSSLP448 => Function::U64Square(
                 openssl_p448::openssl_p448_square_vec,
                 openssl_p448::openssl_p448_square_vec_nasm,
-                openssl_p448::openssl_p448_square_CryptOpt
+                openssl_p448::openssl_p448_square_CryptOpt,
             ),
 
-            &CurveType::Bls12  => todo!(),
+            &CurveType::Bls12 => todo!(),
             // CurveType::Bls12 => Function::UsizeSquare(
             //     bls12::bls12_square,
             //     bls12::bls12_square_nasm,
             //     bls12::bls12_square_CryptOpt
             // ),
+        }
+    }
+
+    fn mul_display_labels(&self) -> (&'static str, &'static str, &'static str) {
+        match self {
+            CurveType::CryptoptFiatCurve25519 => {
+                ("GCC Baseline", "Clang Baseline", "CryptOpt Ratio12750")
+            }
+            _ => ("GAS Format", "NASM Format", "CryptOpt Format"),
+        }
+    }
+
+    fn mul_short_labels(&self) -> (&'static str, &'static str, &'static str) {
+        match self {
+            CurveType::CryptoptFiatCurve25519 => ("GCC", "Clang", "CryptOpt"),
+            _ => ("GAS", "NASM", "CryptOpt"),
         }
     }
 }
@@ -494,7 +675,9 @@ fn generate_random_loose_input_u64(bound: u64, size: usize) -> Vec<u64> {
 
 fn generate_random_loose_input_usize(bound: u64, size: usize) -> Vec<usize> {
     let mut rng = thread_rng();
-    (0..size).map(|_| rng.gen_range(0..bound) as usize).collect()
+    (0..size)
+        .map(|_| rng.gen_range(0..bound) as usize)
+        .collect()
 }
 
 fn median(cycles: &[u64]) -> u64 {
@@ -521,13 +704,13 @@ fn measure_one_batch_u64_mul_precise(
 ) -> u64 {
     // Use precise timing with memory barriers (delegates to `precise_rdtsc`)
     let start = precise_rdtsc();
-    
+
     unsafe {
         for _ in 0..batch_size {
             func(out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
         }
     }
-    
+
     let end = precise_rdtsc();
     end.saturating_sub(start)
 }
@@ -567,7 +750,11 @@ fn measure_three_functions_u64_mul(
         cycles_nasm.push(c_nasm);
         cycles_cryptopt.push(c_cryptopt);
     }
-    (median(&cycles_llc), median(&cycles_nasm), median(&cycles_cryptopt))
+    (
+        median(&cycles_llc),
+        median(&cycles_nasm),
+        median(&cycles_cryptopt),
+    )
 }
 
 fn measure_four_functions_u64_mul(
@@ -590,14 +777,20 @@ fn measure_four_functions_u64_mul(
         let in1 = generate_random_loose_input_u64(bound, size);
         let c_llc = measure_one_batch_u64_mul(llc_func, &mut out, &in0, &in1, batch_size);
         let c_nasm = measure_one_batch_u64_mul(nasm_func, &mut out, &in0, &in1, batch_size);
-        let c_hand_optmised = measure_one_batch_u64_mul(hand_optmised_func, &mut out, &in0, &in1, batch_size);
+        let c_hand_optmised =
+            measure_one_batch_u64_mul(hand_optmised_func, &mut out, &in0, &in1, batch_size);
         let c_cryptopt = measure_one_batch_u64_mul(cryptopt_func, &mut out, &in0, &in1, batch_size);
         cycles_llc.push(c_llc);
         cycles_nasm.push(c_nasm);
         cycles_hand_optmised.push(c_hand_optmised);
         cycles_cryptopt.push(c_cryptopt);
     }
-    (median(&cycles_llc), median(&cycles_nasm), median(&cycles_hand_optmised), median(&cycles_cryptopt))
+    (
+        median(&cycles_llc),
+        median(&cycles_nasm),
+        median(&cycles_hand_optmised),
+        median(&cycles_cryptopt),
+    )
 }
 
 fn measure_five_functions_u64_mul(
@@ -622,8 +815,10 @@ fn measure_five_functions_u64_mul(
         let in1 = generate_random_loose_input_u64(bound, size);
         let c_llc = measure_one_batch_u64_mul(llc_func, &mut out, &in0, &in1, batch_size);
         let c_nasm = measure_one_batch_u64_mul(nasm_func, &mut out, &in0, &in1, batch_size);
-        let c_hand_optmised = measure_one_batch_u64_mul(hand_optmised_func, &mut out, &in0, &in1, batch_size);
-        let c_hand_optmised_nasm = measure_one_batch_u64_mul(hand_optmised_nasm_func, &mut out, &in0, &in1, batch_size);
+        let c_hand_optmised =
+            measure_one_batch_u64_mul(hand_optmised_func, &mut out, &in0, &in1, batch_size);
+        let c_hand_optmised_nasm =
+            measure_one_batch_u64_mul(hand_optmised_nasm_func, &mut out, &in0, &in1, batch_size);
         let c_cryptopt = measure_one_batch_u64_mul(cryptopt_func, &mut out, &in0, &in1, batch_size);
         cycles_llc.push(c_llc);
         cycles_nasm.push(c_nasm);
@@ -631,7 +826,13 @@ fn measure_five_functions_u64_mul(
         cycles_hand_optmised_nasm.push(c_hand_optmised_nasm);
         cycles_cryptopt.push(c_cryptopt);
     }
-    (median(&cycles_llc), median(&cycles_nasm), median(&cycles_hand_optmised), median(&cycles_hand_optmised_nasm), median(&cycles_cryptopt))
+    (
+        median(&cycles_llc),
+        median(&cycles_nasm),
+        median(&cycles_hand_optmised),
+        median(&cycles_hand_optmised_nasm),
+        median(&cycles_cryptopt),
+    )
 }
 
 // -----------------------------------------------------------------------------
@@ -675,7 +876,11 @@ fn measure_three_functions_u64_square(
         cycles_nasm.push(c_nasm);
         cycles_cryptopt.push(c_cryptopt);
     }
-    (median(&cycles_llc), median(&cycles_nasm), median(&cycles_cryptopt))
+    (
+        median(&cycles_llc),
+        median(&cycles_nasm),
+        median(&cycles_cryptopt),
+    )
 }
 
 fn measure_four_functions_u64_square(
@@ -697,14 +902,20 @@ fn measure_four_functions_u64_square(
         let input = generate_random_loose_input_u64(bound, size);
         let c_llc = measure_one_batch_u64_square(llc_func, &mut out, &input, batch_size);
         let c_nasm = measure_one_batch_u64_square(nasm_func, &mut out, &input, batch_size);
-        let c_hand_optmised = measure_one_batch_u64_square(hand_optmised_func, &mut out, &input, batch_size);
+        let c_hand_optmised =
+            measure_one_batch_u64_square(hand_optmised_func, &mut out, &input, batch_size);
         let c_cryptopt = measure_one_batch_u64_square(cryptopt_func, &mut out, &input, batch_size);
         cycles_llc.push(c_llc);
         cycles_nasm.push(c_nasm);
         cycles_hand_optmised.push(c_hand_optmised);
         cycles_cryptopt.push(c_cryptopt);
     }
-    (median(&cycles_llc), median(&cycles_nasm), median(&cycles_hand_optmised), median(&cycles_cryptopt))
+    (
+        median(&cycles_llc),
+        median(&cycles_nasm),
+        median(&cycles_hand_optmised),
+        median(&cycles_cryptopt),
+    )
 }
 
 fn measure_five_functions_u64_square(
@@ -728,8 +939,10 @@ fn measure_five_functions_u64_square(
         let input = generate_random_loose_input_u64(bound, size);
         let c_llc = measure_one_batch_u64_square(llc_func, &mut out, &input, batch_size);
         let c_nasm = measure_one_batch_u64_square(nasm_func, &mut out, &input, batch_size);
-        let c_hand_optmised = measure_one_batch_u64_square(hand_optmised_func, &mut out, &input, batch_size);
-        let c_hand_optmised_nasm = measure_one_batch_u64_square(hand_optmised_nasm_func, &mut out, &input, batch_size);
+        let c_hand_optmised =
+            measure_one_batch_u64_square(hand_optmised_func, &mut out, &input, batch_size);
+        let c_hand_optmised_nasm =
+            measure_one_batch_u64_square(hand_optmised_nasm_func, &mut out, &input, batch_size);
         let c_cryptopt = measure_one_batch_u64_square(cryptopt_func, &mut out, &input, batch_size);
         cycles_llc.push(c_llc);
         cycles_nasm.push(c_nasm);
@@ -737,7 +950,13 @@ fn measure_five_functions_u64_square(
         cycles_hand_optmised_nasm.push(c_hand_optmised_nasm);
         cycles_cryptopt.push(c_cryptopt);
     }
-    (median(&cycles_llc), median(&cycles_nasm), median(&cycles_hand_optmised), median(&cycles_hand_optmised_nasm), median(&cycles_cryptopt))
+    (
+        median(&cycles_llc),
+        median(&cycles_nasm),
+        median(&cycles_hand_optmised),
+        median(&cycles_hand_optmised_nasm),
+        median(&cycles_cryptopt),
+    )
 }
 
 // -----------------------------------------------------------------------------
@@ -753,7 +972,14 @@ fn measure_one_batch_usize_mul(
         _rdtsc();
         let start = _rdtsc();
         for _ in 0..batch_size {
-            func(out.as_mut_ptr(), out.len(), in0.as_ptr(), in0.len(), in1.as_ptr(), in1.len());
+            func(
+                out.as_mut_ptr(),
+                out.len(),
+                in0.as_ptr(),
+                in0.len(),
+                in1.as_ptr(),
+                in1.len(),
+            );
         }
         let end = _rdtsc();
         end - start
@@ -765,7 +991,14 @@ fn measure_three_functions_usize_mul(
     size: usize,
     llc_func: unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
     nasm_func: unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
-    cryptopt_func: unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
+    cryptopt_func: unsafe extern "C" fn(
+        *mut usize,
+        usize,
+        *const usize,
+        usize,
+        *const usize,
+        usize,
+    ),
     batch_size: usize,
     nob: usize,
 ) -> (u64, u64, u64) {
@@ -778,12 +1011,17 @@ fn measure_three_functions_usize_mul(
         let in1 = generate_random_loose_input_usize(bound, size);
         let c_llc = measure_one_batch_usize_mul(llc_func, &mut out, &in0, &in1, batch_size);
         let c_nasm = measure_one_batch_usize_mul(nasm_func, &mut out, &in0, &in1, batch_size);
-        let c_cryptopt = measure_one_batch_usize_mul(cryptopt_func, &mut out, &in0, &in1, batch_size);
+        let c_cryptopt =
+            measure_one_batch_usize_mul(cryptopt_func, &mut out, &in0, &in1, batch_size);
         cycles_llc.push(c_llc);
         cycles_nasm.push(c_nasm);
         cycles_cryptopt.push(c_cryptopt);
     }
-    (median(&cycles_llc), median(&cycles_nasm), median(&cycles_cryptopt))
+    (
+        median(&cycles_llc),
+        median(&cycles_nasm),
+        median(&cycles_cryptopt),
+    )
 }
 
 /// Interleaved enhanced measurement for usize mul (shared batch size, GAS baseline)
@@ -792,7 +1030,14 @@ fn measure_usize_mul_functions_interleaved_enhanced(
     size: usize,
     llc_func: unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
     nasm_func: unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
-    cryptopt_func: unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
+    cryptopt_func: unsafe extern "C" fn(
+        *mut usize,
+        usize,
+        *const usize,
+        usize,
+        *const usize,
+        usize,
+    ),
     config: &MeasurementConfig,
 ) -> (MeasurementStats, MeasurementStats, MeasurementStats) {
     use rand::seq::SliceRandom;
@@ -818,10 +1063,16 @@ fn measure_usize_mul_functions_interleaved_enhanced(
             config.min_batch_size,
             config.max_batch_size,
         );
-        println!("Calibrated shared batch size (max-of-impls): {} (max cycles: {})", batch_size, cg);
+        println!(
+            "Calibrated shared batch size (max-of-impls): {} (max cycles: {})",
+            batch_size, cg
+        );
     }
 
-    println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
+    println!(
+        "Collecting {} batches with interleaved randomized order...",
+        config.num_batches
+    );
     let mut gas_batches = vec![0u64; config.num_batches];
     let mut nasm_batches = vec![0u64; config.num_batches];
     let mut crypt_batches = vec![0u64; config.num_batches];
@@ -841,15 +1092,23 @@ fn measure_usize_mul_functions_interleaved_enhanced(
         for &which in &order {
             match which {
                 0 => {
-                    let cycles = measure_one_batch_usize_mul(llc_func, &mut out_g, &in0, &in1, batch_size);
+                    let cycles =
+                        measure_one_batch_usize_mul(llc_func, &mut out_g, &in0, &in1, batch_size);
                     gas_batches[b] = cycles;
                 }
                 1 => {
-                    let cycles = measure_one_batch_usize_mul(nasm_func, &mut out_n, &in0, &in1, batch_size);
+                    let cycles =
+                        measure_one_batch_usize_mul(nasm_func, &mut out_n, &in0, &in1, batch_size);
                     nasm_batches[b] = cycles;
                 }
                 2 => {
-                    let cycles = measure_one_batch_usize_mul(cryptopt_func, &mut out_c, &in0, &in1, batch_size);
+                    let cycles = measure_one_batch_usize_mul(
+                        cryptopt_func,
+                        &mut out_c,
+                        &in0,
+                        &in1,
+                        batch_size,
+                    );
                     crypt_batches[b] = cycles;
                 }
                 _ => unreachable!(),
@@ -863,13 +1122,26 @@ fn measure_usize_mul_functions_interleaved_enhanced(
         }
 
         let batch_max = gas_batches[b].max(nasm_batches[b]).max(crypt_batches[b]);
-        let next = ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
+        let next =
+            ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
-    let gas_per_call: Vec<u64> = gas_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
-    let nasm_per_call: Vec<u64> = nasm_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
-    let crypt_per_call: Vec<u64> = crypt_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
+    let gas_per_call: Vec<u64> = gas_batches
+        .iter()
+        .zip(&used_bs)
+        .map(|(&c, &bs)| c / bs as u64)
+        .collect();
+    let nasm_per_call: Vec<u64> = nasm_batches
+        .iter()
+        .zip(&used_bs)
+        .map(|(&c, &bs)| c / bs as u64)
+        .collect();
+    let crypt_per_call: Vec<u64> = crypt_batches
+        .iter()
+        .zip(&used_bs)
+        .map(|(&c, &bs)| c / bs as u64)
+        .collect();
 
     let gas_stats = MeasurementStats::from_measurements(&gas_per_call);
     let nasm_stats = MeasurementStats::from_measurements(&nasm_per_call);
@@ -890,7 +1162,6 @@ fn measure_u64_mul_functions_enhanced(
     cryptopt_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
     config: &MeasurementConfig,
 ) -> (MeasurementStats, MeasurementStats, MeasurementStats) {
-    
     // Prepare shared input data (regenerated for each measurement to prevent cache effects)
     let generate_inputs = || -> (Vec<u64>, Vec<u64>) {
         let mut rng = thread_rng();
@@ -898,7 +1169,7 @@ fn measure_u64_mul_functions_enhanced(
         let in1: Vec<u64> = (0..size).map(|_| rng.gen_range(0..bound)).collect();
         (in0, in1)
     };
-    
+
     // Global warm-up: Exercise all three functions to warm up the system
     println!("Global warm-up: warming up all functions...");
     let mut warmup_out = vec![0u64; size];
@@ -909,11 +1180,13 @@ fn measure_u64_mul_functions_enhanced(
             nasm_func(warmup_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
             cryptopt_func(warmup_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
         }
-        unsafe { _mm_mfence(); } // Prevent over-optimization
+        unsafe {
+            _mm_mfence();
+        } // Prevent over-optimization
     }
-    
+
     let mut multi_measurement = MultiMeasurement::new(config.clone());
-    
+
     // Measure GAS format function
     {
         multi_measurement.measure_function(
@@ -931,10 +1204,10 @@ fn measure_u64_mul_functions_enhanced(
                 unsafe {
                     llc_func(gas_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
                 }
-            }
+            },
         );
     }
-    
+
     // Measure NASM format function
     {
         multi_measurement.measure_function(
@@ -952,10 +1225,10 @@ fn measure_u64_mul_functions_enhanced(
                 unsafe {
                     nasm_func(nasm_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
                 }
-            }
+            },
         );
     }
-    
+
     // Measure CryptOpt function
     {
         multi_measurement.measure_function(
@@ -973,15 +1246,15 @@ fn measure_u64_mul_functions_enhanced(
                 unsafe {
                     cryptopt_func(cryptopt_out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
                 }
-            }
+            },
         );
     }
-    
+
     // Extract statistics for return
     let gas_stats = MeasurementStats::from_measurements(&multi_measurement.results[0].1);
     let nasm_stats = MeasurementStats::from_measurements(&multi_measurement.results[1].1);
     let cryptopt_stats = MeasurementStats::from_measurements(&multi_measurement.results[2].1);
-    
+
     (gas_stats, nasm_stats, cryptopt_stats)
 }
 
@@ -997,10 +1270,12 @@ fn measure_u64_mul_functions_interleaved_enhanced(
     nasm_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
     cryptopt_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
     config: &MeasurementConfig,
+    labels: (&str, &str, &str),
 ) -> (MeasurementStats, MeasurementStats, MeasurementStats) {
     use rand::seq::SliceRandom;
 
     let mut rng = thread_rng();
+    let (label_llc, _, _) = labels;
 
     // Warm-up phases removed per request (match original CryptOpt style)
 
@@ -1015,7 +1290,8 @@ fn measure_u64_mul_functions_interleaved_enhanced(
         let calib_bs = batch_size;
         let cg = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, calib_bs);
         let _cn = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, calib_bs);
-        let _cc = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, calib_bs);
+        let _cc =
+            measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, calib_bs);
         // Use GAS cycles as the baseline reference (shared batch size)
         batch_size = calculate_optimal_batch_size(
             cg,
@@ -1026,13 +1302,21 @@ fn measure_u64_mul_functions_interleaved_enhanced(
         );
         let per_call_est = cg as f64 / calib_bs as f64;
         println!(
-            "Calibrated shared batch size (GAS ref): {} (GAS batch cycles: {}, ~{:.2} cycles/call at bs={})",
-            batch_size, cg, per_call_est, calib_bs
+            "Calibrated shared batch size ({} ref): {} ({} batch cycles: {}, ~{:.2} cycles/call at bs={})",
+            label_llc,
+            batch_size,
+            label_llc,
+            cg,
+            per_call_est,
+            calib_bs
         );
         // No final warm-up
     }
 
-    println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
+    println!(
+        "Collecting {} batches with interleaved randomized order...",
+        config.num_batches
+    );
 
     // Collect cycles per batch (raw cycles, not per-call yet)
     let mut gas_batches = vec![0u64; config.num_batches];
@@ -1058,19 +1342,31 @@ fn measure_u64_mul_functions_interleaved_enhanced(
             match which {
                 0 => {
                     let cycles = measure_one_batch_u64_mul_precise(
-                        llc_func, &mut out_gas, &in0, &in1, batch_size,
+                        llc_func,
+                        &mut out_gas,
+                        &in0,
+                        &in1,
+                        batch_size,
                     );
                     gas_batches[b] = cycles;
                 }
                 1 => {
                     let cycles = measure_one_batch_u64_mul_precise(
-                        nasm_func, &mut out_nasm, &in0, &in1, batch_size,
+                        nasm_func,
+                        &mut out_nasm,
+                        &in0,
+                        &in1,
+                        batch_size,
                     );
                     nasm_batches[b] = cycles;
                 }
                 2 => {
                     let cycles = measure_one_batch_u64_mul_precise(
-                        cryptopt_func, &mut out_crypt, &in0, &in1, batch_size,
+                        cryptopt_func,
+                        &mut out_crypt,
+                        &in0,
+                        &in1,
+                        batch_size,
                     );
                     crypt_batches[b] = cycles;
                 }
@@ -1086,15 +1382,28 @@ fn measure_u64_mul_functions_interleaved_enhanced(
         }
 
         // Shared batch size adjustment based on GAS cycles (baseline)
-        let gas_cycles = gas_batches[b];
-        let next = ((config.cycle_goal as f64 / gas_cycles as f64) * batch_size as f64).ceil() as usize;
+        let baseline_cycles = gas_batches[b];
+        let next = ((config.cycle_goal as f64 / baseline_cycles as f64) * batch_size as f64).ceil()
+            as usize;
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
     // Convert to per-call cycles
-    let gas_per_call: Vec<u64> = gas_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
-    let nasm_per_call: Vec<u64> = nasm_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
-    let crypt_per_call: Vec<u64> = crypt_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
+    let gas_per_call: Vec<u64> = gas_batches
+        .iter()
+        .zip(&used_bs)
+        .map(|(&c, &bs)| c / bs as u64)
+        .collect();
+    let nasm_per_call: Vec<u64> = nasm_batches
+        .iter()
+        .zip(&used_bs)
+        .map(|(&c, &bs)| c / bs as u64)
+        .collect();
+    let crypt_per_call: Vec<u64> = crypt_batches
+        .iter()
+        .zip(&used_bs)
+        .map(|(&c, &bs)| c / bs as u64)
+        .collect();
 
     let gas_stats = MeasurementStats::from_measurements(&gas_per_call);
     let nasm_stats = MeasurementStats::from_measurements(&nasm_per_call);
@@ -1113,7 +1422,13 @@ fn measure_u64_mul_functions_interleaved_enhanced_five(
     hand_nasm_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
     cryptopt_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
     config: &MeasurementConfig,
-) -> (MeasurementStats, MeasurementStats, MeasurementStats, MeasurementStats, MeasurementStats) {
+) -> (
+    MeasurementStats,
+    MeasurementStats,
+    MeasurementStats,
+    MeasurementStats,
+    MeasurementStats,
+) {
     use rand::seq::SliceRandom;
 
     let mut rng = thread_rng();
@@ -1132,18 +1447,30 @@ fn measure_u64_mul_functions_interleaved_enhanced_five(
                 hand_nasm_func(warmout.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
                 cryptopt_func(warmout.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
             }
-            unsafe { _mm_mfence(); }
+            unsafe {
+                _mm_mfence();
+            }
         }
     }
 
     // Per-function warm-up (no timing)
-    for &f in &[llc_func, nasm_func, hand_func, hand_nasm_func, cryptopt_func] {
+    for &f in &[
+        llc_func,
+        nasm_func,
+        hand_func,
+        hand_nasm_func,
+        cryptopt_func,
+    ] {
         let mut out = vec![0u64; size];
         for _ in 0..config.warmup_iterations {
             let in0 = generate_random_loose_input_u64(bound, size);
             let in1 = generate_random_loose_input_u64(bound, size);
-            unsafe { f(out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr()); }
-            unsafe { _mm_mfence(); }
+            unsafe {
+                f(out.as_mut_ptr(), in0.as_ptr(), in1.as_ptr());
+            }
+            unsafe {
+                _mm_mfence();
+            }
         }
     }
 
@@ -1161,11 +1488,17 @@ fn measure_u64_mul_functions_interleaved_enhanced_five(
         let cg_g = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, calib_bs);
         let cg_n = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, calib_bs);
         let cg_h = measure_one_batch_u64_mul_precise(hand_func, &mut out_h, &in0, &in1, calib_bs);
-        let cg_hn = measure_one_batch_u64_mul_precise(hand_nasm_func, &mut out_hn, &in0, &in1, calib_bs);
-        let cg_c = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, calib_bs);
+        let cg_hn =
+            measure_one_batch_u64_mul_precise(hand_nasm_func, &mut out_hn, &in0, &in1, calib_bs);
+        let cg_c =
+            measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, calib_bs);
         let cg = cg_g.max(cg_n).max(cg_h).max(cg_hn).max(cg_c);
         batch_size = calculate_optimal_batch_size(
-            cg, calib_bs, config.cycle_goal, config.min_batch_size, config.max_batch_size,
+            cg,
+            calib_bs,
+            config.cycle_goal,
+            config.min_batch_size,
+            config.max_batch_size,
         );
         let per_call_est = cg as f64 / calib_bs as f64;
         println!(
@@ -1174,7 +1507,10 @@ fn measure_u64_mul_functions_interleaved_enhanced_five(
         );
     }
 
-    println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
+    println!(
+        "Collecting {} batches with interleaved randomized order...",
+        config.num_batches
+    );
     let mut gas_batches = vec![0u64; config.num_batches];
     let mut nasm_batches = vec![0u64; config.num_batches];
     let mut hand_batches = vec![0u64; config.num_batches];
@@ -1196,11 +1532,39 @@ fn measure_u64_mul_functions_interleaved_enhanced_five(
         used_bs[b] = batch_size;
         for &which in &order {
             match which {
-                0 => { gas_batches[b] = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, batch_size); }
-                1 => { nasm_batches[b] = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, batch_size); }
-                2 => { hand_batches[b] = measure_one_batch_u64_mul_precise(hand_func, &mut out_h, &in0, &in1, batch_size); }
-                3 => { hand_nasm_batches[b] = measure_one_batch_u64_mul_precise(hand_nasm_func, &mut out_hn, &in0, &in1, batch_size); }
-                4 => { crypt_batches[b] = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, batch_size); }
+                0 => {
+                    gas_batches[b] = measure_one_batch_u64_mul_precise(
+                        llc_func, &mut out_g, &in0, &in1, batch_size,
+                    );
+                }
+                1 => {
+                    nasm_batches[b] = measure_one_batch_u64_mul_precise(
+                        nasm_func, &mut out_n, &in0, &in1, batch_size,
+                    );
+                }
+                2 => {
+                    hand_batches[b] = measure_one_batch_u64_mul_precise(
+                        hand_func, &mut out_h, &in0, &in1, batch_size,
+                    );
+                }
+                3 => {
+                    hand_nasm_batches[b] = measure_one_batch_u64_mul_precise(
+                        hand_nasm_func,
+                        &mut out_hn,
+                        &in0,
+                        &in1,
+                        batch_size,
+                    );
+                }
+                4 => {
+                    crypt_batches[b] = measure_one_batch_u64_mul_precise(
+                        cryptopt_func,
+                        &mut out_c,
+                        &in0,
+                        &in1,
+                        batch_size,
+                    );
+                }
                 _ => unreachable!(),
             }
         }
@@ -1216,18 +1580,30 @@ fn measure_u64_mul_functions_interleaved_enhanced_five(
             .max(hand_batches[b])
             .max(hand_nasm_batches[b])
             .max(crypt_batches[b]);
-        let next = ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
+        let next =
+            ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
-    let to_per_call = |v: Vec<u64>| -> Vec<u64> { v.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect() };
+    let to_per_call = |v: Vec<u64>| -> Vec<u64> {
+        v.iter()
+            .zip(&used_bs)
+            .map(|(&c, &bs)| c / bs as u64)
+            .collect()
+    };
     let gas_stats = MeasurementStats::from_measurements(&to_per_call(gas_batches));
     let nasm_stats = MeasurementStats::from_measurements(&to_per_call(nasm_batches));
     let hand_stats = MeasurementStats::from_measurements(&to_per_call(hand_batches));
     let hand_nasm_stats = MeasurementStats::from_measurements(&to_per_call(hand_nasm_batches));
     let crypt_stats = MeasurementStats::from_measurements(&to_per_call(crypt_batches));
 
-    (gas_stats, nasm_stats, hand_stats, hand_nasm_stats, crypt_stats)
+    (
+        gas_stats,
+        nasm_stats,
+        hand_stats,
+        hand_nasm_stats,
+        crypt_stats,
+    )
 }
 /// Interleaved enhanced measurement for U64 square (shared batch size, GAS baseline)
 fn measure_u64_square_functions_interleaved_enhanced(
@@ -1261,10 +1637,16 @@ fn measure_u64_square_functions_interleaved_enhanced(
             config.min_batch_size,
             config.max_batch_size,
         );
-        println!("Calibrated shared batch size (GAS ref): {} (GAS cycles: {})", batch_size, cg);
+        println!(
+            "Calibrated shared batch size (GAS ref): {} (GAS cycles: {})",
+            batch_size, cg
+        );
     }
 
-    println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
+    println!(
+        "Collecting {} batches with interleaved randomized order...",
+        config.num_batches
+    );
     let mut gas_batches = vec![0u64; config.num_batches];
     let mut nasm_batches = vec![0u64; config.num_batches];
     let mut crypt_batches = vec![0u64; config.num_batches];
@@ -1283,15 +1665,18 @@ fn measure_u64_square_functions_interleaved_enhanced(
         for &which in &order {
             match which {
                 0 => {
-                    let cycles = measure_one_batch_u64_square(llc_func, &mut out_g, &input, batch_size);
+                    let cycles =
+                        measure_one_batch_u64_square(llc_func, &mut out_g, &input, batch_size);
                     gas_batches[b] = cycles;
                 }
                 1 => {
-                    let cycles = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, batch_size);
+                    let cycles =
+                        measure_one_batch_u64_square(nasm_func, &mut out_n, &input, batch_size);
                     nasm_batches[b] = cycles;
                 }
                 2 => {
-                    let cycles = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, batch_size);
+                    let cycles =
+                        measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, batch_size);
                     crypt_batches[b] = cycles;
                 }
                 _ => unreachable!(),
@@ -1306,13 +1691,26 @@ fn measure_u64_square_functions_interleaved_enhanced(
 
         // Max-of-impls baseline for shared bs update
         let batch_max = gas_batches[b].max(nasm_batches[b]).max(crypt_batches[b]);
-        let next = ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
+        let next =
+            ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
-    let gas_per_call: Vec<u64> = gas_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
-    let nasm_per_call: Vec<u64> = nasm_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
-    let crypt_per_call: Vec<u64> = crypt_batches.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect();
+    let gas_per_call: Vec<u64> = gas_batches
+        .iter()
+        .zip(&used_bs)
+        .map(|(&c, &bs)| c / bs as u64)
+        .collect();
+    let nasm_per_call: Vec<u64> = nasm_batches
+        .iter()
+        .zip(&used_bs)
+        .map(|(&c, &bs)| c / bs as u64)
+        .collect();
+    let crypt_per_call: Vec<u64> = crypt_batches
+        .iter()
+        .zip(&used_bs)
+        .map(|(&c, &bs)| c / bs as u64)
+        .collect();
 
     let gas_stats = MeasurementStats::from_measurements(&gas_per_call);
     let nasm_stats = MeasurementStats::from_measurements(&nasm_per_call);
@@ -1331,7 +1729,13 @@ fn measure_u64_square_functions_interleaved_enhanced_five(
     hand_nasm_func: unsafe extern "C" fn(*mut u64, *const u64),
     cryptopt_func: unsafe extern "C" fn(*mut u64, *const u64),
     config: &MeasurementConfig,
-) -> (MeasurementStats, MeasurementStats, MeasurementStats, MeasurementStats, MeasurementStats) {
+) -> (
+    MeasurementStats,
+    MeasurementStats,
+    MeasurementStats,
+    MeasurementStats,
+    MeasurementStats,
+) {
     use rand::seq::SliceRandom;
 
     let mut rng = thread_rng();
@@ -1355,7 +1759,11 @@ fn measure_u64_square_functions_interleaved_enhanced_five(
         let cg_c = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, calib_bs);
         let cg = cg_g.max(cg_n).max(cg_h).max(cg_hn).max(cg_c);
         batch_size = calculate_optimal_batch_size(
-            cg, calib_bs, config.cycle_goal, config.min_batch_size, config.max_batch_size,
+            cg,
+            calib_bs,
+            config.cycle_goal,
+            config.min_batch_size,
+            config.max_batch_size,
         );
         let per_call_est = cg as f64 / calib_bs as f64;
         println!(
@@ -1364,7 +1772,10 @@ fn measure_u64_square_functions_interleaved_enhanced_five(
         );
     }
 
-    println!("Collecting {} batches with interleaved randomized order...", config.num_batches);
+    println!(
+        "Collecting {} batches with interleaved randomized order...",
+        config.num_batches
+    );
     let mut gas_batches = vec![0u64; config.num_batches];
     let mut nasm_batches = vec![0u64; config.num_batches];
     let mut hand_batches = vec![0u64; config.num_batches];
@@ -1386,11 +1797,30 @@ fn measure_u64_square_functions_interleaved_enhanced_five(
 
         for &which in &order {
             match which {
-                0 => { gas_batches[b] = measure_one_batch_u64_square(llc_func, &mut out_g, &input, batch_size); }
-                1 => { nasm_batches[b] = measure_one_batch_u64_square(nasm_func, &mut out_n, &input, batch_size); }
-                2 => { hand_batches[b] = measure_one_batch_u64_square(hand_func, &mut out_h, &input, batch_size); }
-                3 => { hand_nasm_batches[b] = measure_one_batch_u64_square(hand_nasm_func, &mut out_hn, &input, batch_size); }
-                4 => { crypt_batches[b] = measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, batch_size); }
+                0 => {
+                    gas_batches[b] =
+                        measure_one_batch_u64_square(llc_func, &mut out_g, &input, batch_size);
+                }
+                1 => {
+                    nasm_batches[b] =
+                        measure_one_batch_u64_square(nasm_func, &mut out_n, &input, batch_size);
+                }
+                2 => {
+                    hand_batches[b] =
+                        measure_one_batch_u64_square(hand_func, &mut out_h, &input, batch_size);
+                }
+                3 => {
+                    hand_nasm_batches[b] = measure_one_batch_u64_square(
+                        hand_nasm_func,
+                        &mut out_hn,
+                        &input,
+                        batch_size,
+                    );
+                }
+                4 => {
+                    crypt_batches[b] =
+                        measure_one_batch_u64_square(cryptopt_func, &mut out_c, &input, batch_size);
+                }
                 _ => unreachable!(),
             }
         }
@@ -1406,59 +1836,145 @@ fn measure_u64_square_functions_interleaved_enhanced_five(
             .max(hand_batches[b])
             .max(hand_nasm_batches[b])
             .max(crypt_batches[b]);
-        let next = ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
+        let next =
+            ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
-    let to_per_call = |v: Vec<u64>| -> Vec<u64> { v.iter().zip(&used_bs).map(|(&c, &bs)| c / bs as u64).collect() };
+    let to_per_call = |v: Vec<u64>| -> Vec<u64> {
+        v.iter()
+            .zip(&used_bs)
+            .map(|(&c, &bs)| c / bs as u64)
+            .collect()
+    };
     let gas_stats = MeasurementStats::from_measurements(&to_per_call(gas_batches));
     let nasm_stats = MeasurementStats::from_measurements(&to_per_call(nasm_batches));
     let hand_stats = MeasurementStats::from_measurements(&to_per_call(hand_batches));
     let hand_nasm_stats = MeasurementStats::from_measurements(&to_per_call(hand_nasm_batches));
     let crypt_stats = MeasurementStats::from_measurements(&to_per_call(crypt_batches));
 
-    (gas_stats, nasm_stats, hand_stats, hand_nasm_stats, crypt_stats)
+    (
+        gas_stats,
+        nasm_stats,
+        hand_stats,
+        hand_nasm_stats,
+        crypt_stats,
+    )
 }
 // -----------------------------------------------------------------------------
 // Top-level measurement functions for a single run (multiply version)
-fn measure_cryptopt_once_mul(curve: &CurveType) -> Result<(u64, u64, u64), Result<(u64, u64, u64, u64), (u64, u64, u64, u64, u64)>> {
+fn measure_cryptopt_once_mul(
+    curve: &CurveType,
+) -> Result<(u64, u64, u64), Result<(u64, u64, u64, u64), (u64, u64, u64, u64, u64)>> {
     let batch_size = 200;
     let nob = 31;
     let (bound, size) = curve.get_params();
     let functions = curve.get_mul_functions();
     match functions {
         Function::U64Mul(llc_func, nasm_func, cryptopt_func) => {
-            Ok(measure_three_functions_u64_mul(bound, size, llc_func, nasm_func, cryptopt_func, batch_size, nob))
-        },
+            Ok(measure_three_functions_u64_mul(
+                bound,
+                size,
+                llc_func,
+                nasm_func,
+                cryptopt_func,
+                batch_size,
+                nob,
+            ))
+        }
         Function::UsizeMul(llc_func, nasm_func, cryptopt_func) => {
-            Ok(measure_three_functions_usize_mul(bound, size, llc_func, nasm_func, cryptopt_func, batch_size, nob))
-        },
+            Ok(measure_three_functions_usize_mul(
+                bound,
+                size,
+                llc_func,
+                nasm_func,
+                cryptopt_func,
+                batch_size,
+                nob,
+            ))
+        }
         Function::U64MulFour(llc_func, nasm_func, hand_optmised_func, cryptopt_func) => {
-            Err(Ok(measure_four_functions_u64_mul(bound, size, llc_func, nasm_func, hand_optmised_func, cryptopt_func, batch_size, nob)))
-        },
-        Function::U64MulFive(llc_func, nasm_func, hand_optmised_func, hand_optmised_nasm_func, cryptopt_func) => {
-            Err(Err(measure_five_functions_u64_mul(bound, size, llc_func, nasm_func, hand_optmised_func, hand_optmised_nasm_func, cryptopt_func, batch_size, nob)))
-        },
+            Err(Ok(measure_four_functions_u64_mul(
+                bound,
+                size,
+                llc_func,
+                nasm_func,
+                hand_optmised_func,
+                cryptopt_func,
+                batch_size,
+                nob,
+            )))
+        }
+        Function::U64MulFive(
+            llc_func,
+            nasm_func,
+            hand_optmised_func,
+            hand_optmised_nasm_func,
+            cryptopt_func,
+        ) => Err(Err(measure_five_functions_u64_mul(
+            bound,
+            size,
+            llc_func,
+            nasm_func,
+            hand_optmised_func,
+            hand_optmised_nasm_func,
+            cryptopt_func,
+            batch_size,
+            nob,
+        ))),
         _ => panic!("Multiply function not implemented for this curve"),
     }
 }
 
 // Top-level measurement function for a single run (square version)
-fn measure_cryptopt_once_square(curve: &CurveType) -> Result<(u64, u64, u64), Result<(u64, u64, u64, u64), (u64, u64, u64, u64, u64)>> {
+fn measure_cryptopt_once_square(
+    curve: &CurveType,
+) -> Result<(u64, u64, u64), Result<(u64, u64, u64, u64), (u64, u64, u64, u64, u64)>> {
     let batch_size = 200;
     let nob = 31;
     let (bound, size) = curve.get_params();
     let functions = curve.get_square_functions();
     match functions {
         Function::U64Square(llc_func, nasm_func, cryptopt_func) => {
-            Ok(measure_three_functions_u64_square(bound, size, llc_func, nasm_func, cryptopt_func, batch_size, nob))
-        },
+            Ok(measure_three_functions_u64_square(
+                bound,
+                size,
+                llc_func,
+                nasm_func,
+                cryptopt_func,
+                batch_size,
+                nob,
+            ))
+        }
         Function::U64SquareFour(llc_func, nasm_func, hand_optmised_func, cryptopt_func) => {
-            Err(Ok(measure_four_functions_u64_square(bound, size, llc_func, nasm_func, hand_optmised_func, cryptopt_func, batch_size, nob)))
-        },
-        Function::U64SquareFive(llc_func, nasm_func, hand_optmised_func, hand_optmised_nasm_func, cryptopt_func) => {
-            Err(Err(measure_five_functions_u64_square(bound, size, llc_func, nasm_func, hand_optmised_func, hand_optmised_nasm_func, cryptopt_func, batch_size, nob)))
-        },
+            Err(Ok(measure_four_functions_u64_square(
+                bound,
+                size,
+                llc_func,
+                nasm_func,
+                hand_optmised_func,
+                cryptopt_func,
+                batch_size,
+                nob,
+            )))
+        }
+        Function::U64SquareFive(
+            llc_func,
+            nasm_func,
+            hand_optmised_func,
+            hand_optmised_nasm_func,
+            cryptopt_func,
+        ) => Err(Err(measure_five_functions_u64_square(
+            bound,
+            size,
+            llc_func,
+            nasm_func,
+            hand_optmised_func,
+            hand_optmised_nasm_func,
+            cryptopt_func,
+            batch_size,
+            nob,
+        ))),
         // Function::UsizeSquare(_llc_func, _nasm_func, _cryptopt_func) => {
         //     // Implement a UsizeSquare measurement if needed.
         //     panic!("UsizeSquare measurement not implemented")
@@ -1473,13 +1989,19 @@ fn print_performance_stats(name: &str, stats: &MeasurementStats) {
     println!("\n{}:", name);
     println!("  Raw cycle counts: {:?}", stats.raw_cycles);
     if stats.outliers_removed > 0 {
-        println!("  Outliers removed: {} (using IQR method)", stats.outliers_removed);
+        println!(
+            "  Outliers removed: {} (using IQR method)",
+            stats.outliers_removed
+        );
         println!("  Filtered cycle counts: {:?}", stats.filtered_cycles);
     }
     println!("  Mean: {:.2} cycles", stats.mean);
     println!("  Median: {} cycles", stats.median);
     println!("  Std Dev: {:.2} cycles", stats.std_dev);
-    println!("  95% CI: [{:.2}, {:.2}] cycles", stats.confidence_interval_95.0, stats.confidence_interval_95.1);
+    println!(
+        "  95% CI: [{:.2}, {:.2}] cycles",
+        stats.confidence_interval_95.0, stats.confidence_interval_95.1
+    );
 }
 
 // -----------------------------------------------------------------------------
@@ -1489,6 +2011,8 @@ fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
     match measure_cryptopt_once_mul(curve) {
         Ok(_) => {
             // Regular 3-function case
+            let labels = curve.mul_display_labels();
+            let short_labels = curve.mul_short_labels();
             let mut llc_results = Vec::with_capacity(repeats);
             let mut nasm_results = Vec::with_capacity(repeats);
             let mut cryptopt_results = Vec::with_capacity(repeats);
@@ -1499,78 +2023,135 @@ fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
                     cryptopt_results.push(cryptopt);
                 }
             }
-            
+
             // Calculate comprehensive statistics
             let llc_stats = MeasurementStats::from_measurements(&llc_results);
             let nasm_stats = MeasurementStats::from_measurements(&nasm_results);
             let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
-            
-            println!("\n=== Performance Statistics (multiply) after {} runs ===", repeats);
-            print_performance_stats("GAS format ASM", &llc_stats);
-            print_performance_stats("NASM format ASM", &nasm_stats);
-            print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
-            
+
+            println!(
+                "\n=== Performance Statistics (multiply) after {} runs ===",
+                repeats
+            );
+            let llc_label = format!("{} ASM", labels.0);
+            let nasm_label = format!("{} ASM", labels.1);
+            let crypt_label = format!("{} ASM", labels.2);
+            print_performance_stats(&llc_label, &llc_stats);
+            print_performance_stats(&nasm_label, &nasm_stats);
+            print_performance_stats(&crypt_label, &cryptopt_stats);
+
             println!("\n=== Comparative Analysis ===");
-            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
+                println!(
+                    "{} is {:.2}% faster than {} (based on median).",
+                    short_labels.2, diff_cryptopt_llc, short_labels.0
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
+                println!(
+                    "{} is {:.2}% slower than {} (based on median).",
+                    short_labels.2,
+                    diff_cryptopt_llc.abs(),
+                    short_labels.0
+                );
             }
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
+                println!(
+                    "{} is {:.2}% faster than {} (based on median).",
+                    short_labels.2, diff_cryptopt_nasm, short_labels.1
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
+                println!(
+                    "{} is {:.2}% slower than {} (based on median).",
+                    short_labels.2,
+                    diff_cryptopt_nasm.abs(),
+                    short_labels.1
+                );
             }
-            
+
             // Test for statistical significance using confidence intervals and p-values
             println!("\n=== Statistical Significance ===");
-            
+
             // Calculate p-values using filtered data if available
-            let gas_data = if llc_stats.filtered_cycles.len() >= 3 { &llc_stats.filtered_cycles } else { &llc_stats.raw_cycles };
-            let nasm_data = if nasm_stats.filtered_cycles.len() >= 3 { &nasm_stats.filtered_cycles } else { &nasm_stats.raw_cycles };
-            let cryptopt_data = if cryptopt_stats.filtered_cycles.len() >= 3 { &cryptopt_stats.filtered_cycles } else { &cryptopt_stats.raw_cycles };
-            
+            let gas_data = if llc_stats.filtered_cycles.len() >= 3 {
+                &llc_stats.filtered_cycles
+            } else {
+                &llc_stats.raw_cycles
+            };
+            let nasm_data = if nasm_stats.filtered_cycles.len() >= 3 {
+                &nasm_stats.filtered_cycles
+            } else {
+                &nasm_stats.raw_cycles
+            };
+            let cryptopt_data = if cryptopt_stats.filtered_cycles.len() >= 3 {
+                &cryptopt_stats.filtered_cycles
+            } else {
+                &cryptopt_stats.raw_cycles
+            };
+
             let p_gas_cryptopt = calculate_p_value(gas_data, cryptopt_data);
             let p_nasm_cryptopt = calculate_p_value(nasm_data, cryptopt_data);
-            
+
             // GAS vs CryptOpt
             let p_gas_str = if p_gas_cryptopt < 1e-10 {
-                format!("{:.2e}", p_gas_cryptopt)  // Scientific notation for very small values
-            } else if p_gas_cryptopt < 0.000001 { 
+                format!("{:.2e}", p_gas_cryptopt) // Scientific notation for very small values
+            } else if p_gas_cryptopt < 0.000001 {
                 format!("< 0.000001")
-            } else { 
-                format!("{:.6}", p_gas_cryptopt) 
-            };
-            
-            if llc_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
-                println!("GAS is significantly faster than CryptOpt (95% CI non-overlapping, p = {})", p_gas_str);
-            } else if cryptopt_stats.confidence_interval_95.1 < llc_stats.confidence_interval_95.0 {
-                println!("CryptOpt is significantly faster than GAS (95% CI non-overlapping, p = {})", p_gas_str);
             } else {
-                println!("No significant difference between GAS and CryptOpt (95% CI overlapping, p = {})", p_gas_str);
+                format!("{:.6}", p_gas_cryptopt)
+            };
+
+            if llc_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
+                println!(
+                    "{} is significantly faster than {} (95% CI non-overlapping, p = {})",
+                    short_labels.0, short_labels.2, p_gas_str
+                );
+            } else if cryptopt_stats.confidence_interval_95.1 < llc_stats.confidence_interval_95.0 {
+                println!(
+                    "{} is significantly faster than {} (95% CI non-overlapping, p = {})",
+                    short_labels.2, short_labels.0, p_gas_str
+                );
+            } else {
+                println!(
+                    "No significant difference between {} and {} (95% CI overlapping, p = {})",
+                    short_labels.0, short_labels.2, p_gas_str
+                );
             }
-            
+
             // NASM vs CryptOpt
             let p_nasm_str = if p_nasm_cryptopt < 1e-10 {
-                format!("{:.2e}", p_nasm_cryptopt)  // Scientific notation for very small values
-            } else if p_nasm_cryptopt < 0.000001 { 
+                format!("{:.2e}", p_nasm_cryptopt) // Scientific notation for very small values
+            } else if p_nasm_cryptopt < 0.000001 {
                 format!("< 0.000001")
-            } else { 
-                format!("{:.6}", p_nasm_cryptopt) 
-            };
-            
-            if nasm_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
-                println!("NASM is significantly faster than CryptOpt (95% CI non-overlapping, p = {})", p_nasm_str);
-            } else if cryptopt_stats.confidence_interval_95.1 < nasm_stats.confidence_interval_95.0 {
-                println!("CryptOpt is significantly faster than NASM (95% CI non-overlapping, p = {})", p_nasm_str);
             } else {
-                println!("No significant difference between NASM and CryptOpt (95% CI overlapping, p = {})", p_nasm_str);
+                format!("{:.6}", p_nasm_cryptopt)
+            };
+
+            if nasm_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
+                println!(
+                    "{} is significantly faster than {} (95% CI non-overlapping, p = {})",
+                    short_labels.1, short_labels.2, p_nasm_str
+                );
+            } else if cryptopt_stats.confidence_interval_95.1 < nasm_stats.confidence_interval_95.0
+            {
+                println!(
+                    "{} is significantly faster than {} (95% CI non-overlapping, p = {})",
+                    short_labels.2, short_labels.1, p_nasm_str
+                );
+            } else {
+                println!(
+                    "No significant difference between {} and {} (95% CI overlapping, p = {})",
+                    short_labels.1, short_labels.2, p_nasm_str
+                );
             }
-            
+
             println!("\nNote: p-values < 0.05 indicate statistically significant differences at the 95% confidence level.");
-        },
+        }
         Err(Ok(_)) => {
             // 4-function case
             let mut llc_results = Vec::with_capacity(repeats);
@@ -1578,50 +2159,79 @@ fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
             let mut hand_optmised_results = Vec::with_capacity(repeats);
             let mut cryptopt_results = Vec::with_capacity(repeats);
             for _ in 0..repeats {
-                if let Err(Ok((llc, nasm, hand_optmised, cryptopt))) = measure_cryptopt_once_mul(curve) {
+                if let Err(Ok((llc, nasm, hand_optmised, cryptopt))) =
+                    measure_cryptopt_once_mul(curve)
+                {
                     llc_results.push(llc);
                     nasm_results.push(nasm);
                     hand_optmised_results.push(hand_optmised);
                     cryptopt_results.push(cryptopt);
                 }
             }
-            
+
             // Calculate comprehensive statistics
             let llc_stats = MeasurementStats::from_measurements(&llc_results);
             let nasm_stats = MeasurementStats::from_measurements(&nasm_results);
             let hand_stats = MeasurementStats::from_measurements(&hand_optmised_results);
             let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
-            
-            println!("\n=== Performance Statistics (multiply) after {} runs ===", repeats);
+
+            println!(
+                "\n=== Performance Statistics (multiply) after {} runs ===",
+                repeats
+            );
             print_performance_stats("GAS format ASM", &llc_stats);
             print_performance_stats("NASM format ASM", &nasm_stats);
             print_performance_stats("Hand-optimised ASM", &hand_stats);
             print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
-            
+
             println!("\n=== Comparative Analysis ===");
             // Compare all relative to CryptOpt
-            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
+                println!(
+                    "CryptOpt is {:.2}% faster than GAS (based on median).",
+                    diff_cryptopt_llc
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than GAS (based on median).",
+                    diff_cryptopt_llc.abs()
+                );
             }
-            
+
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
+                println!(
+                    "CryptOpt is {:.2}% faster than NASM (based on median).",
+                    diff_cryptopt_nasm
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than NASM (based on median).",
+                    diff_cryptopt_nasm.abs()
+                );
             }
-            
+
             if diff_cryptopt_hand > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised (based on median).", diff_cryptopt_hand);
+                println!(
+                    "CryptOpt is {:.2}% faster than Hand-optimised (based on median).",
+                    diff_cryptopt_hand
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised (based on median).", diff_cryptopt_hand.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than Hand-optimised (based on median).",
+                    diff_cryptopt_hand.abs()
+                );
             }
-        },
+        }
         Err(Err(_)) => {
             // 5-function case
             let mut llc_results = Vec::with_capacity(repeats);
@@ -1630,7 +2240,9 @@ fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
             let mut hand_optmised_nasm_results = Vec::with_capacity(repeats);
             let mut cryptopt_results = Vec::with_capacity(repeats);
             for _ in 0..repeats {
-                if let Err(Err((llc, nasm, hand_optmised, hand_optmised_nasm, cryptopt))) = measure_cryptopt_once_mul(curve) {
+                if let Err(Err((llc, nasm, hand_optmised, hand_optmised_nasm, cryptopt))) =
+                    measure_cryptopt_once_mul(curve)
+                {
                     llc_results.push(llc);
                     nasm_results.push(nasm);
                     hand_optmised_results.push(hand_optmised);
@@ -1644,43 +2256,79 @@ fn run_repeated_measurements_mul(curve: &CurveType, repeats: usize) {
             let hand_stats = MeasurementStats::from_measurements(&hand_optmised_results);
             let hand_nasm_stats = MeasurementStats::from_measurements(&hand_optmised_nasm_results);
             let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
-            
-            println!("\n=== Performance Statistics (multiply) after {} runs ===", repeats);
+
+            println!(
+                "\n=== Performance Statistics (multiply) after {} runs ===",
+                repeats
+            );
             print_performance_stats("GAS format ASM", &llc_stats);
             print_performance_stats("NASM format ASM", &nasm_stats);
             print_performance_stats("Hand-optimised ASM", &hand_stats);
             print_performance_stats("Hand-optimised NASM ASM", &hand_nasm_stats);
             print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
-            
+
             println!("\n=== Comparative Analysis ===");
             // Compare all relative to CryptOpt
-            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_hand_nasm = ((hand_nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_hand_nasm = ((hand_nasm_stats.median as f64
+                - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
+                println!(
+                    "CryptOpt is {:.2}% faster than GAS (based on median).",
+                    diff_cryptopt_llc
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than GAS (based on median).",
+                    diff_cryptopt_llc.abs()
+                );
             }
-            
+
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
+                println!(
+                    "CryptOpt is {:.2}% faster than NASM (based on median).",
+                    diff_cryptopt_nasm
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than NASM (based on median).",
+                    diff_cryptopt_nasm.abs()
+                );
             }
-            
+
             if diff_cryptopt_hand > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised (based on median).", diff_cryptopt_hand);
+                println!(
+                    "CryptOpt is {:.2}% faster than Hand-optimised (based on median).",
+                    diff_cryptopt_hand
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised (based on median).", diff_cryptopt_hand.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than Hand-optimised (based on median).",
+                    diff_cryptopt_hand.abs()
+                );
             }
-            
+
             if diff_cryptopt_hand_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised NASM (based on median).", diff_cryptopt_hand_nasm);
+                println!(
+                    "CryptOpt is {:.2}% faster than Hand-optimised NASM (based on median).",
+                    diff_cryptopt_hand_nasm
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised NASM (based on median).", diff_cryptopt_hand_nasm.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than Hand-optimised NASM (based on median).",
+                    diff_cryptopt_hand_nasm.abs()
+                );
             }
         }
     }
@@ -1706,73 +2354,117 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
             let llc_stats = MeasurementStats::from_measurements(&llc_results);
             let nasm_stats = MeasurementStats::from_measurements(&nasm_results);
             let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
-            
-            println!("\n=== Performance Statistics (square) after {} runs ===", repeats);
+
+            println!(
+                "\n=== Performance Statistics (square) after {} runs ===",
+                repeats
+            );
             print_performance_stats("GAS format ASM", &llc_stats);
             print_performance_stats("NASM format ASM", &nasm_stats);
             print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
-            
+
             println!("\n=== Comparative Analysis ===");
-            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
+                println!(
+                    "CryptOpt is {:.2}% faster than GAS (based on median).",
+                    diff_cryptopt_llc
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than GAS (based on median).",
+                    diff_cryptopt_llc.abs()
+                );
             }
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
+                println!(
+                    "CryptOpt is {:.2}% faster than NASM (based on median).",
+                    diff_cryptopt_nasm
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than NASM (based on median).",
+                    diff_cryptopt_nasm.abs()
+                );
             }
-            
+
             // Test for statistical significance using confidence intervals and p-values
             println!("\n=== Statistical Significance ===");
-            
+
             // Calculate p-values using filtered data if available
-            let gas_data = if llc_stats.filtered_cycles.len() >= 3 { &llc_stats.filtered_cycles } else { &llc_stats.raw_cycles };
-            let nasm_data = if nasm_stats.filtered_cycles.len() >= 3 { &nasm_stats.filtered_cycles } else { &nasm_stats.raw_cycles };
-            let cryptopt_data = if cryptopt_stats.filtered_cycles.len() >= 3 { &cryptopt_stats.filtered_cycles } else { &cryptopt_stats.raw_cycles };
-            
+            let gas_data = if llc_stats.filtered_cycles.len() >= 3 {
+                &llc_stats.filtered_cycles
+            } else {
+                &llc_stats.raw_cycles
+            };
+            let nasm_data = if nasm_stats.filtered_cycles.len() >= 3 {
+                &nasm_stats.filtered_cycles
+            } else {
+                &nasm_stats.raw_cycles
+            };
+            let cryptopt_data = if cryptopt_stats.filtered_cycles.len() >= 3 {
+                &cryptopt_stats.filtered_cycles
+            } else {
+                &cryptopt_stats.raw_cycles
+            };
+
             let p_gas_cryptopt = calculate_p_value(gas_data, cryptopt_data);
             let p_nasm_cryptopt = calculate_p_value(nasm_data, cryptopt_data);
-            
+
             // GAS vs CryptOpt
             let p_gas_str = if p_gas_cryptopt < 1e-10 {
-                format!("{:.2e}", p_gas_cryptopt)  // Scientific notation for very small values
-            } else if p_gas_cryptopt < 0.000001 { 
+                format!("{:.2e}", p_gas_cryptopt) // Scientific notation for very small values
+            } else if p_gas_cryptopt < 0.000001 {
                 format!("< 0.000001")
-            } else { 
-                format!("{:.6}", p_gas_cryptopt) 
+            } else {
+                format!("{:.6}", p_gas_cryptopt)
             };
-            
+
             if llc_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
-                println!("GAS is significantly faster than CryptOpt (95% CI non-overlapping, p = {})", p_gas_str);
+                println!(
+                    "GAS is significantly faster than CryptOpt (95% CI non-overlapping, p = {})",
+                    p_gas_str
+                );
             } else if cryptopt_stats.confidence_interval_95.1 < llc_stats.confidence_interval_95.0 {
-                println!("CryptOpt is significantly faster than GAS (95% CI non-overlapping, p = {})", p_gas_str);
+                println!(
+                    "CryptOpt is significantly faster than GAS (95% CI non-overlapping, p = {})",
+                    p_gas_str
+                );
             } else {
                 println!("No significant difference between GAS and CryptOpt (95% CI overlapping, p = {})", p_gas_str);
             }
-            
+
             // NASM vs CryptOpt
             let p_nasm_str = if p_nasm_cryptopt < 1e-10 {
-                format!("{:.2e}", p_nasm_cryptopt)  // Scientific notation for very small values
-            } else if p_nasm_cryptopt < 0.000001 { 
+                format!("{:.2e}", p_nasm_cryptopt) // Scientific notation for very small values
+            } else if p_nasm_cryptopt < 0.000001 {
                 format!("< 0.000001")
-            } else { 
-                format!("{:.6}", p_nasm_cryptopt) 
+            } else {
+                format!("{:.6}", p_nasm_cryptopt)
             };
-            
+
             if nasm_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
-                println!("NASM is significantly faster than CryptOpt (95% CI non-overlapping, p = {})", p_nasm_str);
-            } else if cryptopt_stats.confidence_interval_95.1 < nasm_stats.confidence_interval_95.0 {
-                println!("CryptOpt is significantly faster than NASM (95% CI non-overlapping, p = {})", p_nasm_str);
+                println!(
+                    "NASM is significantly faster than CryptOpt (95% CI non-overlapping, p = {})",
+                    p_nasm_str
+                );
+            } else if cryptopt_stats.confidence_interval_95.1 < nasm_stats.confidence_interval_95.0
+            {
+                println!(
+                    "CryptOpt is significantly faster than NASM (95% CI non-overlapping, p = {})",
+                    p_nasm_str
+                );
             } else {
                 println!("No significant difference between NASM and CryptOpt (95% CI overlapping, p = {})", p_nasm_str);
             }
-            
+
             println!("\nNote: p-values < 0.05 indicate statistically significant differences at the 95% confidence level.");
-        },
+        }
         Err(Ok(_)) => {
             // 4-function case
             let mut llc_results = Vec::with_capacity(repeats);
@@ -1780,7 +2472,9 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
             let mut hand_optmised_results = Vec::with_capacity(repeats);
             let mut cryptopt_results = Vec::with_capacity(repeats);
             for _ in 0..repeats {
-                if let Err(Ok((llc, nasm, hand_optmised, cryptopt))) = measure_cryptopt_once_square(curve) {
+                if let Err(Ok((llc, nasm, hand_optmised, cryptopt))) =
+                    measure_cryptopt_once_square(curve)
+                {
                     llc_results.push(llc);
                     nasm_results.push(nasm);
                     hand_optmised_results.push(hand_optmised);
@@ -1792,37 +2486,64 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
             let nasm_stats = MeasurementStats::from_measurements(&nasm_results);
             let hand_stats = MeasurementStats::from_measurements(&hand_optmised_results);
             let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
-            
-            println!("\n=== Performance Statistics (square) after {} runs ===", repeats);
+
+            println!(
+                "\n=== Performance Statistics (square) after {} runs ===",
+                repeats
+            );
             print_performance_stats("GAS format ASM", &llc_stats);
             print_performance_stats("NASM format ASM", &nasm_stats);
             print_performance_stats("Hand-optimised ASM", &hand_stats);
             print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
-            
+
             println!("\n=== Comparative Analysis ===");
             // Compare all relative to CryptOpt
-            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
+                println!(
+                    "CryptOpt is {:.2}% faster than GAS (based on median).",
+                    diff_cryptopt_llc
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than GAS (based on median).",
+                    diff_cryptopt_llc.abs()
+                );
             }
-            
+
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
+                println!(
+                    "CryptOpt is {:.2}% faster than NASM (based on median).",
+                    diff_cryptopt_nasm
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than NASM (based on median).",
+                    diff_cryptopt_nasm.abs()
+                );
             }
-            
+
             if diff_cryptopt_hand > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised (based on median).", diff_cryptopt_hand);
+                println!(
+                    "CryptOpt is {:.2}% faster than Hand-optimised (based on median).",
+                    diff_cryptopt_hand
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised (based on median).", diff_cryptopt_hand.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than Hand-optimised (based on median).",
+                    diff_cryptopt_hand.abs()
+                );
             }
-        },
+        }
         Err(Err(_)) => {
             // 5-function case
             let mut llc_results = Vec::with_capacity(repeats);
@@ -1831,7 +2552,9 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
             let mut hand_optmised_nasm_results = Vec::with_capacity(repeats);
             let mut cryptopt_results = Vec::with_capacity(repeats);
             for _ in 0..repeats {
-                if let Err(Err((llc, nasm, hand_optmised, hand_optmised_nasm, cryptopt))) = measure_cryptopt_once_square(curve) {
+                if let Err(Err((llc, nasm, hand_optmised, hand_optmised_nasm, cryptopt))) =
+                    measure_cryptopt_once_square(curve)
+                {
                     llc_results.push(llc);
                     nasm_results.push(nasm);
                     hand_optmised_results.push(hand_optmised);
@@ -1845,43 +2568,79 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
             let hand_stats = MeasurementStats::from_measurements(&hand_optmised_results);
             let hand_nasm_stats = MeasurementStats::from_measurements(&hand_optmised_nasm_results);
             let cryptopt_stats = MeasurementStats::from_measurements(&cryptopt_results);
-            
-            println!("\n=== Performance Statistics (square) after {} runs ===", repeats);
+
+            println!(
+                "\n=== Performance Statistics (square) after {} runs ===",
+                repeats
+            );
             print_performance_stats("GAS format ASM", &llc_stats);
             print_performance_stats("NASM format ASM", &nasm_stats);
             print_performance_stats("Hand-optimised ASM", &hand_stats);
             print_performance_stats("Hand-optimised NASM ASM", &hand_nasm_stats);
             print_performance_stats("CryptOpt format ASM", &cryptopt_stats);
-            
+
             println!("\n=== Comparative Analysis ===");
             // Compare all relative to CryptOpt
-            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            let diff_cryptopt_hand_nasm = ((hand_nasm_stats.median as f64 - cryptopt_stats.median as f64) / cryptopt_stats.median as f64) * 100.0;
-            
+            let diff_cryptopt_llc = ((llc_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_nasm = ((nasm_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_hand = ((hand_stats.median as f64 - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+            let diff_cryptopt_hand_nasm = ((hand_nasm_stats.median as f64
+                - cryptopt_stats.median as f64)
+                / cryptopt_stats.median as f64)
+                * 100.0;
+
             if diff_cryptopt_llc > 0.0 {
-                println!("CryptOpt is {:.2}% faster than GAS (based on median).", diff_cryptopt_llc);
+                println!(
+                    "CryptOpt is {:.2}% faster than GAS (based on median).",
+                    diff_cryptopt_llc
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than GAS (based on median).", diff_cryptopt_llc.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than GAS (based on median).",
+                    diff_cryptopt_llc.abs()
+                );
             }
-            
+
             if diff_cryptopt_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than NASM (based on median).", diff_cryptopt_nasm);
+                println!(
+                    "CryptOpt is {:.2}% faster than NASM (based on median).",
+                    diff_cryptopt_nasm
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than NASM (based on median).", diff_cryptopt_nasm.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than NASM (based on median).",
+                    diff_cryptopt_nasm.abs()
+                );
             }
-            
+
             if diff_cryptopt_hand > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised (based on median).", diff_cryptopt_hand);
+                println!(
+                    "CryptOpt is {:.2}% faster than Hand-optimised (based on median).",
+                    diff_cryptopt_hand
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised (based on median).", diff_cryptopt_hand.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than Hand-optimised (based on median).",
+                    diff_cryptopt_hand.abs()
+                );
             }
-            
+
             if diff_cryptopt_hand_nasm > 0.0 {
-                println!("CryptOpt is {:.2}% faster than Hand-optimised NASM (based on median).", diff_cryptopt_hand_nasm);
+                println!(
+                    "CryptOpt is {:.2}% faster than Hand-optimised NASM (based on median).",
+                    diff_cryptopt_hand_nasm
+                );
             } else {
-                println!("CryptOpt is {:.2}% slower than Hand-optimised NASM (based on median).", diff_cryptopt_hand_nasm.abs());
+                println!(
+                    "CryptOpt is {:.2}% slower than Hand-optimised NASM (based on median).",
+                    diff_cryptopt_hand_nasm.abs()
+                );
             }
         }
     }
@@ -1893,33 +2652,35 @@ fn run_repeated_measurements_square(curve: &CurveType, repeats: usize) {
 fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize) {
     // Build the enhanced measurement configuration (used across all runs)
     let config = MeasurementConfig {
-        cycle_goal: 10_000,     // CryptOpt's cycle goal
-        num_batches: 31,        // CryptOpt's number of batches
+        cycle_goal: 10_000,      // CryptOpt's cycle goal
+        num_batches: 31,         // CryptOpt's number of batches
         initial_batch_size: 200, // Current batch size
         min_batch_size: 10,
         max_batch_size: 5_000,
-        warmup_iterations: 20,   // Reduced since we warm up all functions together
+        warmup_iterations: 20, // Reduced since we warm up all functions together
     };
-    
+
     println!("Enhanced Measurement Configuration:");
     println!("  Cycle Goal: {} cycles/batch", config.cycle_goal);
     println!("  Number of Batches: {}", config.num_batches);
     println!("  Warm-up Iterations: {}", config.warmup_iterations);
     println!("  Repeats: {} (median-of-medians)", repeats);
     println!("  Features: Memory barriers, Fisher-Yates randomization, dynamic batch sizing\n");
-    
+
     let (bound, size) = curve.get_params();
-    
+
     // Collect results from multiple runs for median-of-medians
     let mut gas_medians = Vec::with_capacity(repeats);
     let mut nasm_medians = Vec::with_capacity(repeats);
     let mut hand_medians: Vec<u64> = Vec::with_capacity(repeats);
     let mut hand_nasm_medians: Vec<u64> = Vec::with_capacity(repeats);
     let mut cryptopt_medians = Vec::with_capacity(repeats);
-    
+    let mut summary_labels = curve.mul_display_labels();
+    let mut summary_short_labels = curve.mul_short_labels();
+
     for run in 1..=repeats {
         println!("=== Run {}/{} ===", run, repeats);
-        
+
         // Per-run: select operation, dispatch to interleaved enhanced measurement for
         // the specific curve's available function tuple(s).
         match operation {
@@ -1927,38 +2688,89 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
                 let functions = curve.get_mul_functions();
                 match functions {
                     Function::U64Mul(llc_func, nasm_func, cryptopt_func) => {
-                        let (gas_stats, nasm_stats, cryptopt_stats) = 
-                            measure_u64_mul_functions_interleaved_enhanced(bound, size, llc_func, nasm_func, cryptopt_func, &config);
-                        
+                        let labels = curve.mul_display_labels();
+                        let short_labels = curve.mul_short_labels();
+                        let (gas_stats, nasm_stats, cryptopt_stats) =
+                            measure_u64_mul_functions_interleaved_enhanced(
+                                bound,
+                                size,
+                                llc_func,
+                                nasm_func,
+                                cryptopt_func,
+                                &config,
+                                labels,
+                            );
+
                         gas_medians.push(gas_stats.median);
                         nasm_medians.push(nasm_stats.median);
                         cryptopt_medians.push(cryptopt_stats.median);
-                        
-                        println!("Run {} - GAS: {} cycles, NASM: {} cycles, CryptOpt: {} cycles",
-                                run, gas_stats.median, nasm_stats.median, cryptopt_stats.median);
-                        println!("Quality - GAS: {}, NASM: {}, CryptOpt: {}",
-                                gas_stats.quality_assessment(),
-                                nasm_stats.quality_assessment(),
-                                cryptopt_stats.quality_assessment());
-                    },
+
+                        println!(
+                            "Run {} - {}: {} cycles, {}: {} cycles, {}: {} cycles",
+                            run,
+                            labels.0,
+                            gas_stats.median,
+                            labels.1,
+                            nasm_stats.median,
+                            labels.2,
+                            cryptopt_stats.median
+                        );
+                        println!(
+                            "Quality - {}: {}, {}: {}, {}: {}",
+                            labels.0,
+                            gas_stats.quality_assessment(),
+                            labels.1,
+                            nasm_stats.quality_assessment(),
+                            labels.2,
+                            cryptopt_stats.quality_assessment()
+                        );
+                        summary_labels = labels;
+                        summary_short_labels = short_labels;
+                    }
                     Function::UsizeMul(llc_func, nasm_func, cryptopt_func) => {
                         let (gas_stats, nasm_stats, cryptopt_stats) =
-                            measure_usize_mul_functions_interleaved_enhanced(bound, size, llc_func, nasm_func, cryptopt_func, &config);
+                            measure_usize_mul_functions_interleaved_enhanced(
+                                bound,
+                                size,
+                                llc_func,
+                                nasm_func,
+                                cryptopt_func,
+                                &config,
+                            );
 
                         gas_medians.push(gas_stats.median);
                         nasm_medians.push(nasm_stats.median);
                         cryptopt_medians.push(cryptopt_stats.median);
 
-                        println!("Run {} - GAS: {} cycles, NASM: {} cycles, CryptOpt: {} cycles",
-                                run, gas_stats.median, nasm_stats.median, cryptopt_stats.median);
-                        println!("Quality - GAS: {}, NASM: {}, CryptOpt: {}",
-                                gas_stats.quality_assessment(),
-                                nasm_stats.quality_assessment(),
-                                cryptopt_stats.quality_assessment());
+                        println!(
+                            "Run {} - GAS: {} cycles, NASM: {} cycles, CryptOpt: {} cycles",
+                            run, gas_stats.median, nasm_stats.median, cryptopt_stats.median
+                        );
+                        println!(
+                            "Quality - GAS: {}, NASM: {}, CryptOpt: {}",
+                            gas_stats.quality_assessment(),
+                            nasm_stats.quality_assessment(),
+                            cryptopt_stats.quality_assessment()
+                        );
                     }
-                    Function::U64MulFive(llc_func, nasm_func, hand_func, hand_nasm_func, cryptopt_func) => {
+                    Function::U64MulFive(
+                        llc_func,
+                        nasm_func,
+                        hand_func,
+                        hand_nasm_func,
+                        cryptopt_func,
+                    ) => {
                         let (gas_stats, nasm_stats, hand_stats, hand_nasm_stats, cryptopt_stats) =
-                            measure_u64_mul_functions_interleaved_enhanced_five(bound, size, llc_func, nasm_func, hand_func, hand_nasm_func, cryptopt_func, &config);
+                            measure_u64_mul_functions_interleaved_enhanced_five(
+                                bound,
+                                size,
+                                llc_func,
+                                nasm_func,
+                                hand_func,
+                                hand_nasm_func,
+                                cryptopt_func,
+                                &config,
+                            );
 
                         gas_medians.push(gas_stats.median);
                         nasm_medians.push(nasm_stats.median);
@@ -1968,40 +2780,68 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
 
                         println!("Run {} - GAS: {} cycles, NASM: {} cycles, Hand: {} cycles, Hand-NASM: {} cycles, CryptOpt: {} cycles",
                                 run, gas_stats.median, nasm_stats.median, hand_stats.median, hand_nasm_stats.median, cryptopt_stats.median);
-                        println!("Quality - GAS: {}, NASM: {}, Hand: {}, Hand-NASM: {}, CryptOpt: {}",
-                                gas_stats.quality_assessment(),
-                                nasm_stats.quality_assessment(),
-                                hand_stats.quality_assessment(),
-                                hand_nasm_stats.quality_assessment(),
-                                cryptopt_stats.quality_assessment());
+                        println!(
+                            "Quality - GAS: {}, NASM: {}, Hand: {}, Hand-NASM: {}, CryptOpt: {}",
+                            gas_stats.quality_assessment(),
+                            nasm_stats.quality_assessment(),
+                            hand_stats.quality_assessment(),
+                            hand_nasm_stats.quality_assessment(),
+                            cryptopt_stats.quality_assessment()
+                        );
                     }
                     _ => {
                         println!("Enhanced measurement not yet implemented for this curve's function type");
                         return;
                     }
                 }
-            },
+            }
             "square" => {
                 let functions = curve.get_square_functions();
                 match functions {
                     Function::U64Square(llc_func, nasm_func, cryptopt_func) => {
                         let (gas_stats, nasm_stats, cryptopt_stats) =
-                            measure_u64_square_functions_interleaved_enhanced(bound, size, llc_func, nasm_func, cryptopt_func, &config);
+                            measure_u64_square_functions_interleaved_enhanced(
+                                bound,
+                                size,
+                                llc_func,
+                                nasm_func,
+                                cryptopt_func,
+                                &config,
+                            );
 
                         gas_medians.push(gas_stats.median);
                         nasm_medians.push(nasm_stats.median);
                         cryptopt_medians.push(cryptopt_stats.median);
 
-                        println!("Run {} - GAS: {} cycles, NASM: {} cycles, CryptOpt: {} cycles",
-                                run, gas_stats.median, nasm_stats.median, cryptopt_stats.median);
-                        println!("Quality - GAS: {}, NASM: {}, CryptOpt: {}",
-                                gas_stats.quality_assessment(),
-                                nasm_stats.quality_assessment(),
-                                cryptopt_stats.quality_assessment());
-                    },
-                    Function::U64SquareFive(llc_func, nasm_func, hand_func, hand_nasm_func, cryptopt_func) => {
+                        println!(
+                            "Run {} - GAS: {} cycles, NASM: {} cycles, CryptOpt: {} cycles",
+                            run, gas_stats.median, nasm_stats.median, cryptopt_stats.median
+                        );
+                        println!(
+                            "Quality - GAS: {}, NASM: {}, CryptOpt: {}",
+                            gas_stats.quality_assessment(),
+                            nasm_stats.quality_assessment(),
+                            cryptopt_stats.quality_assessment()
+                        );
+                    }
+                    Function::U64SquareFive(
+                        llc_func,
+                        nasm_func,
+                        hand_func,
+                        hand_nasm_func,
+                        cryptopt_func,
+                    ) => {
                         let (gas_stats, nasm_stats, hand_stats, hand_nasm_stats, cryptopt_stats) =
-                            measure_u64_square_functions_interleaved_enhanced_five(bound, size, llc_func, nasm_func, hand_func, hand_nasm_func, cryptopt_func, &config);
+                            measure_u64_square_functions_interleaved_enhanced_five(
+                                bound,
+                                size,
+                                llc_func,
+                                nasm_func,
+                                hand_func,
+                                hand_nasm_func,
+                                cryptopt_func,
+                                &config,
+                            );
 
                         gas_medians.push(gas_stats.median);
                         nasm_medians.push(nasm_stats.median);
@@ -2011,135 +2851,230 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
 
                         println!("Run {} - GAS: {} cycles, NASM: {} cycles, Hand: {} cycles, Hand-NASM: {} cycles, CryptOpt: {} cycles",
                                 run, gas_stats.median, nasm_stats.median, hand_stats.median, hand_nasm_stats.median, cryptopt_stats.median);
-                        println!("Quality - GAS: {}, NASM: {}, Hand: {}, Hand-NASM: {}, CryptOpt: {}",
-                                gas_stats.quality_assessment(),
-                                nasm_stats.quality_assessment(),
-                                hand_stats.quality_assessment(),
-                                hand_nasm_stats.quality_assessment(),
-                                cryptopt_stats.quality_assessment());
-                    },
+                        println!(
+                            "Quality - GAS: {}, NASM: {}, Hand: {}, Hand-NASM: {}, CryptOpt: {}",
+                            gas_stats.quality_assessment(),
+                            nasm_stats.quality_assessment(),
+                            hand_stats.quality_assessment(),
+                            hand_nasm_stats.quality_assessment(),
+                            cryptopt_stats.quality_assessment()
+                        );
+                    }
                     _ => {
                         println!("Enhanced square measurement not yet implemented for this curve's function type");
                         return;
                     }
                 }
-            },
+            }
             _ => {
                 println!("Unknown operation: {}", operation);
                 return;
             }
         }
-        
+
         println!();
     }
-    
+
     // Calculate median-of-medians
     let gas_mom = calculate_median(gas_medians.clone());
     let nasm_mom = calculate_median(nasm_medians.clone());
-    let hand_mom = if !hand_medians.is_empty() { Some(calculate_median(hand_medians.clone())) } else { None };
-    let hand_nasm_mom = if !hand_nasm_medians.is_empty() { Some(calculate_median(hand_nasm_medians.clone())) } else { None };
+    let hand_mom = if !hand_medians.is_empty() {
+        Some(calculate_median(hand_medians.clone()))
+    } else {
+        None
+    };
+    let hand_nasm_mom = if !hand_nasm_medians.is_empty() {
+        Some(calculate_median(hand_nasm_medians.clone()))
+    } else {
+        None
+    };
     let cryptopt_mom = calculate_median(cryptopt_medians.clone());
-    
+
     // Generate final report
     println!("=== FINAL ENHANCED MEASUREMENT REPORT ===");
     println!("Methodology: CryptOpt-style with memory barriers, randomized batching, and statistical analysis");
     println!("Measurement quality validation: Coefficient of variation tracking");
     println!();
-    
+
     println!("Median-of-Medians Results ({} runs):", repeats);
-    println!("  GAS Format:     {} cycles", gas_mom);
-    println!("  NASM Format:    {} cycles", nasm_mom);
-    if let Some(hm) = hand_mom { println!("  Hand-optimised GAS: {} cycles", hm); }
-    if let Some(hnm) = hand_nasm_mom { println!("  Hand-optimised NASM: {} cycles", hnm); }
-    println!("  CryptOpt Format: {} cycles", cryptopt_mom);
+    println!("  {}: {} cycles", summary_labels.0, gas_mom);
+    println!("  {}: {} cycles", summary_labels.1, nasm_mom);
+    if let Some(hm) = hand_mom {
+        println!("  Hand-optimised GAS: {} cycles", hm);
+    }
+    if let Some(hnm) = hand_nasm_mom {
+        println!("  Hand-optimised NASM: {} cycles", hnm);
+    }
+    println!("  {}: {} cycles", summary_labels.2, cryptopt_mom);
     println!();
-    
+
     // Relative performance: CryptOpt vs GAS/NASM (lower cycles = better)
     println!("Relative Performance (median-of-medians):");
     let vs_gas = ((gas_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
     let vs_nasm = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-    println!("  CryptOpt vs GAS: {:+.2}% ({} vs {} cycles)", vs_gas, cryptopt_mom, gas_mom);
-    println!("  CryptOpt vs NASM: {:+.2}% ({} vs {} cycles)", vs_nasm, cryptopt_mom, nasm_mom);
-    if let Some(hm) = hand_mom { let vs = ((hm as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0; println!("  CryptOpt vs Hand-GAS: {:+.2}% ({} vs {} cycles)", vs, cryptopt_mom, hm); }
-    if let Some(hnm) = hand_nasm_mom { let vs = ((hnm as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0; println!("  CryptOpt vs Hand-NASM: {:+.2}% ({} vs {} cycles)", vs, cryptopt_mom, hnm); }
-    
+    println!(
+        "  {} vs {}: {:+.2}% ({} vs {} cycles)",
+        summary_short_labels.2, summary_short_labels.0, vs_gas, cryptopt_mom, gas_mom
+    );
+    println!(
+        "  {} vs {}: {:+.2}% ({} vs {} cycles)",
+        summary_short_labels.2, summary_short_labels.1, vs_nasm, cryptopt_mom, nasm_mom
+    );
+    if let Some(hm) = hand_mom {
+        let vs = ((hm as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+        println!(
+            "  CryptOpt vs Hand-GAS: {:+.2}% ({} vs {} cycles)",
+            vs, cryptopt_mom, hm
+        );
+    }
+    if let Some(hnm) = hand_nasm_mom {
+        let vs = ((hnm as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+        println!(
+            "  CryptOpt vs Hand-NASM: {:+.2}% ({} vs {} cycles)",
+            vs, cryptopt_mom, hnm
+        );
+    }
+
     // Measurement stability analysis
     println!();
     println!("Measurement Stability Analysis:");
     let gas_stats_final = MeasurementStats::from_measurements(&gas_medians);
     let nasm_stats_final = MeasurementStats::from_measurements(&nasm_medians);
-    let hand_stats_final = if !hand_medians.is_empty() { Some(MeasurementStats::from_measurements(&hand_medians)) } else { None };
-    let hand_nasm_stats_final = if !hand_nasm_medians.is_empty() { Some(MeasurementStats::from_measurements(&hand_nasm_medians)) } else { None };
+    let hand_stats_final = if !hand_medians.is_empty() {
+        Some(MeasurementStats::from_measurements(&hand_medians))
+    } else {
+        None
+    };
+    let hand_nasm_stats_final = if !hand_nasm_medians.is_empty() {
+        Some(MeasurementStats::from_measurements(&hand_nasm_medians))
+    } else {
+        None
+    };
     let cryptopt_stats_final = MeasurementStats::from_measurements(&cryptopt_medians);
-    
-    println!("  GAS Format:     CV = {:.3}% ({})", 
-             gas_stats_final.coefficient_of_variation * 100.0,
-             gas_stats_final.quality_assessment());
-    println!("  NASM Format:    CV = {:.3}% ({})", 
-             nasm_stats_final.coefficient_of_variation * 100.0,
-             nasm_stats_final.quality_assessment());
-    println!("  CryptOpt Format: CV = {:.3}% ({})", 
-             cryptopt_stats_final.coefficient_of_variation * 100.0,
-             cryptopt_stats_final.quality_assessment());
+
+    println!(
+        "  {}: CV = {:.3}% ({})",
+        summary_labels.0,
+        gas_stats_final.coefficient_of_variation * 100.0,
+        gas_stats_final.quality_assessment()
+    );
+    println!(
+        "  {}: CV = {:.3}% ({})",
+        summary_labels.1,
+        nasm_stats_final.coefficient_of_variation * 100.0,
+        nasm_stats_final.quality_assessment()
+    );
+    println!(
+        "  {}: CV = {:.3}% ({})",
+        summary_labels.2,
+        cryptopt_stats_final.coefficient_of_variation * 100.0,
+        cryptopt_stats_final.quality_assessment()
+    );
     if let Some(hs) = &hand_stats_final {
-        println!("  Hand-optimised GAS: CV = {:.3}% ({})", hs.coefficient_of_variation * 100.0, hs.quality_assessment());
+        println!(
+            "  Hand-optimised GAS: CV = {:.3}% ({})",
+            hs.coefficient_of_variation * 100.0,
+            hs.quality_assessment()
+        );
     }
     if let Some(hns) = &hand_nasm_stats_final {
-        println!("  Hand-optimised NASM: CV = {:.3}% ({})", hns.coefficient_of_variation * 100.0, hns.quality_assessment());
+        println!(
+            "  Hand-optimised NASM: CV = {:.3}% ({})",
+            hns.coefficient_of_variation * 100.0,
+            hns.quality_assessment()
+        );
     }
-    
+
     // Detailed statistics with confidence intervals
     println!();
     println!("Detailed Statistics (across {} runs):", repeats);
-    println!("  GAS Format:");
+    println!("  {}:", summary_labels.0);
     println!("    Mean: {:.2} cycles", gas_stats_final.mean);
     println!("    Median: {} cycles", gas_stats_final.median);
     println!("    Std Dev: {:.2} cycles", gas_stats_final.std_dev);
-    println!("    95% CI: [{:.2}, {:.2}] cycles", gas_stats_final.confidence_interval_95.0, gas_stats_final.confidence_interval_95.1);
-    
-    println!("  NASM Format:");
+    println!(
+        "    95% CI: [{:.2}, {:.2}] cycles",
+        gas_stats_final.confidence_interval_95.0, gas_stats_final.confidence_interval_95.1
+    );
+
+    println!("  {}:", summary_labels.1);
     println!("    Mean: {:.2} cycles", nasm_stats_final.mean);
     println!("    Median: {} cycles", nasm_stats_final.median);
     println!("    Std Dev: {:.2} cycles", nasm_stats_final.std_dev);
-    println!("    95% CI: [{:.2}, {:.2}] cycles", nasm_stats_final.confidence_interval_95.0, nasm_stats_final.confidence_interval_95.1);
-    
-    println!("  CryptOpt Format:");
+    println!(
+        "    95% CI: [{:.2}, {:.2}] cycles",
+        nasm_stats_final.confidence_interval_95.0, nasm_stats_final.confidence_interval_95.1
+    );
+
+    println!("  {}:", summary_labels.2);
     println!("    Mean: {:.2} cycles", cryptopt_stats_final.mean);
     println!("    Median: {} cycles", cryptopt_stats_final.median);
     println!("    Std Dev: {:.2} cycles", cryptopt_stats_final.std_dev);
-    println!("    95% CI: [{:.2}, {:.2}] cycles", cryptopt_stats_final.confidence_interval_95.0, cryptopt_stats_final.confidence_interval_95.1);
+    println!(
+        "    95% CI: [{:.2}, {:.2}] cycles",
+        cryptopt_stats_final.confidence_interval_95.0,
+        cryptopt_stats_final.confidence_interval_95.1
+    );
     if let Some(hs) = &hand_stats_final {
         println!("  Hand-optimised GAS:");
         println!("    Mean: {:.2} cycles", hs.mean);
         println!("    Median: {} cycles", hs.median);
         println!("    Std Dev: {:.2} cycles", hs.std_dev);
-        println!("    95% CI: [{:.2}, {:.2}] cycles", hs.confidence_interval_95.0, hs.confidence_interval_95.1);
+        println!(
+            "    95% CI: [{:.2}, {:.2}] cycles",
+            hs.confidence_interval_95.0, hs.confidence_interval_95.1
+        );
     }
     if let Some(hns) = &hand_nasm_stats_final {
         println!("  Hand-optimised NASM:");
         println!("    Mean: {:.2} cycles", hns.mean);
         println!("    Median: {} cycles", hns.median);
         println!("    Std Dev: {:.2} cycles", hns.std_dev);
-        println!("    95% CI: [{:.2}, {:.2}] cycles", hns.confidence_interval_95.0, hns.confidence_interval_95.1);
+        println!(
+            "    95% CI: [{:.2}, {:.2}] cycles",
+            hns.confidence_interval_95.0, hns.confidence_interval_95.1
+        );
     }
-    
+
     // Statistical significance assessment
     println!();
     println!("Statistical Significance Assessment:");
     if gas_stats_final.confidence_interval_95.1 < cryptopt_stats_final.confidence_interval_95.0 {
-        println!("  GAS is significantly faster than CryptOpt (95% CI non-overlapping)");
-    } else if cryptopt_stats_final.confidence_interval_95.1 < gas_stats_final.confidence_interval_95.0 {
-        println!("  CryptOpt is significantly faster than GAS (95% CI non-overlapping)");
+        println!(
+            "  {} is significantly faster than {} (95% CI non-overlapping)",
+            summary_short_labels.0, summary_short_labels.2
+        );
+    } else if cryptopt_stats_final.confidence_interval_95.1
+        < gas_stats_final.confidence_interval_95.0
+    {
+        println!(
+            "  {} is significantly faster than {} (95% CI non-overlapping)",
+            summary_short_labels.2, summary_short_labels.0
+        );
     } else {
-        println!("  No significant difference between GAS and CryptOpt (95% CI overlapping)");
+        println!(
+            "  No significant difference between {} and {} (95% CI overlapping)",
+            summary_short_labels.0, summary_short_labels.2
+        );
     }
-    
+
     if nasm_stats_final.confidence_interval_95.1 < cryptopt_stats_final.confidence_interval_95.0 {
-        println!("  NASM is significantly faster than CryptOpt (95% CI non-overlapping)");
-    } else if cryptopt_stats_final.confidence_interval_95.1 < nasm_stats_final.confidence_interval_95.0 {
-        println!("  CryptOpt is significantly faster than NASM (95% CI non-overlapping)");
+        println!(
+            "  {} is significantly faster than {} (95% CI non-overlapping)",
+            summary_short_labels.1, summary_short_labels.2
+        );
+    } else if cryptopt_stats_final.confidence_interval_95.1
+        < nasm_stats_final.confidence_interval_95.0
+    {
+        println!(
+            "  {} is significantly faster than {} (95% CI non-overlapping)",
+            summary_short_labels.2, summary_short_labels.1
+        );
     } else {
-        println!("  No significant difference between NASM and CryptOpt (95% CI overlapping)");
+        println!(
+            "  No significant difference between {} and {} (95% CI overlapping)",
+            summary_short_labels.1, summary_short_labels.2
+        );
     }
     if let Some(hs) = &hand_stats_final {
         if hs.confidence_interval_95.1 < cryptopt_stats_final.confidence_interval_95.0 {
@@ -2159,7 +3094,7 @@ fn run_enhanced_measurements(curve: &CurveType, operation: &str, repeats: usize)
             println!("  No significant difference between Hand-optimised NASM and CryptOpt (95% CI overlapping)");
         }
     }
-    
+
     println!();
     println!("Note: This enhanced methodology addresses reviewer concerns about:");
     println!("  ✓ Memory barriers (mfence before rdtsc)");
@@ -2178,7 +3113,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 || args.len() > 4 {
         println!("Usage: cargo run <curve_name> <operation> [repeat_count]");
-        println!("Available curves: curve25519, curve25519_dalek, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519, openssl_p448");
+        println!("Available curves: curve25519, curve25519_dalek, cryptopt_fiat_curve25519, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519, openssl_p448");
         println!("Available operations: mul, square");
         return;
     }
@@ -2190,7 +3125,8 @@ fn main() {
         "poly1305" => CurveType::Poly1305,
         "secp256k1_dettman" => CurveType::Secp256k1Dettman,
         "secp256k1_rust_ec" => CurveType::Secp256k1RustEc,
-        "bls12" => CurveType::Bls12, 
+        "bls12" => CurveType::Bls12,
+        "cryptopt_fiat_curve25519" => CurveType::CryptoptFiatCurve25519,
         "fiat_c_curve25519" => CurveType::FiatCCurve25519,
         "fiat_c_secp256k1_dettman" => CurveType::FiatCSecp256k1Dettman,
         "fiat_c_poly1305" => CurveType::FiatCPoly1305,
@@ -2198,7 +3134,7 @@ fn main() {
         "openssl_curve25519" => CurveType::OpenSSLCurve25519,
         "openssl_p448" => CurveType::OpenSSLP448,
         other => {
-            println!("Unknown curve: {}. Available curves: curve25519, curve25519_dalek, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519, openssl_p448", other);
+            println!("Unknown curve: {}. Available curves: curve25519, curve25519_dalek, cryptopt_fiat_curve25519, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519, openssl_p448", other);
             return;
         }
     };
@@ -2215,22 +3151,34 @@ fn main() {
 
     // Check for enhanced measurement mode
     let use_enhanced = std::env::var("ENHANCED_MEASUREMENT").is_ok();
-    
+
     if use_enhanced {
-        println!("Measuring {:?} for operation '{}' with ENHANCED CryptOpt methodology...", curve_type, op);
+        println!(
+            "Measuring {:?} for operation '{}' with ENHANCED CryptOpt methodology...",
+            curve_type, op
+        );
         println!("Features: Memory barriers, randomized batching, cycle-goal calibration, statistical analysis\n");
-        
+
         run_enhanced_measurements(&curve_type, op, repeats);
     } else {
-        println!("Measuring {:?} for operation '{}' with CryptOpt approach...", curve_type, op);
-        println!("Using batch size = 200 and nBatches = 31, repeated {} time(s).", repeats);
+        println!(
+            "Measuring {:?} for operation '{}' with CryptOpt approach...",
+            curve_type, op
+        );
+        println!(
+            "Using batch size = 200 and nBatches = 31, repeated {} time(s).",
+            repeats
+        );
 
         // Legacy pathway uses fixed-size batch runners defined above
         match op {
             "mul" => run_repeated_measurements_mul(&curve_type, repeats),
             "square" => run_repeated_measurements_square(&curve_type, repeats),
             _ => {
-                println!("Unknown operation: {}. Available operations: mul, square", op);
+                println!(
+                    "Unknown operation: {}. Available operations: mul, square",
+                    op
+                );
                 return;
             }
         }
