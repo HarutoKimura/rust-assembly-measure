@@ -2029,6 +2029,206 @@ fn build_cryptopt_fiat_p434() {
     );
 }
 
+fn build_cryptopt_fiat_p448_solinas() {
+    let gcc_mul_dir = "src/cryptopt-fiat/fiat-c/gcc/p448_solinas/mul";
+    let clang_mul_dir = "src/cryptopt-fiat/fiat-c/clang/p448_solinas/mul";
+    let gcc_square_dir = "src/cryptopt-fiat/fiat-c/gcc/p448_solinas/square";
+    let clang_square_dir = "src/cryptopt-fiat/fiat-c/clang/p448_solinas/square";
+    fs::create_dir_all(gcc_mul_dir).unwrap();
+    fs::create_dir_all(clang_mul_dir).unwrap();
+    fs::create_dir_all(gcc_square_dir).unwrap();
+    fs::create_dir_all(clang_square_dir).unwrap();
+
+    let mul_wrapper = "src/cryptopt-fiat/fiat-c/wrappers/p448_solinas_mul_wrapper.c";
+    let square_wrapper = "src/cryptopt-fiat/fiat-c/wrappers/p448_solinas_square_wrapper.c";
+
+    // GCC baseline for mul
+    let gcc_mul_asm =
+        "src/cryptopt-fiat/fiat-c/gcc/p448_solinas/mul/fiat_p448_solinas_carry_mul_gcc.asm";
+    let gcc_mul_obj =
+        "src/cryptopt-fiat/fiat-c/gcc/p448_solinas/mul/fiat_p448_solinas_carry_mul_gcc.o";
+    let gcc_mul_lib =
+        "src/cryptopt-fiat/fiat-c/gcc/p448_solinas/mul/libfiat_p448_solinas_carry_mul_gcc.a";
+    assert!(Command::new("gcc")
+        .args(&[
+            "-O3",
+            "-march=native",
+            "-mtune=native",
+            "-S",
+            "-masm=intel",
+            "-DFIAT_P448_SOLINAS_BASELINE_NAME=fiat_p448_solinas_carry_mul_gcc",
+            mul_wrapper,
+            "-o",
+            gcc_mul_asm,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("gcc")
+        .args(&[
+            "-c",
+            "-x",
+            "assembler-with-cpp",
+            gcc_mul_asm,
+            "-o",
+            gcc_mul_obj,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&["rcs", gcc_mul_lib, gcc_mul_obj])
+        .status()
+        .unwrap()
+        .success());
+
+    // Clang baseline for mul
+    let clang_mul_asm =
+        "src/cryptopt-fiat/fiat-c/clang/p448_solinas/mul/fiat_p448_solinas_carry_mul_clang.asm";
+    let clang_mul_obj =
+        "src/cryptopt-fiat/fiat-c/clang/p448_solinas/mul/fiat_p448_solinas_carry_mul_clang.o";
+    let clang_mul_lib =
+        "src/cryptopt-fiat/fiat-c/clang/p448_solinas/mul/libfiat_p448_solinas_carry_mul_clang.a";
+    assert!(Command::new("clang")
+        .args(&[
+            "-O3",
+            "-march=native",
+            "-mtune=native",
+            "-S",
+            "-masm=intel",
+            "-DFIAT_P448_SOLINAS_BASELINE_NAME=fiat_p448_solinas_carry_mul_clang",
+            mul_wrapper,
+            "-o",
+            clang_mul_asm,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "-x",
+            "assembler-with-cpp",
+            clang_mul_asm,
+            "-o",
+            clang_mul_obj,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&["rcs", clang_mul_lib, clang_mul_obj])
+        .status()
+        .unwrap()
+        .success());
+
+    // Highest-ratio CryptOpt-generated assembly for mul
+    build_and_validate_with_formal!(
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_p448_solinas_carry_mul/seed0000000840933824_ratio13296.asm",
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_p448_solinas_carry_mul/seed0000000840933824_ratio13296.o",
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_p448_solinas_carry_mul/libfiat_p448_solinas_carry_mul_ratio13296.a",
+        "fiat_p448_solinas_carry_mul",
+        true,
+        "p448_solinas",
+        "mul",
+        8,
+        "0x300000000000000"
+    );
+
+    // GCC baseline for square
+    let gcc_square_asm =
+        "src/cryptopt-fiat/fiat-c/gcc/p448_solinas/square/fiat_p448_solinas_carry_square_gcc.asm";
+    let gcc_square_obj =
+        "src/cryptopt-fiat/fiat-c/gcc/p448_solinas/square/fiat_p448_solinas_carry_square_gcc.o";
+    let gcc_square_lib =
+        "src/cryptopt-fiat/fiat-c/gcc/p448_solinas/square/libfiat_p448_solinas_carry_square_gcc.a";
+    assert!(Command::new("gcc")
+        .args(&[
+            "-O3",
+            "-march=native",
+            "-mtune=native",
+            "-S",
+            "-masm=intel",
+            "-DFIAT_P448_SOLINAS_SQUARE_BASELINE_NAME=fiat_p448_solinas_carry_square_gcc",
+            square_wrapper,
+            "-o",
+            gcc_square_asm,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("gcc")
+        .args(&[
+            "-c",
+            "-x",
+            "assembler-with-cpp",
+            gcc_square_asm,
+            "-o",
+            gcc_square_obj,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&["rcs", gcc_square_lib, gcc_square_obj])
+        .status()
+        .unwrap()
+        .success());
+
+    // Clang baseline for square
+    let clang_square_asm =
+        "src/cryptopt-fiat/fiat-c/clang/p448_solinas/square/fiat_p448_solinas_carry_square_clang.asm";
+    let clang_square_obj =
+        "src/cryptopt-fiat/fiat-c/clang/p448_solinas/square/fiat_p448_solinas_carry_square_clang.o";
+    let clang_square_lib =
+        "src/cryptopt-fiat/fiat-c/clang/p448_solinas/square/libfiat_p448_solinas_carry_square_clang.a";
+    assert!(Command::new("clang")
+        .args(&[
+            "-O3",
+            "-march=native",
+            "-mtune=native",
+            "-S",
+            "-masm=intel",
+            "-DFIAT_P448_SOLINAS_SQUARE_BASELINE_NAME=fiat_p448_solinas_carry_square_clang",
+            square_wrapper,
+            "-o",
+            clang_square_asm,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "-x",
+            "assembler-with-cpp",
+            clang_square_asm,
+            "-o",
+            clang_square_obj,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&["rcs", clang_square_lib, clang_square_obj])
+        .status()
+        .unwrap()
+        .success());
+
+    // Highest-ratio CryptOpt-generated assembly for square
+    build_and_validate_with_formal!(
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_p448_solinas_carry_square/seed0000000774799711_ratio11436.asm",
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_p448_solinas_carry_square/seed0000000774799711_ratio11436.o",
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_p448_solinas_carry_square/libfiat_p448_solinas_carry_square_ratio11436.a",
+        "fiat_p448_solinas_carry_square",
+        true,
+        "p448_solinas",
+        "square",
+        8,
+        "0x300000000000000"
+    );
+}
+
 fn build_cryptopt_fiat_p521() {
     let gcc_mul_dir = "src/cryptopt-fiat/fiat-c/gcc/p521/mul";
     let clang_mul_dir = "src/cryptopt-fiat/fiat-c/clang/p521/mul";
@@ -2967,6 +3167,7 @@ fn main() {
     build_cryptopt_fiat_p256();
     build_cryptopt_fiat_p384();
     build_cryptopt_fiat_p434();
+    build_cryptopt_fiat_p448_solinas();
     build_cryptopt_fiat_p521();
     build_fiat_c_secp256k1_dettman();
     build_fiat_c_poly1305();
@@ -3079,6 +3280,16 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/p434/square");
     println!(
         "cargo:rustc-link-search=native=src/cryptopt-fiat/generated/fiat-amd64/fiat_p434_square"
+    );
+    println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/gcc/p448_solinas/mul");
+    println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/p448_solinas/mul");
+    println!(
+        "cargo:rustc-link-search=native=src/cryptopt-fiat/generated/fiat-amd64/fiat_p448_solinas_carry_mul"
+    );
+    println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/gcc/p448_solinas/square");
+    println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/p448_solinas/square");
+    println!(
+        "cargo:rustc-link-search=native=src/cryptopt-fiat/generated/fiat-amd64/fiat_p448_solinas_carry_square"
     );
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/gcc/p521/mul");
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/p521/mul");
@@ -3251,6 +3462,14 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_p434_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p434_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_p434_square_ratio18549");
+
+    // CryptOpt Fiat P448 Solinas
+    println!("cargo:rustc-link-lib=static=fiat_p448_solinas_carry_mul_gcc");
+    println!("cargo:rustc-link-lib=static=fiat_p448_solinas_carry_mul_clang");
+    println!("cargo:rustc-link-lib=static=fiat_p448_solinas_carry_mul_ratio13296");
+    println!("cargo:rustc-link-lib=static=fiat_p448_solinas_carry_square_gcc");
+    println!("cargo:rustc-link-lib=static=fiat_p448_solinas_carry_square_clang");
+    println!("cargo:rustc-link-lib=static=fiat_p448_solinas_carry_square_ratio11436");
 
     // CryptOpt Fiat P521
     println!("cargo:rustc-link-lib=static=fiat_p521_carry_mul_gcc");
