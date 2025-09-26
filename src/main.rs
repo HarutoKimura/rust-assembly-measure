@@ -276,6 +276,30 @@ mod cryptopt_fiat_p434 {
     }
 }
 
+mod cryptopt_fiat_p521 {
+    pub const LOOSE_BOUND: u64 = 0x0c00_0000_0000_0000;
+    pub const SIZE: usize = 9;
+    pub const LOOSE_BOUNDS: [u64; SIZE] = [
+        0x0c00_0000_0000_0000,
+        0x0c00_0000_0000_0000,
+        0x0c00_0000_0000_0000,
+        0x0c00_0000_0000_0000,
+        0x0c00_0000_0000_0000,
+        0x0c00_0000_0000_0000,
+        0x0c00_0000_0000_0000,
+        0x0c00_0000_0000_0000,
+        0x0600_0000_0000_0000,
+    ];
+    extern "C" {
+        pub fn fiat_p521_carry_mul_gcc(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_p521_carry_mul_clang(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_p521_carry_mul(arg0: *const u64, arg1: *const u64, arg2: *const u64);
+        pub fn fiat_p521_carry_square_gcc(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_p521_carry_square_clang(arg0: *mut u64, arg1: *const u64);
+        pub fn fiat_p521_carry_square(arg0: *mut u64, arg1: *const u64);
+    }
+}
+
 mod poly1305 {
     pub const LOOSE_BOUND: u64 = 0x180000000000;
     pub const SIZE: usize = 3;
@@ -485,6 +509,7 @@ enum CurveType {
     CryptoptFiatP256,
     CryptoptFiatP384,
     CryptoptFiatP434,
+    CryptoptFiatP521,
     FiatCSecp256k1Dettman,
     FiatCPoly1305,
     FiatCP448,
@@ -575,6 +600,9 @@ impl CurveType {
             CurveType::CryptoptFiatP434 => {
                 (cryptopt_fiat_p434::LOOSE_BOUND, cryptopt_fiat_p434::SIZE)
             }
+            CurveType::CryptoptFiatP521 => {
+                (cryptopt_fiat_p521::LOOSE_BOUND, cryptopt_fiat_p521::SIZE)
+            }
             CurveType::FiatCSecp256k1Dettman => (
                 fiat_c_secp256k1_dettman::LOOSE_BOUND,
                 fiat_c_secp256k1_dettman::SIZE,
@@ -659,6 +687,11 @@ impl CurveType {
                 cryptopt_fiat_p434::fiat_p434_mul_gcc,
                 cryptopt_fiat_p434::fiat_p434_mul_clang,
                 cryptopt_fiat_p434::fiat_p434_mul,
+            ),
+            CurveType::CryptoptFiatP521 => Function::U64Mul(
+                cryptopt_fiat_p521::fiat_p521_carry_mul_gcc,
+                cryptopt_fiat_p521::fiat_p521_carry_mul_clang,
+                cryptopt_fiat_p521::fiat_p521_carry_mul,
             ),
             CurveType::FiatCSecp256k1Dettman => Function::U64Mul(
                 fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_mul_vec,
@@ -757,6 +790,11 @@ impl CurveType {
                 cryptopt_fiat_p434::fiat_p434_square_clang,
                 cryptopt_fiat_p434::fiat_p434_square,
             ),
+            CurveType::CryptoptFiatP521 => Function::U64Square(
+                cryptopt_fiat_p521::fiat_p521_carry_square_gcc,
+                cryptopt_fiat_p521::fiat_p521_carry_square_clang,
+                cryptopt_fiat_p521::fiat_p521_carry_square,
+            ),
             CurveType::FiatCSecp256k1Dettman => Function::U64Square(
                 fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_vec,
                 fiat_c_secp256k1_dettman::fiat_c_secp256k1_dettman_square_vec_nasm,
@@ -814,6 +852,9 @@ impl CurveType {
             CurveType::CryptoptFiatP434 => {
                 ("GCC Baseline", "Clang Baseline", "CryptOpt Ratio19146")
             }
+            CurveType::CryptoptFiatP521 => {
+                ("GCC Baseline", "Clang Baseline", "CryptOpt Ratio13969")
+            }
             _ => ("GAS Format", "NASM Format", "CryptOpt Format"),
         }
     }
@@ -825,7 +866,8 @@ impl CurveType {
             | CurveType::CryptoptFiatP224
             | CurveType::CryptoptFiatP256
             | CurveType::CryptoptFiatP384
-            | CurveType::CryptoptFiatP434 => ("GCC", "Clang", "CryptOpt"),
+            | CurveType::CryptoptFiatP434
+            | CurveType::CryptoptFiatP521 => ("GCC", "Clang", "CryptOpt"),
             _ => ("GAS", "NASM", "CryptOpt"),
         }
     }
@@ -850,6 +892,9 @@ impl CurveType {
             CurveType::CryptoptFiatP434 => {
                 ("GCC Baseline", "Clang Baseline", "CryptOpt Ratio18549")
             }
+            CurveType::CryptoptFiatP521 => {
+                ("GCC Baseline", "Clang Baseline", "CryptOpt Ratio15398")
+            }
             _ => ("GAS Format", "NASM Format", "CryptOpt Format"),
         }
     }
@@ -861,7 +906,8 @@ impl CurveType {
             | CurveType::CryptoptFiatP224
             | CurveType::CryptoptFiatP256
             | CurveType::CryptoptFiatP384
-            | CurveType::CryptoptFiatP434 => ("GCC", "Clang", "CryptOpt"),
+            | CurveType::CryptoptFiatP434
+            | CurveType::CryptoptFiatP521 => ("GCC", "Clang", "CryptOpt"),
             _ => ("GAS", "NASM", "CryptOpt"),
         }
     }
@@ -875,7 +921,14 @@ impl CurveType {
 
 fn generate_random_loose_input_u64(bound: u64, size: usize) -> Vec<u64> {
     let mut rng = thread_rng();
-    (0..size).map(|_| rng.gen_range(0..=bound)).collect()
+    if size == cryptopt_fiat_p521::SIZE {
+        cryptopt_fiat_p521::LOOSE_BOUNDS
+            .iter()
+            .map(|&lim| rng.gen_range(0..=lim))
+            .collect()
+    } else {
+        (0..size).map(|_| rng.gen_range(0..=bound)).collect()
+    }
 }
 
 fn generate_random_loose_input_usize(bound: u64, size: usize) -> Vec<usize> {
@@ -3357,7 +3410,7 @@ fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 || args.len() > 4 {
         println!("Usage: cargo run <curve_name> <operation> [repeat_count]");
-        println!("Available curves: curve25519, curve25519_dalek, cryptopt_fiat_curve25519, cryptopt_fiat_curve25519_solinas, cryptopt_fiat_p224, cryptopt_fiat_p256, cryptopt_fiat_p384, cryptopt_fiat_p434, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519, openssl_p448");
+        println!("Available curves: curve25519, curve25519_dalek, cryptopt_fiat_curve25519, cryptopt_fiat_curve25519_solinas, cryptopt_fiat_p224, cryptopt_fiat_p256, cryptopt_fiat_p384, cryptopt_fiat_p434, cryptopt_fiat_p521, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519, openssl_p448");
         println!("Available operations: mul, square");
         return;
     }
@@ -3376,6 +3429,7 @@ fn main() {
         "cryptopt_fiat_p256" => CurveType::CryptoptFiatP256,
         "cryptopt_fiat_p384" => CurveType::CryptoptFiatP384,
         "cryptopt_fiat_p434" => CurveType::CryptoptFiatP434,
+        "cryptopt_fiat_p521" => CurveType::CryptoptFiatP521,
         "fiat_c_curve25519" => CurveType::FiatCCurve25519,
         "fiat_c_secp256k1_dettman" => CurveType::FiatCSecp256k1Dettman,
         "fiat_c_poly1305" => CurveType::FiatCPoly1305,
@@ -3383,7 +3437,7 @@ fn main() {
         "openssl_curve25519" => CurveType::OpenSSLCurve25519,
         "openssl_p448" => CurveType::OpenSSLP448,
         other => {
-            println!("Unknown curve: {}. Available curves: curve25519, curve25519_dalek, cryptopt_fiat_curve25519, cryptopt_fiat_curve25519_solinas, cryptopt_fiat_p224, cryptopt_fiat_p256, cryptopt_fiat_p384, cryptopt_fiat_p434, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519, openssl_p448", other);
+            println!("Unknown curve: {}. Available curves: curve25519, curve25519_dalek, cryptopt_fiat_curve25519, cryptopt_fiat_curve25519_solinas, cryptopt_fiat_p224, cryptopt_fiat_p256, cryptopt_fiat_p384, cryptopt_fiat_p434, cryptopt_fiat_p521, fiat_c_curve25519, fiat_c_secp256k1_dettman, fiat_c_poly1305, fiat_c_p448, p448, poly1305, secp256k1_dettman, secp256k1_rust_ec, bls12, openssl_curve25519, openssl_p448", other);
             return;
         }
     };
