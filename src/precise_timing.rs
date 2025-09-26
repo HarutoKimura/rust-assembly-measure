@@ -20,8 +20,8 @@
 // - `MeasurementStats` summarizes raw and filtered results and provides CV and CI.
 // - `MultiMeasurement` measures several implementations (e.g., GAS/NASM/CryptOpt) with the same
 //   configuration so `main.rs` can present fair, comparable statistics.
+use core::arch::x86_64::{_mm_mfence, _rdtsc};
 use rand::prelude::*;
-use core::arch::x86_64::{_rdtsc, _mm_mfence};
 
 /// CryptOpt-style timing measurement configuration
 #[derive(Debug, Clone)]
@@ -70,7 +70,8 @@ pub fn precise_rdtsc() -> u64 {
 pub fn warmup_function<F>(_warmup_func: F, _iterations: usize)
 where
     F: FnMut(),
-{}
+{
+}
 
 /// Fisher-Yates shuffle for randomizing batch execution order
 /// This implements the R3-validation approach from CryptOpt
@@ -95,34 +96,31 @@ pub fn calculate_optimal_batch_size(
     if measured_cycles == 0 {
         return current_batch_size;
     }
-    
+
     // Calculate scaling factor
     let scale_factor = cycle_goal as f64 / measured_cycles as f64;
     let new_size = (current_batch_size as f64 * scale_factor) as usize;
-    
+
     // Clamp to reasonable bounds
     new_size.max(min_size).min(max_size)
 }
 
 /// Single batch measurement with precise timing
-pub fn measure_single_batch<F>(
-    measurement_func: &mut F,
-    batch_size: usize,
-) -> u64
+pub fn measure_single_batch<F>(measurement_func: &mut F, batch_size: usize) -> u64
 where
     F: FnMut(),
 {
     // Start timing
     let start = precise_rdtsc();
-    
+
     // Execute the batch
     for _ in 0..batch_size {
         measurement_func();
     }
-    
+
     // End timing
     let end = precise_rdtsc();
-    
+
     // Return cycles, handling potential overflow
     end.saturating_sub(start)
 }
@@ -139,10 +137,13 @@ where
 {
     let mut rng = thread_rng();
     let mut current_batch_size = config.initial_batch_size;
-    
+
     // Warm-up removed; jump directly to calibration
     // Phase 1: Calibration run to determine optimal batch size
-    println!("Calibrating batch size for cycle goal of {} cycles...", config.cycle_goal);
+    println!(
+        "Calibrating batch size for cycle goal of {} cycles...",
+        config.cycle_goal
+    );
     let calibration_cycles = measure_single_batch(&mut measurement_func, current_batch_size);
     current_batch_size = calculate_optimal_batch_size(
         calibration_cycles,
@@ -151,33 +152,45 @@ where
         config.min_batch_size,
         config.max_batch_size,
     );
-    
-    println!("Optimal batch size: {} (estimated {} cycles per batch)", 
-             current_batch_size, 
-             calibration_cycles as f64 * current_batch_size as f64 / config.initial_batch_size as f64);
-    
+
+    println!(
+        "Optimal batch size: {} (estimated {} cycles per batch)",
+        current_batch_size,
+        calibration_cycles as f64 * current_batch_size as f64 / config.initial_batch_size as f64
+    );
+
     // Phase 2: Collect measurements with randomized execution order
-    println!("Collecting {} batches with randomized execution order...", config.num_batches);
-    
+    println!(
+        "Collecting {} batches with randomized execution order...",
+        config.num_batches
+    );
+
     // Create randomized execution order (R3-validation)
     let execution_order = randomize_batch_order(config.num_batches, &mut rng);
     let mut batch_results = vec![0u64; config.num_batches];
-    
+
     // Execute batches in randomized order
     for &batch_idx in &execution_order {
         let cycles = measure_single_batch(&mut measurement_func, current_batch_size);
         batch_results[batch_idx] = cycles;
-        
+
         // Optional: Print progress for long measurements
         if config.num_batches > 10 && batch_idx % (config.num_batches / 4) == 0 {
-            println!("Progress: {}/{} batches completed", 
-                     execution_order.iter().position(|&x| x == batch_idx).unwrap() + 1,
-                     config.num_batches);
+            println!(
+                "Progress: {}/{} batches completed",
+                execution_order
+                    .iter()
+                    .position(|&x| x == batch_idx)
+                    .unwrap()
+                    + 1,
+                config.num_batches
+            );
         }
     }
-    
+
     // Normalize results by batch size to get cycles per operation
-    batch_results.into_iter()
+    batch_results
+        .into_iter()
         .map(|cycles| cycles / current_batch_size as u64)
         .collect()
 }
@@ -187,10 +200,10 @@ pub fn calculate_median(mut values: Vec<u64>) -> u64 {
     if values.is_empty() {
         return 0;
     }
-    
+
     values.sort_unstable();
     let mid = values.len() / 2;
-    
+
     if values.len() % 2 == 0 {
         (values[mid - 1] + values[mid]) / 2
     } else {
@@ -201,19 +214,19 @@ pub fn calculate_median(mut values: Vec<u64>) -> u64 {
 /// Approximate the cumulative distribution function of the standard normal distribution
 fn normal_cdf(z: f64) -> f64 {
     // Using approximation from Abramowitz and Stegun
-    let a1 =  0.254829592;
+    let a1 = 0.254829592;
     let a2 = -0.284496736;
-    let a3 =  1.421413741;
+    let a3 = 1.421413741;
     let a4 = -1.453152027;
-    let a5 =  1.061405429;
-    let p  =  0.3275911;
-    
+    let a5 = 1.061405429;
+    let p = 0.3275911;
+
     let sign = if z < 0.0 { -1.0 } else { 1.0 };
     let z = z.abs();
-    
+
     let t = 1.0 / (1.0 + p * z);
     let y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * (-z * z).exp();
-    
+
     0.5 * (1.0 + sign * y)
 }
 
@@ -223,44 +236,51 @@ pub fn calculate_p_value(sample1: &[u64], sample2: &[u64]) -> f64 {
     if sample1.is_empty() || sample2.is_empty() {
         return 1.0;
     }
-    
+
     // Calculate means
     let mean1 = sample1.iter().map(|&x| x as f64).sum::<f64>() / sample1.len() as f64;
     let mean2 = sample2.iter().map(|&x| x as f64).sum::<f64>() / sample2.len() as f64;
-    
+
     // Calculate variances
-    let var1 = sample1.iter()
+    let var1 = sample1
+        .iter()
         .map(|&x| {
             let diff = x as f64 - mean1;
             diff * diff
         })
-        .sum::<f64>() / (sample1.len() - 1) as f64;
-    
-    let var2 = sample2.iter()
+        .sum::<f64>()
+        / (sample1.len() - 1) as f64;
+
+    let var2 = sample2
+        .iter()
         .map(|&x| {
             let diff = x as f64 - mean2;
             diff * diff
         })
-        .sum::<f64>() / (sample2.len() - 1) as f64;
-    
+        .sum::<f64>()
+        / (sample2.len() - 1) as f64;
+
     // Calculate t-statistic using Welch's t-test (for unequal variances)
     let n1 = sample1.len() as f64;
     let n2 = sample2.len() as f64;
     let se = ((var1 / n1) + (var2 / n2)).sqrt();
-    
+
     if se == 0.0 {
         return 1.0; // No variation, cannot determine significance
     }
-    
+
     let t_stat = (mean1 - mean2).abs() / se;
-    
+
     // Calculate degrees of freedom using Welch-Satterthwaite equation
-    let df = ((var1 / n1 + var2 / n2).powi(2)) / 
-             ((var1 / n1).powi(2) / (n1 - 1.0) + (var2 / n2).powi(2) / (n2 - 1.0));
-    
+    let df = ((var1 / n1 + var2 / n2).powi(2))
+        / ((var1 / n1).powi(2) / (n1 - 1.0) + (var2 / n2).powi(2) / (n2 - 1.0));
+
     // Debug output (can be removed later)
-    println!("Debug: mean1={:.2}, mean2={:.2}, t_stat={:.4}, df={:.2}", mean1, mean2, t_stat, df);
-    
+    println!(
+        "Debug: mean1={:.2}, mean2={:.2}, t_stat={:.4}, df={:.2}",
+        mean1, mean2, t_stat, df
+    );
+
     // For large degrees of freedom, t-distribution approaches normal distribution
     // We'll use normal approximation for df > 30
     let p_value = if df > 30.0 {
@@ -269,7 +289,7 @@ pub fn calculate_p_value(sample1: &[u64], sample2: &[u64]) -> f64 {
     } else {
         // Simplified but more accurate p-value calculation
         // Using approximation based on t-statistic and degrees of freedom
-        
+
         // For extreme t-values, return very small p-values
         if t_stat > 10.0 {
             0.000001
@@ -282,7 +302,7 @@ pub fn calculate_p_value(sample1: &[u64], sample2: &[u64]) -> f64 {
             2.0 * (1.0 - normal_cdf(z))
         }
     };
-    
+
     // Return the actual p-value without artificial floor
     p_value.min(1.0).max(0.0)
 }
@@ -292,20 +312,20 @@ pub fn remove_outliers(data: &[u64]) -> Vec<u64> {
     if data.len() < 4 {
         return data.to_vec(); // Not enough data to determine outliers
     }
-    
+
     let mut sorted = data.to_vec();
     sorted.sort_unstable();
-    
+
     let q1_idx = sorted.len() / 4;
     let q3_idx = 3 * sorted.len() / 4;
-    
+
     let q1 = sorted[q1_idx] as f64;
     let q3 = sorted[q3_idx] as f64;
     let iqr = q3 - q1;
-    
+
     let lower_bound = q1 - 1.5 * iqr;
     let upper_bound = q3 + 1.5 * iqr;
-    
+
     data.iter()
         .filter(|&&x| x as f64 >= lower_bound && x as f64 <= upper_bound)
         .copied()
@@ -343,39 +363,45 @@ impl MeasurementStats {
                 outliers_removed: 0,
             };
         }
-        
+
         // Store raw data
         let raw_cycles = measurements.to_vec();
-        
+
         // Remove outliers
         let filtered = remove_outliers(measurements);
         let outliers_removed = raw_cycles.len() - filtered.len();
-        
+
         // Use filtered data for statistics
-        let working_data = if filtered.len() >= 3 { &filtered } else { measurements };
-        
+        let working_data = if filtered.len() >= 3 {
+            &filtered
+        } else {
+            measurements
+        };
+
         let mut sorted = working_data.to_vec();
         sorted.sort_unstable();
-        
+
         let median = if sorted.len() % 2 == 0 {
             let mid = sorted.len() / 2;
             (sorted[mid - 1] + sorted[mid]) / 2
         } else {
             sorted[sorted.len() / 2]
         };
-        
+
         let mean = working_data.iter().map(|&x| x as f64).sum::<f64>() / working_data.len() as f64;
-        
-        let variance = working_data.iter()
+
+        let variance = working_data
+            .iter()
             .map(|&x| {
                 let diff = x as f64 - mean;
                 diff * diff
             })
-            .sum::<f64>() / working_data.len() as f64;
-        
+            .sum::<f64>()
+            / working_data.len() as f64;
+
         let std_dev = variance.sqrt();
         let coefficient_of_variation = if mean > 0.0 { std_dev / mean } else { 0.0 };
-        
+
         // Calculate 95% confidence interval using t-distribution
         // t-values for common degrees of freedom (df = n-1):
         // df=10: 2.228, df=15: 2.131, df=20: 2.086, df=30: 2.042, df=inf: 1.96
@@ -395,7 +421,7 @@ impl MeasurementStats {
         let standard_error = std_dev / n.sqrt();
         let margin_of_error = t_value * standard_error;
         let confidence_interval_95 = (mean - margin_of_error, mean + margin_of_error);
-        
+
         Self {
             median,
             mean,
@@ -409,12 +435,12 @@ impl MeasurementStats {
             outliers_removed,
         }
     }
-    
+
     /// Check if measurements appear stable (low coefficient of variation)
     pub fn is_stable(&self, threshold: f64) -> bool {
         self.coefficient_of_variation < threshold
     }
-    
+
     /// Provide measurement quality assessment
     pub fn quality_assessment(&self) -> &'static str {
         match self.coefficient_of_variation {
@@ -440,75 +466,97 @@ impl MultiMeasurement {
             results: Vec::new(),
         }
     }
-    
+
     /// Add a function measurement to the comparison
-    pub fn measure_function<F, G>(
-        &mut self,
-        name: String,
-        measurement_func: F,
-        warmup_func: G,
-    ) where
+    pub fn measure_function<F, G>(&mut self, name: String, measurement_func: F, warmup_func: G)
+    where
         F: FnMut(),
         G: FnMut(),
     {
         println!("\n=== Measuring: {} ===", name);
-        let measurements = measure_with_cryptopt_method(&self.config, measurement_func, warmup_func);
+        let measurements =
+            measure_with_cryptopt_method(&self.config, measurement_func, warmup_func);
         self.results.push((name, measurements));
     }
-    
+
     /// Generate comprehensive comparison report
     pub fn generate_report(&self) -> String {
         let mut report = String::new();
         report.push_str("=== CryptOpt-style Measurement Report ===\n\n");
-        
+
         // Configuration summary
         report.push_str(&format!("Configuration:\n"));
-        report.push_str(&format!("  Cycle Goal: {} cycles/batch\n", self.config.cycle_goal));
-        report.push_str(&format!("  Number of Batches: {}\n", self.config.num_batches));
-        report.push_str(&format!("  Warm-up Iterations: {}\n", self.config.warmup_iterations));
+        report.push_str(&format!(
+            "  Cycle Goal: {} cycles/batch\n",
+            self.config.cycle_goal
+        ));
+        report.push_str(&format!(
+            "  Number of Batches: {}\n",
+            self.config.num_batches
+        ));
+        report.push_str(&format!(
+            "  Warm-up Iterations: {}\n",
+            self.config.warmup_iterations
+        ));
         report.push_str("\n");
-        
+
         // Individual function statistics
         let mut stats: Vec<(String, MeasurementStats)> = Vec::new();
-        
+
         for (name, measurements) in &self.results {
             let function_stats = MeasurementStats::from_measurements(measurements);
             report.push_str(&format!("{}:\n", name));
             report.push_str(&format!("  Median: {} cycles\n", function_stats.median));
             report.push_str(&format!("  Mean: {:.2} cycles\n", function_stats.mean));
-            report.push_str(&format!("  Std Dev: {:.2} cycles\n", function_stats.std_dev));
-            report.push_str(&format!("  Range: {} - {} cycles\n", function_stats.min, function_stats.max));
-            report.push_str(&format!("  CV: {:.3}% ({})\n", 
-                                   function_stats.coefficient_of_variation * 100.0,
-                                   function_stats.quality_assessment()));
+            report.push_str(&format!(
+                "  Std Dev: {:.2} cycles\n",
+                function_stats.std_dev
+            ));
+            report.push_str(&format!(
+                "  Range: {} - {} cycles\n",
+                function_stats.min, function_stats.max
+            ));
+            report.push_str(&format!(
+                "  CV: {:.3}% ({})\n",
+                function_stats.coefficient_of_variation * 100.0,
+                function_stats.quality_assessment()
+            ));
             report.push_str("\n");
-            
+
             stats.push((name.clone(), function_stats));
         }
-        
+
         // Comparative analysis
         if stats.len() > 1 {
             report.push_str("=== Comparative Analysis ===\n");
-            
+
             // Find the best (fastest) implementation
             let best = stats.iter().min_by_key(|(_, s)| s.median).unwrap();
-            
+
             for (name, stat) in &stats {
                 if name != &best.0 {
                     let difference = stat.median as f64 - best.1.median as f64;
                     let percentage = (difference / best.1.median as f64) * 100.0;
-                    
+
                     if percentage > 0.0 {
-                        report.push_str(&format!("{} is {:.2}% slower than {} ({} vs {} cycles)\n",
-                                               name, percentage, best.0, stat.median, best.1.median));
+                        report.push_str(&format!(
+                            "{} is {:.2}% slower than {} ({} vs {} cycles)\n",
+                            name, percentage, best.0, stat.median, best.1.median
+                        ));
                     } else {
-                        report.push_str(&format!("{} is {:.2}% faster than {} ({} vs {} cycles)\n",
-                                               name, percentage.abs(), best.0, stat.median, best.1.median));
+                        report.push_str(&format!(
+                            "{} is {:.2}% faster than {} ({} vs {} cycles)\n",
+                            name,
+                            percentage.abs(),
+                            best.0,
+                            stat.median,
+                            best.1.median
+                        ));
                     }
                 }
             }
         }
-        
+
         report
     }
-} 
+}
