@@ -2426,6 +2426,206 @@ fn build_cryptopt_fiat_poly1305() {
     );
 }
 
+fn build_cryptopt_fiat_secp256k1_dettman() {
+    let gcc_mul_dir = "src/cryptopt-fiat/fiat-c/gcc/secp256k1_dettman/mul";
+    let clang_mul_dir = "src/cryptopt-fiat/fiat-c/clang/secp256k1_dettman/mul";
+    let gcc_square_dir = "src/cryptopt-fiat/fiat-c/gcc/secp256k1_dettman/square";
+    let clang_square_dir = "src/cryptopt-fiat/fiat-c/clang/secp256k1_dettman/square";
+    fs::create_dir_all(gcc_mul_dir).unwrap();
+    fs::create_dir_all(clang_mul_dir).unwrap();
+    fs::create_dir_all(gcc_square_dir).unwrap();
+    fs::create_dir_all(clang_square_dir).unwrap();
+
+    let mul_wrapper = "src/cryptopt-fiat/fiat-c/wrappers/secp256k1_dettman_mul_wrapper.c";
+    let square_wrapper = "src/cryptopt-fiat/fiat-c/wrappers/secp256k1_dettman_square_wrapper.c";
+
+    // GCC baseline for mul
+    let gcc_mul_asm =
+        "src/cryptopt-fiat/fiat-c/gcc/secp256k1_dettman/mul/fiat_secp256k1_dettman_mul_gcc.asm";
+    let gcc_mul_obj =
+        "src/cryptopt-fiat/fiat-c/gcc/secp256k1_dettman/mul/fiat_secp256k1_dettman_mul_gcc.o";
+    let gcc_mul_lib =
+        "src/cryptopt-fiat/fiat-c/gcc/secp256k1_dettman/mul/libfiat_secp256k1_dettman_mul_gcc.a";
+    assert!(Command::new("gcc")
+        .args(&[
+            "-O3",
+            "-march=native",
+            "-mtune=native",
+            "-S",
+            "-masm=intel",
+            "-DFIAT_SECP256K1_DETTMAN_BASELINE_NAME=fiat_secp256k1_dettman_mul_gcc",
+            mul_wrapper,
+            "-o",
+            gcc_mul_asm,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("gcc")
+        .args(&[
+            "-c",
+            "-x",
+            "assembler-with-cpp",
+            gcc_mul_asm,
+            "-o",
+            gcc_mul_obj,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&["rcs", gcc_mul_lib, gcc_mul_obj])
+        .status()
+        .unwrap()
+        .success());
+
+    // Clang baseline for mul
+    let clang_mul_asm =
+        "src/cryptopt-fiat/fiat-c/clang/secp256k1_dettman/mul/fiat_secp256k1_dettman_mul_clang.asm";
+    let clang_mul_obj =
+        "src/cryptopt-fiat/fiat-c/clang/secp256k1_dettman/mul/fiat_secp256k1_dettman_mul_clang.o";
+    let clang_mul_lib =
+        "src/cryptopt-fiat/fiat-c/clang/secp256k1_dettman/mul/libfiat_secp256k1_dettman_mul_clang.a";
+    assert!(Command::new("clang")
+        .args(&[
+            "-O3",
+            "-march=native",
+            "-mtune=native",
+            "-S",
+            "-masm=intel",
+            "-DFIAT_SECP256K1_DETTMAN_BASELINE_NAME=fiat_secp256k1_dettman_mul_clang",
+            mul_wrapper,
+            "-o",
+            clang_mul_asm,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "-x",
+            "assembler-with-cpp",
+            clang_mul_asm,
+            "-o",
+            clang_mul_obj,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&["rcs", clang_mul_lib, clang_mul_obj])
+        .status()
+        .unwrap()
+        .success());
+
+    // Highest-ratio CryptOpt-generated assembly for mul
+    build_and_validate_with_formal!(
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_secp256k1_dettman_mul/seed0000000754074063_ratio11508.asm",
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_secp256k1_dettman_mul/seed0000000754074063_ratio11508.o",
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_secp256k1_dettman_mul/libfiat_secp256k1_dettman_mul_ratio11508.a",
+        "fiat_secp256k1_dettman_mul",
+        true,
+        "secp256k1_dettman",
+        "mul",
+        5,
+        "0x1ffffffffffffe"
+    );
+
+    // GCC baseline for square
+    let gcc_square_asm =
+        "src/cryptopt-fiat/fiat-c/gcc/secp256k1_dettman/square/fiat_secp256k1_dettman_square_gcc.asm";
+    let gcc_square_obj =
+        "src/cryptopt-fiat/fiat-c/gcc/secp256k1_dettman/square/fiat_secp256k1_dettman_square_gcc.o";
+    let gcc_square_lib =
+        "src/cryptopt-fiat/fiat-c/gcc/secp256k1_dettman/square/libfiat_secp256k1_dettman_square_gcc.a";
+    assert!(Command::new("gcc")
+        .args(&[
+            "-O3",
+            "-march=native",
+            "-mtune=native",
+            "-S",
+            "-masm=intel",
+            "-DFIAT_SECP256K1_DETTMAN_SQUARE_BASELINE_NAME=fiat_secp256k1_dettman_square_gcc",
+            square_wrapper,
+            "-o",
+            gcc_square_asm,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("gcc")
+        .args(&[
+            "-c",
+            "-x",
+            "assembler-with-cpp",
+            gcc_square_asm,
+            "-o",
+            gcc_square_obj,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&["rcs", gcc_square_lib, gcc_square_obj])
+        .status()
+        .unwrap()
+        .success());
+
+    // Clang baseline for square
+    let clang_square_asm =
+        "src/cryptopt-fiat/fiat-c/clang/secp256k1_dettman/square/fiat_secp256k1_dettman_square_clang.asm";
+    let clang_square_obj =
+        "src/cryptopt-fiat/fiat-c/clang/secp256k1_dettman/square/fiat_secp256k1_dettman_square_clang.o";
+    let clang_square_lib =
+        "src/cryptopt-fiat/fiat-c/clang/secp256k1_dettman/square/libfiat_secp256k1_dettman_square_clang.a";
+    assert!(Command::new("clang")
+        .args(&[
+            "-O3",
+            "-march=native",
+            "-mtune=native",
+            "-S",
+            "-masm=intel",
+            "-DFIAT_SECP256K1_DETTMAN_SQUARE_BASELINE_NAME=fiat_secp256k1_dettman_square_clang",
+            square_wrapper,
+            "-o",
+            clang_square_asm,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("clang")
+        .args(&[
+            "-c",
+            "-x",
+            "assembler-with-cpp",
+            clang_square_asm,
+            "-o",
+            clang_square_obj,
+        ])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&["rcs", clang_square_lib, clang_square_obj])
+        .status()
+        .unwrap()
+        .success());
+
+    // Highest-ratio CryptOpt-generated assembly for square
+    build_and_validate_with_formal!(
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_secp256k1_dettman_square/seed0000000393571661_ratio11258.asm",
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_secp256k1_dettman_square/seed0000000393571661_ratio11258.o",
+        "src/cryptopt-fiat/generated/fiat-amd64/fiat_secp256k1_dettman_square/libfiat_secp256k1_dettman_square_ratio11258.a",
+        "fiat_secp256k1_dettman_square",
+        true,
+        "secp256k1_dettman",
+        "square",
+        5,
+        "0x1ffffffffffffe"
+    );
+}
+
 fn build_cryptopt_fiat_p521() {
     let gcc_mul_dir = "src/cryptopt-fiat/fiat-c/gcc/p521/mul";
     let clang_mul_dir = "src/cryptopt-fiat/fiat-c/clang/p521/mul";
@@ -3366,6 +3566,7 @@ fn main() {
     build_cryptopt_fiat_p434();
     build_cryptopt_fiat_p448_solinas();
     build_cryptopt_fiat_poly1305();
+    build_cryptopt_fiat_secp256k1_dettman();
     build_cryptopt_fiat_p521();
     build_fiat_c_secp256k1_dettman();
     build_fiat_c_poly1305();
@@ -3498,6 +3699,20 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/poly1305/square");
     println!(
         "cargo:rustc-link-search=native=src/cryptopt-fiat/generated/fiat-amd64/fiat_poly1305_carry_square"
+    );
+    println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/gcc/secp256k1_dettman/mul");
+    println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/secp256k1_dettman/mul");
+    println!(
+        "cargo:rustc-link-search=native=src/cryptopt-fiat/generated/fiat-amd64/fiat_secp256k1_dettman_mul"
+    );
+    println!(
+        "cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/gcc/secp256k1_dettman/square"
+    );
+    println!(
+        "cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/secp256k1_dettman/square"
+    );
+    println!(
+        "cargo:rustc-link-search=native=src/cryptopt-fiat/generated/fiat-amd64/fiat_secp256k1_dettman_square"
     );
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/gcc/p521/mul");
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/p521/mul");
@@ -3686,6 +3901,14 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_poly1305_carry_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_poly1305_carry_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_poly1305_carry_square_ratio12095");
+
+    // CryptOpt Fiat Secp256k1 Dettman
+    println!("cargo:rustc-link-lib=static=fiat_secp256k1_dettman_mul_gcc");
+    println!("cargo:rustc-link-lib=static=fiat_secp256k1_dettman_mul_clang");
+    println!("cargo:rustc-link-lib=static=fiat_secp256k1_dettman_mul_ratio11508");
+    println!("cargo:rustc-link-lib=static=fiat_secp256k1_dettman_square_gcc");
+    println!("cargo:rustc-link-lib=static=fiat_secp256k1_dettman_square_clang");
+    println!("cargo:rustc-link-lib=static=fiat_secp256k1_dettman_square_ratio11258");
 
     // CryptOpt Fiat P521
     println!("cargo:rustc-link-lib=static=fiat_p521_carry_mul_gcc");
