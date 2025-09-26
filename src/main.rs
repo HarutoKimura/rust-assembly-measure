@@ -336,8 +336,9 @@ mod cryptopt_fiat_p521 {
 }
 
 mod poly1305 {
-    pub const LOOSE_BOUND: u64 = 0x180000000000;
+    pub const LOOSE_BOUND: u64 = 0x0300_0000_0000;
     pub const SIZE: usize = 3;
+    pub const LOOSE_BOUNDS: [u64; SIZE] = [0x0300_0000_0000, 0x0180_0000_0000, 0x0180_0000_0000];
     extern "C" {
         // Multiply functions
         pub fn rust_fiat_poly1305_carry_mul_vec(
@@ -363,8 +364,9 @@ mod poly1305 {
 }
 
 mod fiat_c_poly1305 {
-    pub const LOOSE_BOUND: u64 = 0x180000000000;
+    pub const LOOSE_BOUND: u64 = 0x0300_0000_0000;
     pub const SIZE: usize = 3;
+    pub const LOOSE_BOUNDS: [u64; SIZE] = [0x0300_0000_0000, 0x0180_0000_0000, 0x0180_0000_0000];
     extern "C" {
         // Multiply functions
         pub fn fiat_c_poly1305_carry_mul_vec(arg0: *const u64, arg1: *const u64, arg2: *const u64);
@@ -1007,8 +1009,8 @@ fn generate_random_loose_input_u64(bound: u64, size: usize) -> Vec<u64> {
             .iter()
             .map(|&lim| rng.gen_range(0..=lim))
             .collect()
-    } else if size == cryptopt_fiat_poly1305::SIZE && bound == cryptopt_fiat_poly1305::LOOSE_BOUND {
-        cryptopt_fiat_poly1305::LOOSE_BOUNDS
+    } else if size == poly1305::SIZE || size == fiat_c_poly1305::SIZE || size == cryptopt_fiat_poly1305::SIZE {
+        poly1305::LOOSE_BOUNDS
             .iter()
             .map(|&lim| rng.gen_range(0..=lim))
             .collect()
