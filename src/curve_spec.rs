@@ -29,6 +29,7 @@ pub enum Function {
         unsafe extern "C" fn(*mut u64, *const u64, *const u64),
         unsafe extern "C" fn(*mut u64, *const u64, *const u64),
     ),
+    #[allow(dead_code)]
     U64MulFour(
         unsafe extern "C" fn(*mut u64, *const u64, *const u64),
         unsafe extern "C" fn(*mut u64, *const u64, *const u64),
@@ -80,6 +81,7 @@ impl FunctionLabels {
         }
     }
 
+    #[allow(dead_code)]
     pub const fn new4(
         display: (&'static str, &'static str, &'static str, &'static str),
         short: (&'static str, &'static str, &'static str, &'static str),
@@ -358,9 +360,10 @@ impl CurveType {
             CurveType::CryptoptFiatCurve25519 => CurveSpec {
                 size: cryptopt_fiat_curve25519_generated::SIZE,
                 bounds: BoundSpec::Uniform(cryptopt_fiat_curve25519_generated::LOOSE_BOUND),
-                mul: Function::U64MulFour(
+                mul: Function::U64MulFive(
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul_clang,
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul_gcc,
+                    openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_mul,
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul_enhanced,
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul,
                 ),
@@ -369,14 +372,15 @@ impl CurveType {
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square_gcc,
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square,
                 )),
-                mul_labels: FunctionLabels::new4(
+                mul_labels: FunctionLabels::new5(
                     (
                         "Clang Baseline",
                         "GCC Baseline",
+                        "OpenSSL Hand-Optimised",
                         "CryptOpt Enhanced",
                         "CryptOpt Ratio12750",
                     ),
-                    ("Clang", "GCC", "Enhanced", "CryptOpt"),
+                    ("Clang", "GCC", "Hand", "Enhanced", "CryptOpt"),
                 ),
                 square_labels: baseline_labels(
                     "Clang Baseline",

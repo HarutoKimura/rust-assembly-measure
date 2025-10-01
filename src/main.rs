@@ -218,25 +218,36 @@ fn run_measurements(curve: CurveType, operation: &str, repeats: usize) {
                         cryptopt_func,
                     ) => {
                         let labels = curve.mul_labels();
-                        let (gas_stats, nasm_stats, hand_stats, hand_nasm_stats, cryptopt_stats) =
+                        let label_tuple = (
+                            labels.display(0),
+                            labels.display(1),
+                            labels.display(2),
+                            labels.display(3),
+                            labels.display(4),
+                        );
+                        let functions = [
+                            llc_func,
+                            nasm_func,
+                            hand_func,
+                            hand_nasm_func,
+                            cryptopt_func,
+                        ];
+                        let (baseline_stats, second_stats, third_stats, fourth_stats, fifth_stats) =
                             measure_u64_mul_functions_interleaved_enhanced_five(
                                 bounds,
                                 size,
-                                llc_func,
-                                nasm_func,
-                                hand_func,
-                                hand_nasm_func,
-                                cryptopt_func,
+                                functions,
                                 &config,
+                                label_tuple,
                             );
                         record_run(
                             labels,
                             vec![
-                                gas_stats,
-                                nasm_stats,
-                                hand_stats,
-                                hand_nasm_stats,
-                                cryptopt_stats,
+                                baseline_stats,
+                                second_stats,
+                                third_stats,
+                                fourth_stats,
+                                fifth_stats,
                             ],
                             run,
                         );

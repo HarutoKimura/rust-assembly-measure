@@ -491,12 +491,9 @@ fn measure_one_batch_usize_mul_precise(
 pub fn measure_u64_mul_functions_interleaved_enhanced_five(
     bounds: BoundSpec,
     size: usize,
-    llc_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
-    nasm_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
-    hand_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
-    hand_nasm_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
-    cryptopt_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    funcs: [unsafe extern "C" fn(*mut u64, *const u64, *const u64); 5],
     config: &MeasurementConfig,
+    labels: (&str, &str, &str, &str, &str),
 ) -> (
     MeasurementStats,
     MeasurementStats,
@@ -505,36 +502,31 @@ pub fn measure_u64_mul_functions_interleaved_enhanced_five(
     MeasurementStats,
 ) {
     let mut rng = thread_rng();
+    let (label_baseline, _, _, _, _) = labels;
 
     let mut batch_size = config.initial_batch_size;
     {
         let in0 = generate_random_loose_input_u64(bounds, size);
         let in1 = generate_random_loose_input_u64(bounds, size);
-        let mut out_g = vec![0u64; size];
-        let mut out_n = vec![0u64; size];
-        let mut out_h = vec![0u64; size];
-        let mut out_hn = vec![0u64; size];
-        let mut out_c = vec![0u64; size];
+        let mut outs: Vec<Vec<u64>> = (0..5).map(|_| vec![0u64; size]).collect();
         let calib_bs = batch_size;
-        let cg_g = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, calib_bs);
-        let cg_n = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, calib_bs);
-        let cg_h = measure_one_batch_u64_mul_precise(hand_func, &mut out_h, &in0, &in1, calib_bs);
-        let cg_hn =
-            measure_one_batch_u64_mul_precise(hand_nasm_func, &mut out_hn, &in0, &in1, calib_bs);
-        let cg_c =
-            measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, calib_bs);
-        let cg = cg_g.max(cg_n).max(cg_h).max(cg_hn).max(cg_c);
+        let baseline_cycles =
+            measure_one_batch_u64_mul_precise(funcs[0], &mut outs[0], &in0, &in1, calib_bs);
+        for idx in 1..5 {
+            let _ =
+                measure_one_batch_u64_mul_precise(funcs[idx], &mut outs[idx], &in0, &in1, calib_bs);
+        }
         batch_size = calculate_optimal_batch_size(
-            cg,
+            baseline_cycles,
             calib_bs,
             config.cycle_goal,
             config.min_batch_size,
             config.max_batch_size,
         );
-        let per_call_est = cg as f64 / calib_bs as f64;
+        let per_call_est = baseline_cycles as f64 / calib_bs as f64;
         println!(
-            "Calibrated shared batch size (max-of-impls): {} (max batch cycles: {}, ~{:.2} cycles/call at bs={})",
-            batch_size, cg, per_call_est, calib_bs
+            "Calibrated shared batch size ({} ref): {} ({} batch cycles: {}, ~{:.2} cycles/call at bs={})",
+            label_baseline, batch_size, label_baseline, baseline_cycles, per_call_est, calib_bs
         );
     }
 
@@ -543,100 +535,64 @@ pub fn measure_u64_mul_functions_interleaved_enhanced_five(
         config.num_batches
     );
 
-    let mut gas_batches = vec![0u64; config.num_batches];
-    let mut nasm_batches = vec![0u64; config.num_batches];
-    let mut hand_batches = vec![0u64; config.num_batches];
-    let mut hand_nasm_batches = vec![0u64; config.num_batches];
-    let mut crypt_batches = vec![0u64; config.num_batches];
+    let mut all_batches = vec![vec![0u64; config.num_batches]; 5];
     let mut used_bs = vec![0usize; config.num_batches];
 
     for b in 0..config.num_batches {
         let in0 = generate_random_loose_input_u64(bounds, size);
         let in1 = generate_random_loose_input_u64(bounds, size);
-        let mut out_g = vec![0u64; size];
-        let mut out_n = vec![0u64; size];
-        let mut out_h = vec![0u64; size];
-        let mut out_hn = vec![0u64; size];
-        let mut out_c = vec![0u64; size];
+        let mut outputs: Vec<Vec<u64>> = (0..5).map(|_| vec![0u64; size]).collect();
 
         let mut order = [0usize, 1usize, 2usize, 3usize, 4usize];
         order.shuffle(&mut rng);
         used_bs[b] = batch_size;
 
         for &which in &order {
-            match which {
-                0 => {
-                    gas_batches[b] = measure_one_batch_u64_mul_precise(
-                        llc_func, &mut out_g, &in0, &in1, batch_size,
-                    );
-                }
-                1 => {
-                    nasm_batches[b] = measure_one_batch_u64_mul_precise(
-                        nasm_func, &mut out_n, &in0, &in1, batch_size,
-                    );
-                }
-                2 => {
-                    hand_batches[b] = measure_one_batch_u64_mul_precise(
-                        hand_func, &mut out_h, &in0, &in1, batch_size,
-                    );
-                }
-                3 => {
-                    hand_nasm_batches[b] = measure_one_batch_u64_mul_precise(
-                        hand_nasm_func,
-                        &mut out_hn,
-                        &in0,
-                        &in1,
-                        batch_size,
-                    );
-                }
-                4 => {
-                    crypt_batches[b] = measure_one_batch_u64_mul_precise(
-                        cryptopt_func,
-                        &mut out_c,
-                        &in0,
-                        &in1,
-                        batch_size,
-                    );
-                }
-                _ => unreachable!(),
-            }
+            all_batches[which][b] = measure_one_batch_u64_mul_precise(
+                funcs[which],
+                &mut outputs[which],
+                &in0,
+                &in1,
+                batch_size,
+            );
         }
 
         if std::env::var("CHECK_OUTPUTS").ok().as_deref() == Some("1") {
-            if out_g != out_n || out_g != out_h || out_g != out_hn || out_g != out_c {
-                eprintln!("Output mismatch detected in batch {} (five mul)", b + 1);
+            for idx in 1..5 {
+                if outputs[0] != outputs[idx] {
+                    eprintln!("Output mismatch detected in batch {} (five mul)", b + 1);
+                    break;
+                }
             }
         }
 
-        let batch_max = gas_batches[b]
-            .max(nasm_batches[b])
-            .max(hand_batches[b])
-            .max(hand_nasm_batches[b])
-            .max(crypt_batches[b]);
-        let next =
-            ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
+        let baseline_cycles = all_batches[0][b];
+        let next = if baseline_cycles > 0 {
+            ((config.cycle_goal as f64 / baseline_cycles as f64) * batch_size as f64).ceil()
+                as usize
+        } else {
+            batch_size
+        };
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
-    let to_per_call = |v: Vec<u64>| -> Vec<u64> {
-        v.iter()
+    let mut stats_vec = Vec::with_capacity(5);
+    for cycles in all_batches.into_iter() {
+        let per_call: Vec<u64> = cycles
+            .iter()
             .zip(&used_bs)
-            .map(|(&cycles, &bs)| cycles / bs as u64)
-            .collect()
-    };
+            .map(|(&total, &bs)| total / bs as u64)
+            .collect();
+        stats_vec.push(MeasurementStats::from_measurements(&per_call));
+    }
 
-    let gas_stats = MeasurementStats::from_measurements(&to_per_call(gas_batches));
-    let nasm_stats = MeasurementStats::from_measurements(&to_per_call(nasm_batches));
-    let hand_stats = MeasurementStats::from_measurements(&to_per_call(hand_batches));
-    let hand_nasm_stats = MeasurementStats::from_measurements(&to_per_call(hand_nasm_batches));
-    let crypt_stats = MeasurementStats::from_measurements(&to_per_call(crypt_batches));
-
+    let mut iter = stats_vec.into_iter();
     (
-        gas_stats,
-        nasm_stats,
-        hand_stats,
-        hand_nasm_stats,
-        crypt_stats,
+        iter.next().unwrap(),
+        iter.next().unwrap(),
+        iter.next().unwrap(),
+        iter.next().unwrap(),
+        iter.next().unwrap(),
     )
 }
 
