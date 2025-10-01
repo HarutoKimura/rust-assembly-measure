@@ -126,6 +126,15 @@ pub mod openssl_curve25519 {
     }
 }
 
+pub mod openssl_p256 {
+    pub const LOOSE_BOUND: u64 = u64::MAX;
+    pub const SIZE: usize = 4;
+    extern "C" {
+        pub fn open_ssl_p256_mul_mont(arg0: *mut u64, arg1: *const u64, arg2: *const u64);
+        pub fn open_ssl_p256_sqr_mont(arg0: *mut u64, arg1: *const u64);
+    }
+}
+
 pub mod fiat_c_curve25519 {
     pub const LOOSE_BOUND: u64 = 0x18000000000000;
     pub const SIZE: usize = 4;

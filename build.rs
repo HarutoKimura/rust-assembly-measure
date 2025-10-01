@@ -1494,10 +1494,12 @@ fn build_cryptopt_fiat_p256() {
     let clang_mul_dir = "src/cryptopt-fiat/fiat-c/clang/p256/mul";
     let gcc_square_dir = "src/cryptopt-fiat/fiat-c/gcc/p256/square";
     let clang_square_dir = "src/cryptopt-fiat/fiat-c/clang/p256/square";
+    let openssl_hand_dir = "src/c/openssl-p256/hand-optimised";
     fs::create_dir_all(gcc_mul_dir).unwrap();
     fs::create_dir_all(clang_mul_dir).unwrap();
     fs::create_dir_all(gcc_square_dir).unwrap();
     fs::create_dir_all(clang_square_dir).unwrap();
+    fs::create_dir_all(openssl_hand_dir).unwrap();
 
     let mul_wrapper = "src/cryptopt-fiat/fiat-c/wrappers/p256_mul_wrapper.c";
     let square_wrapper = "src/cryptopt-fiat/fiat-c/wrappers/p256_square_wrapper.c";
@@ -1675,6 +1677,70 @@ fn build_cryptopt_fiat_p256() {
         4,
         "0xffffffffffffffff"
     );
+
+    // OpenSSL hand-optimised P256 assembly (mul and square)
+    let openssl_hand_mul_lib = format!("{}/libopenssl_p256_hand_optimised.a", openssl_hand_dir);
+    let openssl_asm_output = "target/openssl_p256_hand.s";
+    let perl_script = "ecp_nistz256-x86_64.pl";
+    let perl_output_arg = format!("../../{}", openssl_asm_output);
+    let mut perl_cmd = Command::new("perl");
+    perl_cmd
+        .env(
+            "CC",
+            std::env::var("CC").unwrap_or_else(|_| "cc".to_string()),
+        )
+        .current_dir("src/openssl-asm")
+        .args(&[perl_script, "linux64", &perl_output_arg]);
+    assert!(perl_cmd.status().unwrap().success());
+
+    let openssl_asm_obj = "target/openssl_p256_hand.o";
+    assert!(Command::new("clang")
+        .args(&["-c", openssl_asm_output, "-o", openssl_asm_obj])
+        .status()
+        .unwrap()
+        .success());
+
+    let wrapper_c = "target/openssl_p256_wrappers.c";
+    {
+        let mut file = File::create(wrapper_c).unwrap();
+        file.write_all(
+            b"#include <stdint.h>\n\nvoid ecp_nistz256_mul_mont(uint64_t res[4], const uint64_t a[4], const uint64_t b[4]);\nvoid ecp_nistz256_sqr_mont(uint64_t res[4], const uint64_t a[4]);\n\nvoid open_ssl_p256_mul_mont(uint64_t res[4], const uint64_t a[4], const uint64_t b[4]) {\n    ecp_nistz256_mul_mont(res, a, b);\n}\n\nvoid open_ssl_p256_sqr_mont(uint64_t res[4], const uint64_t a[4]) {\n    ecp_nistz256_sqr_mont(res, a);\n}\n"
+        )
+        .unwrap();
+    }
+
+    let wrapper_obj = "target/openssl_p256_wrappers.o";
+    assert!(Command::new("clang")
+        .args(&["-O2", "-c", wrapper_c, "-o", wrapper_obj])
+        .status()
+        .unwrap()
+        .success());
+
+    let cap_stub = "target/openssl_p256_cap.c";
+    {
+        let mut file = File::create(cap_stub).unwrap();
+        file.write_all(b"#include <stdint.h>\nunsigned int OPENSSL_ia32cap_P[4] = {0, 0, 0, 0};\n")
+            .unwrap();
+    }
+
+    let cap_obj = "target/openssl_p256_cap.o";
+    assert!(Command::new("clang")
+        .args(&["-c", cap_stub, "-o", cap_obj])
+        .status()
+        .unwrap()
+        .success());
+
+    assert!(Command::new("ar")
+        .args(&[
+            "rcs",
+            &openssl_hand_mul_lib,
+            openssl_asm_obj,
+            wrapper_obj,
+            cap_obj
+        ])
+        .status()
+        .unwrap()
+        .success());
 }
 
 fn build_cryptopt_fiat_p384() {
@@ -4011,6 +4077,9 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/hand-optimised-nasm/square");
     println!("cargo:rustc-link-search=native=src/c/openssl-curve25519/cryptopt/square");
 
+    // OpenSSL P256 hand-optimised
+    println!("cargo:rustc-link-search=native=src/c/openssl-p256/hand-optimised");
+
     // OpenSSL P448
     println!("cargo:rustc-link-search=native=src/c/openssl-p448/llc/mul");
     println!("cargo:rustc-link-search=native=src/c/openssl-p448/llc-nasm/mul");
@@ -4226,6 +4295,9 @@ fn main() {
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_hand_optimised_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_CryptOpt");
 
+    // OpenSSL P256 hand-optimised (mul + square)
+    println!("cargo:rustc-link-lib=static=openssl_p256_hand_optimised");
+
     // OpenSSL P448 (mul)
     println!("cargo:rustc-link-lib=static=openssl_p448_mul_vec");
     println!("cargo:rustc-link-lib=static=openssl_p448_mul_vec_nasm");
@@ -4251,6 +4323,10 @@ fn main() {
     println!("cargo:rerun-if-changed=src/c/fiat-p448");
     println!("cargo:rerun-if-changed=src/c/openssl-curve25519");
     println!("cargo:rerun-if-changed=src/c/openssl-p448");
+    println!("cargo:rerun-if-changed=src/c/openssl-p256");
+    println!("cargo:rerun-if-changed=src/openssl-asm/ecp_nistz256-x86_64.pl");
+    println!("cargo:rerun-if-changed=src/openssl-asm/ecp_nistz256_table.c");
+    println!("cargo:rerun-if-changed=src/openssl-asm/x86_64-xlate.pl");
 
     // Run BINSEC verification on all CryptOpt implementations if enabled
     let binsec_config = BinsecConfig::default();

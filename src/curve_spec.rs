@@ -4,7 +4,8 @@ use crate::ffi::{
     cryptopt_fiat_p448_solinas, cryptopt_fiat_p521, cryptopt_fiat_poly1305,
     cryptopt_fiat_secp256k1_dettman, cryptopt_fiat_secp256k1_montgomery, curve25519,
     curve25519_dalek, fiat_c_curve25519, fiat_c_p448, fiat_c_poly1305, fiat_c_secp256k1_dettman,
-    openssl_curve25519, openssl_p448, p448, poly1305, rust_ec_secp256k1, secp256k1_dettman,
+    openssl_curve25519, openssl_p256, openssl_p448, p448, poly1305, rust_ec_secp256k1,
+    secp256k1_dettman,
 };
 
 #[derive(Clone, Copy)]
@@ -449,25 +450,35 @@ impl CurveType {
             CurveType::CryptoptFiatP256 => CurveSpec {
                 size: cryptopt_fiat_p256::SIZE,
                 bounds: BoundSpec::Uniform(cryptopt_fiat_p256::LOOSE_BOUND),
-                mul: Function::U64Mul(
+                mul: Function::U64MulFour(
                     cryptopt_fiat_p256::fiat_p256_mul_clang,
                     cryptopt_fiat_p256::fiat_p256_mul_gcc,
+                    openssl_p256::open_ssl_p256_mul_mont,
                     cryptopt_fiat_p256::fiat_p256_mul,
                 ),
-                square: Some(Function::U64Square(
+                square: Some(Function::U64SquareFour(
                     cryptopt_fiat_p256::fiat_p256_square_clang,
                     cryptopt_fiat_p256::fiat_p256_square_gcc,
+                    openssl_p256::open_ssl_p256_sqr_mont,
                     cryptopt_fiat_p256::fiat_p256_square,
                 )),
-                mul_labels: baseline_labels(
-                    "Clang Baseline",
-                    "GCC Baseline",
-                    "CryptOpt Ratio17527",
+                mul_labels: FunctionLabels::new4(
+                    (
+                        "Clang Baseline",
+                        "GCC Baseline",
+                        "OpenSSL Hand-Optimised",
+                        "CryptOpt Ratio17527",
+                    ),
+                    ("Clang", "GCC", "Hand", "CryptOpt"),
                 ),
-                square_labels: baseline_labels(
-                    "Clang Baseline",
-                    "GCC Baseline",
-                    "CryptOpt Ratio17019",
+                square_labels: FunctionLabels::new4(
+                    (
+                        "Clang Baseline",
+                        "GCC Baseline",
+                        "OpenSSL Hand-Optimised",
+                        "CryptOpt Ratio17019",
+                    ),
+                    ("Clang", "GCC", "Hand", "CryptOpt"),
                 ),
             },
             CurveType::CryptoptFiatP384 => CurveSpec {
