@@ -25,9 +25,15 @@ impl BoundSpec {
 #[derive(Clone, Copy)]
 pub enum Function {
     U64Mul(
-        unsafe extern "C" fn(*const u64, *const u64, *const u64),
-        unsafe extern "C" fn(*const u64, *const u64, *const u64),
-        unsafe extern "C" fn(*const u64, *const u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    ),
+    U64MulFour(
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
     ),
     U64Square(
         unsafe extern "C" fn(*mut u64, *const u64),
@@ -40,11 +46,11 @@ pub enum Function {
         unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
     ),
     U64MulFive(
-        unsafe extern "C" fn(*const u64, *const u64, *const u64),
-        unsafe extern "C" fn(*const u64, *const u64, *const u64),
-        unsafe extern "C" fn(*const u64, *const u64, *const u64),
-        unsafe extern "C" fn(*const u64, *const u64, *const u64),
-        unsafe extern "C" fn(*const u64, *const u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64, *const u64),
     ),
     U64SquareFive(
         unsafe extern "C" fn(*mut u64, *const u64),
@@ -57,19 +63,70 @@ pub enum Function {
 
 #[derive(Clone, Copy)]
 pub struct FunctionLabels {
-    pub display: (&'static str, &'static str, &'static str),
-    pub short: (&'static str, &'static str, &'static str),
+    display: [&'static str; 5],
+    short: [&'static str; 5],
+    len: usize,
 }
 
 impl FunctionLabels {
-    pub const fn new(
+    pub const fn new3(
         display: (&'static str, &'static str, &'static str),
         short: (&'static str, &'static str, &'static str),
     ) -> Self {
-        Self { display, short }
+        Self {
+            display: [display.0, display.1, display.2, "", ""],
+            short: [short.0, short.1, short.2, "", ""],
+            len: 3,
+        }
     }
 
-    pub const DEFAULT: Self = Self::new(
+    pub const fn new4(
+        display: (&'static str, &'static str, &'static str, &'static str),
+        short: (&'static str, &'static str, &'static str, &'static str),
+    ) -> Self {
+        Self {
+            display: [display.0, display.1, display.2, display.3, ""],
+            short: [short.0, short.1, short.2, short.3, ""],
+            len: 4,
+        }
+    }
+
+    pub const fn new5(
+        display: (
+            &'static str,
+            &'static str,
+            &'static str,
+            &'static str,
+            &'static str,
+        ),
+        short: (
+            &'static str,
+            &'static str,
+            &'static str,
+            &'static str,
+            &'static str,
+        ),
+    ) -> Self {
+        Self {
+            display: [display.0, display.1, display.2, display.3, display.4],
+            short: [short.0, short.1, short.2, short.3, short.4],
+            len: 5,
+        }
+    }
+
+    pub const fn len(&self) -> usize {
+        self.len
+    }
+
+    pub const fn display(&self, idx: usize) -> &'static str {
+        self.display[idx]
+    }
+
+    pub const fn short(&self, idx: usize) -> &'static str {
+        self.short[idx]
+    }
+
+    pub const DEFAULT: Self = Self::new3(
         ("GAS Format", "NASM Format", "CryptOpt Format"),
         ("GAS", "NASM", "CryptOpt"),
     );
@@ -114,14 +171,14 @@ pub enum CurveType {
 }
 
 const DEFAULT_LABELS: FunctionLabels = FunctionLabels::DEFAULT;
-const BASELINE_SHORT: (&'static str, &'static str, &'static str) = ("GCC", "Clang", "CryptOpt");
+const BASELINE_SHORT: (&'static str, &'static str, &'static str) = ("Clang", "GCC", "CryptOpt");
 
 const fn baseline_labels(
-    gcc: &'static str,
     clang: &'static str,
+    gcc: &'static str,
     cryptopt: &'static str,
 ) -> FunctionLabels {
-    FunctionLabels::new((gcc, clang, cryptopt), BASELINE_SHORT)
+    FunctionLabels::new3((clang, gcc, cryptopt), BASELINE_SHORT)
 }
 
 impl CurveType {
@@ -169,8 +226,26 @@ impl CurveType {
                     curve25519::rust_fiat_curve25519_carry_square_vec_nasm,
                     curve25519::rust_fiat_curve25519_carry_square_CryptOpt,
                 )),
-                mul_labels: DEFAULT_LABELS,
-                square_labels: DEFAULT_LABELS,
+                mul_labels: FunctionLabels::new5(
+                    (
+                        "GAS Format",
+                        "NASM Format",
+                        "Hand-Optimised GAS",
+                        "Hand-Optimised NASM",
+                        "CryptOpt Format",
+                    ),
+                    ("GAS", "NASM", "Hand", "Hand-NASM", "CryptOpt"),
+                ),
+                square_labels: FunctionLabels::new5(
+                    (
+                        "GAS Format",
+                        "NASM Format",
+                        "Hand-Optimised GAS",
+                        "Hand-Optimised NASM",
+                        "CryptOpt Format",
+                    ),
+                    ("GAS", "NASM", "Hand", "Hand-NASM", "CryptOpt"),
+                ),
             },
             CurveType::Curve25519Dalek => CurveSpec {
                 size: curve25519_dalek::SIZE,
@@ -283,24 +358,29 @@ impl CurveType {
             CurveType::CryptoptFiatCurve25519 => CurveSpec {
                 size: cryptopt_fiat_curve25519_generated::SIZE,
                 bounds: BoundSpec::Uniform(cryptopt_fiat_curve25519_generated::LOOSE_BOUND),
-                mul: Function::U64Mul(
-                    cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul_gcc,
+                mul: Function::U64MulFour(
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul_clang,
+                    cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul_gcc,
+                    cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul_enhanced,
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul,
                 ),
                 square: Some(Function::U64Square(
-                    cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square_gcc,
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square_clang,
+                    cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square_gcc,
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square,
                 )),
-                mul_labels: baseline_labels(
-                    "GCC Baseline",
-                    "Clang Baseline",
-                    "CryptOpt Ratio12750",
+                mul_labels: FunctionLabels::new4(
+                    (
+                        "Clang Baseline",
+                        "GCC Baseline",
+                        "CryptOpt Enhanced",
+                        "CryptOpt Ratio12750",
+                    ),
+                    ("Clang", "GCC", "Enhanced", "CryptOpt"),
                 ),
                 square_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio12993",
                 ),
             },
@@ -308,23 +388,23 @@ impl CurveType {
                 size: cryptopt_fiat_curve25519_solinas::SIZE,
                 bounds: BoundSpec::Uniform(cryptopt_fiat_curve25519_solinas::LOOSE_BOUND),
                 mul: Function::U64Mul(
-                    cryptopt_fiat_curve25519_solinas::fiat_curve25519_solinas_mul_gcc,
                     cryptopt_fiat_curve25519_solinas::fiat_curve25519_solinas_mul_clang,
+                    cryptopt_fiat_curve25519_solinas::fiat_curve25519_solinas_mul_gcc,
                     cryptopt_fiat_curve25519_solinas::fiat_curve25519_solinas_mul,
                 ),
                 square: Some(Function::U64Square(
-                    cryptopt_fiat_curve25519_solinas::fiat_curve25519_solinas_square_gcc,
                     cryptopt_fiat_curve25519_solinas::fiat_curve25519_solinas_square_clang,
+                    cryptopt_fiat_curve25519_solinas::fiat_curve25519_solinas_square_gcc,
                     cryptopt_fiat_curve25519_solinas::fiat_curve25519_solinas_square,
                 )),
                 mul_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio18494",
                 ),
                 square_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio15409",
                 ),
             },
@@ -332,23 +412,23 @@ impl CurveType {
                 size: cryptopt_fiat_p224::SIZE,
                 bounds: BoundSpec::Uniform(cryptopt_fiat_p224::LOOSE_BOUND),
                 mul: Function::U64Mul(
-                    cryptopt_fiat_p224::fiat_p224_mul_gcc,
                     cryptopt_fiat_p224::fiat_p224_mul_clang,
+                    cryptopt_fiat_p224::fiat_p224_mul_gcc,
                     cryptopt_fiat_p224::fiat_p224_mul,
                 ),
                 square: Some(Function::U64Square(
-                    cryptopt_fiat_p224::fiat_p224_square_gcc,
                     cryptopt_fiat_p224::fiat_p224_square_clang,
+                    cryptopt_fiat_p224::fiat_p224_square_gcc,
                     cryptopt_fiat_p224::fiat_p224_square,
                 )),
                 mul_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio16447",
                 ),
                 square_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio14731",
                 ),
             },
@@ -356,23 +436,23 @@ impl CurveType {
                 size: cryptopt_fiat_p256::SIZE,
                 bounds: BoundSpec::Uniform(cryptopt_fiat_p256::LOOSE_BOUND),
                 mul: Function::U64Mul(
-                    cryptopt_fiat_p256::fiat_p256_mul_gcc,
                     cryptopt_fiat_p256::fiat_p256_mul_clang,
+                    cryptopt_fiat_p256::fiat_p256_mul_gcc,
                     cryptopt_fiat_p256::fiat_p256_mul,
                 ),
                 square: Some(Function::U64Square(
-                    cryptopt_fiat_p256::fiat_p256_square_gcc,
                     cryptopt_fiat_p256::fiat_p256_square_clang,
+                    cryptopt_fiat_p256::fiat_p256_square_gcc,
                     cryptopt_fiat_p256::fiat_p256_square,
                 )),
                 mul_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio17527",
                 ),
                 square_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio17019",
                 ),
             },
@@ -380,23 +460,23 @@ impl CurveType {
                 size: cryptopt_fiat_p384::SIZE,
                 bounds: BoundSpec::Uniform(cryptopt_fiat_p384::LOOSE_BOUND),
                 mul: Function::U64Mul(
-                    cryptopt_fiat_p384::fiat_p384_mul_gcc,
                     cryptopt_fiat_p384::fiat_p384_mul_clang,
+                    cryptopt_fiat_p384::fiat_p384_mul_gcc,
                     cryptopt_fiat_p384::fiat_p384_mul,
                 ),
                 square: Some(Function::U64Square(
-                    cryptopt_fiat_p384::fiat_p384_square_gcc,
                     cryptopt_fiat_p384::fiat_p384_square_clang,
+                    cryptopt_fiat_p384::fiat_p384_square_gcc,
                     cryptopt_fiat_p384::fiat_p384_square,
                 )),
                 mul_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio17232",
                 ),
                 square_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio16784",
                 ),
             },
@@ -404,23 +484,23 @@ impl CurveType {
                 size: cryptopt_fiat_p434::SIZE,
                 bounds: BoundSpec::Uniform(cryptopt_fiat_p434::LOOSE_BOUND),
                 mul: Function::U64Mul(
-                    cryptopt_fiat_p434::fiat_p434_mul_gcc,
                     cryptopt_fiat_p434::fiat_p434_mul_clang,
+                    cryptopt_fiat_p434::fiat_p434_mul_gcc,
                     cryptopt_fiat_p434::fiat_p434_mul,
                 ),
                 square: Some(Function::U64Square(
-                    cryptopt_fiat_p434::fiat_p434_square_gcc,
                     cryptopt_fiat_p434::fiat_p434_square_clang,
+                    cryptopt_fiat_p434::fiat_p434_square_gcc,
                     cryptopt_fiat_p434::fiat_p434_square,
                 )),
                 mul_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio19146",
                 ),
                 square_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio18549",
                 ),
             },
@@ -428,23 +508,23 @@ impl CurveType {
                 size: cryptopt_fiat_p448_solinas::SIZE,
                 bounds: BoundSpec::Uniform(cryptopt_fiat_p448_solinas::LOOSE_BOUND),
                 mul: Function::U64Mul(
-                    cryptopt_fiat_p448_solinas::fiat_p448_solinas_carry_mul_gcc,
                     cryptopt_fiat_p448_solinas::fiat_p448_solinas_carry_mul_clang,
+                    cryptopt_fiat_p448_solinas::fiat_p448_solinas_carry_mul_gcc,
                     cryptopt_fiat_p448_solinas::fiat_p448_solinas_carry_mul,
                 ),
                 square: Some(Function::U64Square(
-                    cryptopt_fiat_p448_solinas::fiat_p448_solinas_carry_square_gcc,
                     cryptopt_fiat_p448_solinas::fiat_p448_solinas_carry_square_clang,
+                    cryptopt_fiat_p448_solinas::fiat_p448_solinas_carry_square_gcc,
                     cryptopt_fiat_p448_solinas::fiat_p448_solinas_carry_square,
                 )),
                 mul_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio13296",
                 ),
                 square_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio11436",
                 ),
             },
@@ -452,23 +532,23 @@ impl CurveType {
                 size: cryptopt_fiat_secp256k1_dettman::SIZE,
                 bounds: BoundSpec::PerLimb(&cryptopt_fiat_secp256k1_dettman::LOOSE_BOUNDS),
                 mul: Function::U64Mul(
-                    cryptopt_fiat_secp256k1_dettman::fiat_secp256k1_dettman_mul_gcc,
                     cryptopt_fiat_secp256k1_dettman::fiat_secp256k1_dettman_mul_clang,
+                    cryptopt_fiat_secp256k1_dettman::fiat_secp256k1_dettman_mul_gcc,
                     cryptopt_fiat_secp256k1_dettman::fiat_secp256k1_dettman_mul,
                 ),
                 square: Some(Function::U64Square(
-                    cryptopt_fiat_secp256k1_dettman::fiat_secp256k1_dettman_square_gcc,
                     cryptopt_fiat_secp256k1_dettman::fiat_secp256k1_dettman_square_clang,
+                    cryptopt_fiat_secp256k1_dettman::fiat_secp256k1_dettman_square_gcc,
                     cryptopt_fiat_secp256k1_dettman::fiat_secp256k1_dettman_square,
                 )),
                 mul_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio11508",
                 ),
                 square_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio11258",
                 ),
             },
@@ -476,23 +556,23 @@ impl CurveType {
                 size: cryptopt_fiat_secp256k1_montgomery::SIZE,
                 bounds: BoundSpec::Uniform(cryptopt_fiat_secp256k1_montgomery::LOOSE_BOUND),
                 mul: Function::U64Mul(
-                    cryptopt_fiat_secp256k1_montgomery::fiat_secp256k1_montgomery_mul_gcc,
                     cryptopt_fiat_secp256k1_montgomery::fiat_secp256k1_montgomery_mul_clang,
+                    cryptopt_fiat_secp256k1_montgomery::fiat_secp256k1_montgomery_mul_gcc,
                     cryptopt_fiat_secp256k1_montgomery::fiat_secp256k1_montgomery_mul,
                 ),
                 square: Some(Function::U64Square(
-                    cryptopt_fiat_secp256k1_montgomery::fiat_secp256k1_montgomery_square_gcc,
                     cryptopt_fiat_secp256k1_montgomery::fiat_secp256k1_montgomery_square_clang,
+                    cryptopt_fiat_secp256k1_montgomery::fiat_secp256k1_montgomery_square_gcc,
                     cryptopt_fiat_secp256k1_montgomery::fiat_secp256k1_montgomery_square,
                 )),
                 mul_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio18998",
                 ),
                 square_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio17679",
                 ),
             },
@@ -500,23 +580,23 @@ impl CurveType {
                 size: cryptopt_fiat_poly1305::SIZE,
                 bounds: BoundSpec::PerLimb(&poly1305::LOOSE_BOUNDS),
                 mul: Function::U64Mul(
-                    cryptopt_fiat_poly1305::fiat_poly1305_carry_mul_gcc,
                     cryptopt_fiat_poly1305::fiat_poly1305_carry_mul_clang,
+                    cryptopt_fiat_poly1305::fiat_poly1305_carry_mul_gcc,
                     cryptopt_fiat_poly1305::fiat_poly1305_carry_mul,
                 ),
                 square: Some(Function::U64Square(
-                    cryptopt_fiat_poly1305::fiat_poly1305_carry_square_gcc,
                     cryptopt_fiat_poly1305::fiat_poly1305_carry_square_clang,
+                    cryptopt_fiat_poly1305::fiat_poly1305_carry_square_gcc,
                     cryptopt_fiat_poly1305::fiat_poly1305_carry_square,
                 )),
                 mul_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio12222",
                 ),
                 square_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio12095",
                 ),
             },
@@ -524,23 +604,23 @@ impl CurveType {
                 size: cryptopt_fiat_p521::SIZE,
                 bounds: BoundSpec::PerLimb(&cryptopt_fiat_p521::LOOSE_BOUNDS),
                 mul: Function::U64Mul(
-                    cryptopt_fiat_p521::fiat_p521_carry_mul_gcc,
                     cryptopt_fiat_p521::fiat_p521_carry_mul_clang,
+                    cryptopt_fiat_p521::fiat_p521_carry_mul_gcc,
                     cryptopt_fiat_p521::fiat_p521_carry_mul,
                 ),
                 square: Some(Function::U64Square(
-                    cryptopt_fiat_p521::fiat_p521_carry_square_gcc,
                     cryptopt_fiat_p521::fiat_p521_carry_square_clang,
+                    cryptopt_fiat_p521::fiat_p521_carry_square_gcc,
                     cryptopt_fiat_p521::fiat_p521_carry_square,
                 )),
                 mul_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio13969",
                 ),
                 square_labels: baseline_labels(
-                    "GCC Baseline",
                     "Clang Baseline",
+                    "GCC Baseline",
                     "CryptOpt Ratio15398",
                 ),
             },
@@ -609,8 +689,26 @@ impl CurveType {
                     openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_square_nasm,
                     openssl_curve25519::open_ssl_curve25519_fe51_square_CryptOpt,
                 )),
-                mul_labels: DEFAULT_LABELS,
-                square_labels: DEFAULT_LABELS,
+                mul_labels: FunctionLabels::new5(
+                    (
+                        "GAS Format",
+                        "NASM Format",
+                        "Hand-Optimised GAS",
+                        "Hand-Optimised NASM",
+                        "CryptOpt Format",
+                    ),
+                    ("GAS", "NASM", "Hand", "Hand-NASM", "CryptOpt"),
+                ),
+                square_labels: FunctionLabels::new5(
+                    (
+                        "GAS Format",
+                        "NASM Format",
+                        "Hand-Optimised GAS",
+                        "Hand-Optimised NASM",
+                        "CryptOpt Format",
+                    ),
+                    ("GAS", "NASM", "Hand", "Hand-NASM", "CryptOpt"),
+                ),
             },
             CurveType::OpenSSLP448 => CurveSpec {
                 size: openssl_p448::SIZE,

@@ -5,10 +5,11 @@ mod ffi;
 mod measurement;
 mod precise_timing;
 
-use crate::curve_spec::{CurveType, Function, ALL_CURVES};
+use crate::curve_spec::{CurveType, Function, FunctionLabels, ALL_CURVES};
 use crate::measurement::{
     calculate_median, measure_u64_mul_functions_interleaved_enhanced,
     measure_u64_mul_functions_interleaved_enhanced_five,
+    measure_u64_mul_functions_interleaved_enhanced_four,
     measure_u64_square_functions_interleaved_enhanced,
     measure_u64_square_functions_interleaved_enhanced_five,
     measure_usize_mul_functions_interleaved_enhanced,
@@ -98,7 +99,10 @@ fn run_measurements(curve: CurveType, operation: &str, repeats: usize) {
     println!("  Cycle Goal: {} cycles/batch", config.cycle_goal);
     println!("  Number of Batches: {}", config.num_batches);
     println!("  Repeats: {} (median-of-medians)", repeats);
-    println!("  Features: Memory barriers, Fisher-Yates randomization, dynamic batch sizing\n");
+    println!(
+        "  Features: Memory barriers, Fisher-Yates randomization, dynamic batch sizing
+"
+    );
 
     let bounds = curve.bounds();
     let size = curve.size();
@@ -111,16 +115,52 @@ fn run_measurements(curve: CurveType, operation: &str, repeats: usize) {
         return;
     }
 
-    let mut gas_medians = Vec::with_capacity(repeats);
-    let mut nasm_medians = Vec::with_capacity(repeats);
-    let mut hand_medians = Vec::with_capacity(repeats);
-    let mut hand_nasm_medians = Vec::with_capacity(repeats);
-    let mut cryptopt_medians = Vec::with_capacity(repeats);
-
     let mut summary_labels = if operation == "square" {
         curve.square_labels()
     } else {
         curve.mul_labels()
+    };
+
+    let mut variant_medians: Vec<Vec<u64>> = (0..summary_labels.len())
+        .map(|_| Vec::with_capacity(repeats))
+        .collect();
+
+    let mut record_run = |labels: FunctionLabels, stats: Vec<MeasurementStats>, run: usize| {
+        if variant_medians.len() != stats.len() {
+            if run == 1 {
+                variant_medians = (0..stats.len())
+                    .map(|_| Vec::with_capacity(repeats))
+                    .collect();
+            } else {
+                panic!(
+                    "variant count changed between runs ({} -> {})",
+                    variant_medians.len(),
+                    stats.len()
+                );
+            }
+        }
+
+        let cycle_line = stats
+            .iter()
+            .enumerate()
+            .map(|(idx, stat)| format!("{}: {} cycles", labels.display(idx), stat.median))
+            .collect::<Vec<_>>()
+            .join(", ");
+        println!("Run {} - {}", run, cycle_line);
+
+        let quality_line = stats
+            .iter()
+            .enumerate()
+            .map(|(idx, stat)| format!("{}: {}", labels.display(idx), stat.quality_assessment()))
+            .collect::<Vec<_>>()
+            .join(", ");
+        println!("Quality - {}", quality_line);
+
+        for (idx, stat) in stats.iter().enumerate() {
+            variant_medians[idx].push(stat.median);
+        }
+
+        summary_labels = labels;
     };
 
     for run in 1..=repeats {
@@ -132,6 +172,7 @@ fn run_measurements(curve: CurveType, operation: &str, repeats: usize) {
                 match functions {
                     Function::U64Mul(llc_func, nasm_func, cryptopt_func) => {
                         let labels = curve.mul_labels();
+                        let label_tuple = (labels.display(0), labels.display(1), labels.display(2));
                         let (gas_stats, nasm_stats, cryptopt_stats) =
                             measure_u64_mul_functions_interleaved_enhanced(
                                 bounds,
@@ -140,33 +181,65 @@ fn run_measurements(curve: CurveType, operation: &str, repeats: usize) {
                                 nasm_func,
                                 cryptopt_func,
                                 &config,
-                                labels.display,
+                                label_tuple,
                             );
-
-                        gas_medians.push(gas_stats.median);
-                        nasm_medians.push(nasm_stats.median);
-                        cryptopt_medians.push(cryptopt_stats.median);
-
-                        println!(
-                            "Run {} - {}: {} cycles, {}: {} cycles, {}: {} cycles",
+                        record_run(labels, vec![gas_stats, nasm_stats, cryptopt_stats], run);
+                    }
+                    Function::U64MulFour(llc_func, nasm_func, enhanced_func, cryptopt_func) => {
+                        let labels = curve.mul_labels();
+                        let label_tuple = (
+                            labels.display(0),
+                            labels.display(1),
+                            labels.display(2),
+                            labels.display(3),
+                        );
+                        let (gcc_stats, clang_stats, enhanced_stats, cryptopt_stats) =
+                            measure_u64_mul_functions_interleaved_enhanced_four(
+                                bounds,
+                                size,
+                                llc_func,
+                                nasm_func,
+                                enhanced_func,
+                                cryptopt_func,
+                                &config,
+                                label_tuple,
+                            );
+                        record_run(
+                            labels,
+                            vec![gcc_stats, clang_stats, enhanced_stats, cryptopt_stats],
                             run,
-                            labels.display.0,
-                            gas_stats.median,
-                            labels.display.1,
-                            nasm_stats.median,
-                            labels.display.2,
-                            cryptopt_stats.median
                         );
-                        println!(
-                            "Quality - {}: {}, {}: {}, {}: {}",
-                            labels.display.0,
-                            gas_stats.quality_assessment(),
-                            labels.display.1,
-                            nasm_stats.quality_assessment(),
-                            labels.display.2,
-                            cryptopt_stats.quality_assessment()
+                    }
+                    Function::U64MulFive(
+                        llc_func,
+                        nasm_func,
+                        hand_func,
+                        hand_nasm_func,
+                        cryptopt_func,
+                    ) => {
+                        let labels = curve.mul_labels();
+                        let (gas_stats, nasm_stats, hand_stats, hand_nasm_stats, cryptopt_stats) =
+                            measure_u64_mul_functions_interleaved_enhanced_five(
+                                bounds,
+                                size,
+                                llc_func,
+                                nasm_func,
+                                hand_func,
+                                hand_nasm_func,
+                                cryptopt_func,
+                                &config,
+                            );
+                        record_run(
+                            labels,
+                            vec![
+                                gas_stats,
+                                nasm_stats,
+                                hand_stats,
+                                hand_nasm_stats,
+                                cryptopt_stats,
+                            ],
+                            run,
                         );
-                        summary_labels = labels;
                     }
                     Function::UsizeMul(llc_func, nasm_func, cryptopt_func) => {
                         let labels = curve.mul_labels();
@@ -179,83 +252,22 @@ fn run_measurements(curve: CurveType, operation: &str, repeats: usize) {
                                 cryptopt_func,
                                 &config,
                             );
-
-                        gas_medians.push(gas_stats.median);
-                        nasm_medians.push(nasm_stats.median);
-                        cryptopt_medians.push(cryptopt_stats.median);
-
-                        println!(
-                            "Run {} - {}: {} cycles, {}: {} cycles, {}: {} cycles",
-                            run,
-                            labels.display.0,
-                            gas_stats.median,
-                            labels.display.1,
-                            nasm_stats.median,
-                            labels.display.2,
-                            cryptopt_stats.median
-                        );
-                        println!(
-                            "Quality - {}: {}, {}: {}, {}: {}",
-                            labels.display.0,
-                            gas_stats.quality_assessment(),
-                            labels.display.1,
-                            nasm_stats.quality_assessment(),
-                            labels.display.2,
-                            cryptopt_stats.quality_assessment()
-                        );
-                        summary_labels = labels;
-                    }
-                    Function::U64MulFive(
-                        llc_func,
-                        nasm_func,
-                        hand_func,
-                        hand_nasm_func,
-                        cryptopt_func,
-                    ) => {
-                        let (gas_stats, nasm_stats, hand_stats, hand_nasm_stats, cryptopt_stats) =
-                            measure_u64_mul_functions_interleaved_enhanced_five(
-                                bounds,
-                                size,
-                                llc_func,
-                                nasm_func,
-                                hand_func,
-                                hand_nasm_func,
-                                cryptopt_func,
-                                &config,
-                            );
-
-                        gas_medians.push(gas_stats.median);
-                        nasm_medians.push(nasm_stats.median);
-                        hand_medians.push(hand_stats.median);
-                        hand_nasm_medians.push(hand_nasm_stats.median);
-                        cryptopt_medians.push(cryptopt_stats.median);
-
-                        println!("Run {} - GAS: {} cycles, NASM: {} cycles, Hand: {} cycles, Hand-NASM: {} cycles, CryptOpt: {} cycles",
-                                run, gas_stats.median, nasm_stats.median, hand_stats.median, hand_nasm_stats.median, cryptopt_stats.median);
-                        println!(
-                            "Quality - GAS: {}, NASM: {}, Hand: {}, Hand-NASM: {}, CryptOpt: {}",
-                            gas_stats.quality_assessment(),
-                            nasm_stats.quality_assessment(),
-                            hand_stats.quality_assessment(),
-                            hand_nasm_stats.quality_assessment(),
-                            cryptopt_stats.quality_assessment()
-                        );
+                        record_run(labels, vec![gas_stats, nasm_stats, cryptopt_stats], run);
                     }
                     _ => {
                         println!(
-                            "Enhanced measurement not yet implemented for this curve's mul function type"
+                            "Enhanced mul measurement not yet implemented for this curve's function type"
                         );
                         return;
                     }
                 }
             }
             "square" => {
-                let functions = curve
-                    .square_function()
-                    .expect("square function checked above");
+                let functions = curve.square_function().unwrap();
                 match functions {
                     Function::U64Square(llc_func, nasm_func, cryptopt_func) => {
                         let labels = curve.square_labels();
+                        let label_tuple = (labels.display(0), labels.display(1), labels.display(2));
                         let (gas_stats, nasm_stats, cryptopt_stats) =
                             measure_u64_square_functions_interleaved_enhanced(
                                 bounds,
@@ -264,33 +276,9 @@ fn run_measurements(curve: CurveType, operation: &str, repeats: usize) {
                                 nasm_func,
                                 cryptopt_func,
                                 &config,
-                                labels.display,
+                                label_tuple,
                             );
-
-                        gas_medians.push(gas_stats.median);
-                        nasm_medians.push(nasm_stats.median);
-                        cryptopt_medians.push(cryptopt_stats.median);
-
-                        println!(
-                            "Run {} - {}: {} cycles, {}: {} cycles, {}: {} cycles",
-                            run,
-                            labels.display.0,
-                            gas_stats.median,
-                            labels.display.1,
-                            nasm_stats.median,
-                            labels.display.2,
-                            cryptopt_stats.median
-                        );
-                        println!(
-                            "Quality - {}: {}, {}: {}, {}: {}",
-                            labels.display.0,
-                            gas_stats.quality_assessment(),
-                            labels.display.1,
-                            nasm_stats.quality_assessment(),
-                            labels.display.2,
-                            cryptopt_stats.quality_assessment()
-                        );
-                        summary_labels = labels;
+                        record_run(labels, vec![gas_stats, nasm_stats, cryptopt_stats], run);
                     }
                     Function::U64SquareFive(
                         llc_func,
@@ -299,6 +287,7 @@ fn run_measurements(curve: CurveType, operation: &str, repeats: usize) {
                         hand_nasm_func,
                         cryptopt_func,
                     ) => {
+                        let labels = curve.square_labels();
                         let (gas_stats, nasm_stats, hand_stats, hand_nasm_stats, cryptopt_stats) =
                             measure_u64_square_functions_interleaved_enhanced_five(
                                 bounds,
@@ -310,22 +299,16 @@ fn run_measurements(curve: CurveType, operation: &str, repeats: usize) {
                                 cryptopt_func,
                                 &config,
                             );
-
-                        gas_medians.push(gas_stats.median);
-                        nasm_medians.push(nasm_stats.median);
-                        hand_medians.push(hand_stats.median);
-                        hand_nasm_medians.push(hand_nasm_stats.median);
-                        cryptopt_medians.push(cryptopt_stats.median);
-
-                        println!("Run {} - GAS: {} cycles, NASM: {} cycles, Hand: {} cycles, Hand-NASM: {} cycles, CryptOpt: {} cycles",
-                                run, gas_stats.median, nasm_stats.median, hand_stats.median, hand_nasm_stats.median, cryptopt_stats.median);
-                        println!(
-                            "Quality - GAS: {}, NASM: {}, Hand: {}, Hand-NASM: {}, CryptOpt: {}",
-                            gas_stats.quality_assessment(),
-                            nasm_stats.quality_assessment(),
-                            hand_stats.quality_assessment(),
-                            hand_nasm_stats.quality_assessment(),
-                            cryptopt_stats.quality_assessment()
+                        record_run(
+                            labels,
+                            vec![
+                                gas_stats,
+                                nasm_stats,
+                                hand_stats,
+                                hand_nasm_stats,
+                                cryptopt_stats,
+                            ],
+                            run,
                         );
                     }
                     _ => {
@@ -342,231 +325,89 @@ fn run_measurements(curve: CurveType, operation: &str, repeats: usize) {
         println!();
     }
 
-    let gas_mom = calculate_median(gas_medians.clone());
-    let nasm_mom = calculate_median(nasm_medians.clone());
-    let hand_mom = if !hand_medians.is_empty() {
-        Some(calculate_median(hand_medians.clone()))
-    } else {
-        None
-    };
-    let hand_nasm_mom = if !hand_nasm_medians.is_empty() {
-        Some(calculate_median(hand_nasm_medians.clone()))
-    } else {
-        None
-    };
-    let cryptopt_mom = calculate_median(cryptopt_medians.clone());
+    let medians_of_medians: Vec<u64> = (0..summary_labels.len())
+        .map(|idx| calculate_median(variant_medians[idx].clone()))
+        .collect();
 
     println!("=== Summary Across {} Run(s) ===", repeats);
-    println!(
-        "  Median of medians - {}: {} cycles",
-        summary_labels.display.0, gas_mom
-    );
-    println!(
-        "  Median of medians - {}: {} cycles",
-        summary_labels.display.1, nasm_mom
-    );
-    println!(
-        "  Median of medians - {}: {} cycles",
-        summary_labels.display.2, cryptopt_mom
-    );
-    if let Some(hm) = hand_mom {
-        println!("  Median of medians - Hand: {} cycles", hm);
-    }
-    if let Some(hnm) = hand_nasm_mom {
-        println!("  Median of medians - Hand-NASM: {} cycles", hnm);
+    for idx in 0..summary_labels.len() {
+        println!(
+            "  Median of medians - {}: {} cycles",
+            summary_labels.display(idx),
+            medians_of_medians[idx]
+        );
     }
 
     println!();
     println!("Relative speedups:");
-    let diff_gas = ((gas_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-    let diff_nasm = ((nasm_mom as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-    println!(
-        "  CryptOpt vs {}: {:+.2}% ({} vs {} cycles)",
-        summary_labels.short.0, diff_gas, cryptopt_mom, gas_mom
-    );
-    println!(
-        "  CryptOpt vs {}: {:+.2}% ({} vs {} cycles)",
-        summary_labels.short.1, diff_nasm, cryptopt_mom, nasm_mom
-    );
-    if let Some(hm) = hand_mom {
-        let diff_hand = ((hm as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
+    let cryptopt_idx = summary_labels.len() - 1;
+    let cryptopt_mom = medians_of_medians[cryptopt_idx];
+    for idx in 0..cryptopt_idx {
+        let diff =
+            ((medians_of_medians[idx] as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
         println!(
-            "  CryptOpt vs Hand: {:+.2}% ({} vs {} cycles)",
-            diff_hand, cryptopt_mom, hm
-        );
-    }
-    if let Some(hnm) = hand_nasm_mom {
-        let diff_hand_nasm = ((hnm as f64 - cryptopt_mom as f64) / cryptopt_mom as f64) * 100.0;
-        println!(
-            "  CryptOpt vs Hand-NASM: {:+.2}% ({} vs {} cycles)",
-            diff_hand_nasm, cryptopt_mom, hnm
+            "  {} vs {}: {:+.2}% ({} vs {} cycles)",
+            summary_labels.short(cryptopt_idx),
+            summary_labels.short(idx),
+            diff,
+            cryptopt_mom,
+            medians_of_medians[idx]
         );
     }
 
     println!();
     println!("Measurement Stability Analysis:");
-    let gas_stats_final = MeasurementStats::from_measurements(&gas_medians);
-    let nasm_stats_final = MeasurementStats::from_measurements(&nasm_medians);
-    let hand_stats_final = if !hand_medians.is_empty() {
-        Some(MeasurementStats::from_measurements(&hand_medians))
-    } else {
-        None
-    };
-    let hand_nasm_stats_final = if !hand_nasm_medians.is_empty() {
-        Some(MeasurementStats::from_measurements(&hand_nasm_medians))
-    } else {
-        None
-    };
-    let cryptopt_stats_final = MeasurementStats::from_measurements(&cryptopt_medians);
-
-    println!(
-        "  {}: CV = {:.3}% ({})",
-        summary_labels.display.0,
-        gas_stats_final.coefficient_of_variation * 100.0,
-        gas_stats_final.quality_assessment()
-    );
-    println!(
-        "  {}: CV = {:.3}% ({})",
-        summary_labels.display.1,
-        nasm_stats_final.coefficient_of_variation * 100.0,
-        nasm_stats_final.quality_assessment()
-    );
-    println!(
-        "  {}: CV = {:.3}% ({})",
-        summary_labels.display.2,
-        cryptopt_stats_final.coefficient_of_variation * 100.0,
-        cryptopt_stats_final.quality_assessment()
-    );
-    if let Some(hs) = &hand_stats_final {
+    let final_stats: Vec<MeasurementStats> = variant_medians
+        .iter()
+        .map(|values| MeasurementStats::from_measurements(values))
+        .collect();
+    for idx in 0..summary_labels.len() {
+        let stats = &final_stats[idx];
         println!(
-            "  Hand-optimised GAS: CV = {:.3}% ({})",
-            hs.coefficient_of_variation * 100.0,
-            hs.quality_assessment()
-        );
-    }
-    if let Some(hns) = &hand_nasm_stats_final {
-        println!(
-            "  Hand-optimised NASM: CV = {:.3}% ({})",
-            hns.coefficient_of_variation * 100.0,
-            hns.quality_assessment()
+            "  {}: CV = {:.3}% ({})",
+            summary_labels.display(idx),
+            stats.coefficient_of_variation * 100.0,
+            stats.quality_assessment()
         );
     }
 
     println!();
     println!("Detailed Statistics (across {} runs):", repeats);
-    println!("  {}:", summary_labels.display.0);
-    println!("    Mean: {:.2} cycles", gas_stats_final.mean);
-    println!("    Median: {} cycles", gas_stats_final.median);
-    println!("    Std Dev: {:.2} cycles", gas_stats_final.std_dev);
-    println!(
-        "    95% CI: [{:.2}, {:.2}] cycles",
-        gas_stats_final.confidence_interval_95.0, gas_stats_final.confidence_interval_95.1
-    );
-    println!("  {}:", summary_labels.display.1);
-    println!("    Mean: {:.2} cycles", nasm_stats_final.mean);
-    println!("    Median: {} cycles", nasm_stats_final.median);
-    println!("    Std Dev: {:.2} cycles", nasm_stats_final.std_dev);
-    println!(
-        "    95% CI: [{:.2}, {:.2}] cycles",
-        nasm_stats_final.confidence_interval_95.0, nasm_stats_final.confidence_interval_95.1
-    );
-    println!("  {}:", summary_labels.display.2);
-    println!("    Mean: {:.2} cycles", cryptopt_stats_final.mean);
-    println!("    Median: {} cycles", cryptopt_stats_final.median);
-    println!("    Std Dev: {:.2} cycles", cryptopt_stats_final.std_dev);
-    println!(
-        "    95% CI: [{:.2}, {:.2}] cycles",
-        cryptopt_stats_final.confidence_interval_95.0,
-        cryptopt_stats_final.confidence_interval_95.1
-    );
-    if let Some(hs) = &hand_stats_final {
-        println!("  Hand-optimised GAS:");
-        println!("    Mean: {:.2} cycles", hs.mean);
-        println!("    Median: {} cycles", hs.median);
-        println!("    Std Dev: {:.2} cycles", hs.std_dev);
+    for idx in 0..summary_labels.len() {
+        let stats = &final_stats[idx];
+        println!("  {}:", summary_labels.display(idx));
+        println!("    Mean: {:.2} cycles", stats.mean);
+        println!("    Median: {} cycles", stats.median);
+        println!("    Std Dev: {:.2} cycles", stats.std_dev);
         println!(
             "    95% CI: [{:.2}, {:.2}] cycles",
-            hs.confidence_interval_95.0, hs.confidence_interval_95.1
-        );
-    }
-    if let Some(hns) = &hand_nasm_stats_final {
-        println!("  Hand-optimised NASM:");
-        println!("    Mean: {:.2} cycles", hns.mean);
-        println!("    Median: {} cycles", hns.median);
-        println!("    Std Dev: {:.2} cycles", hns.std_dev);
-        println!(
-            "    95% CI: [{:.2}, {:.2}] cycles",
-            hns.confidence_interval_95.0, hns.confidence_interval_95.1
+            stats.confidence_interval_95.0, stats.confidence_interval_95.1
         );
     }
 
     println!();
     println!("Statistical Significance Assessment:");
-    if gas_stats_final.confidence_interval_95.1 < cryptopt_stats_final.confidence_interval_95.0 {
-        println!(
-            "  {} faster than {} (95% CI non-overlapping)",
-            summary_labels.short.0, summary_labels.short.2
-        );
-    } else if cryptopt_stats_final.confidence_interval_95.1
-        < gas_stats_final.confidence_interval_95.0
-    {
-        println!(
-            "  {} is faster than {} (95% CI non-overlapping)",
-            summary_labels.short.2, summary_labels.short.0
-        );
-    } else {
-        println!(
-            "  No significant difference between {} and {} (95% CI overlapping)",
-            summary_labels.short.0, summary_labels.short.2
-        );
-    }
-
-    if nasm_stats_final.confidence_interval_95.1 < cryptopt_stats_final.confidence_interval_95.0 {
-        println!(
-            "  {} is faster than {} (95% CI non-overlapping)",
-            summary_labels.short.1, summary_labels.short.2
-        );
-    } else if cryptopt_stats_final.confidence_interval_95.1
-        < nasm_stats_final.confidence_interval_95.0
-    {
-        println!(
-            "  {} is faster than {} (95% CI non-overlapping)",
-            summary_labels.short.2, summary_labels.short.1
-        );
-    } else {
-        println!(
-            "  No difference between {} and {} (95% CI overlapping)",
-            summary_labels.short.1, summary_labels.short.2
-        );
-    }
-
-    if let Some(hs) = &hand_stats_final {
-        if hs.confidence_interval_95.1 < cryptopt_stats_final.confidence_interval_95.0 {
+    let cryptopt_stats = &final_stats[cryptopt_idx];
+    for idx in 0..cryptopt_idx {
+        let baseline_stats = &final_stats[idx];
+        if baseline_stats.confidence_interval_95.1 < cryptopt_stats.confidence_interval_95.0 {
             println!(
-                "  Hand-optimised GAS is faster than CryptOpt (95% CI non-overlapping)"
+                "  {} faster than {} (95% CI non-overlapping)",
+                summary_labels.short(idx),
+                summary_labels.short(cryptopt_idx)
             );
-        } else if cryptopt_stats_final.confidence_interval_95.1 < hs.confidence_interval_95.0 {
+        } else if cryptopt_stats.confidence_interval_95.1 < baseline_stats.confidence_interval_95.0
+        {
             println!(
-                "  CryptOpt is faster than Hand-optimised GAS (95% CI non-overlapping)"
+                "  {} is faster than {} (95% CI non-overlapping)",
+                summary_labels.short(cryptopt_idx),
+                summary_labels.short(idx)
             );
         } else {
             println!(
-                "  No difference between Hand-optimised GAS and CryptOpt (95% CI overlapping)"
-            );
-        }
-    }
-    if let Some(hns) = &hand_nasm_stats_final {
-        if hns.confidence_interval_95.1 < cryptopt_stats_final.confidence_interval_95.0 {
-            println!(
-                "  Hand-optimised NASM is faster than CryptOpt (95% CI non-overlapping)"
-            );
-        } else if cryptopt_stats_final.confidence_interval_95.1 < hns.confidence_interval_95.0 {
-            println!(
-                "  CryptOpt is faster than Hand-optimised NASM (95% CI non-overlapping)"
-            );
-        } else {
-            println!(
-                "  No difference between Hand-optimised NASM and CryptOpt (95% CI overlapping)"
+                "  No significant difference between {} and {} (95% CI overlapping)",
+                summary_labels.short(idx),
+                summary_labels.short(cryptopt_idx)
             );
         }
     }

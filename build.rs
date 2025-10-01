@@ -899,10 +899,12 @@ fn build_cryptopt_fiat_curve25519_generated() {
     let clang_dir = "src/cryptopt-fiat/fiat-c/clang/curve25519/mul";
     let gcc_square_dir = "src/cryptopt-fiat/fiat-c/gcc/curve25519/square";
     let clang_square_dir = "src/cryptopt-fiat/fiat-c/clang/curve25519/square";
+    let enhanced_mul_dir = "src/cryptopt-fiat/enhanced/fiat_curve25519_carry_mul";
     fs::create_dir_all(gcc_dir).unwrap();
     fs::create_dir_all(clang_dir).unwrap();
     fs::create_dir_all(gcc_square_dir).unwrap();
     fs::create_dir_all(clang_square_dir).unwrap();
+    fs::create_dir_all(enhanced_mul_dir).unwrap();
 
     let wrapper = "src/cryptopt-fiat/fiat-c/wrappers/curve25519_64_mul_wrapper.c";
     let square_wrapper = "src/cryptopt-fiat/fiat-c/wrappers/curve25519_64_square_wrapper.c";
@@ -940,9 +942,12 @@ fn build_cryptopt_fiat_curve25519_generated() {
         .success());
 
     // Paths for Clang baseline
-    let clang_asm = "src/cryptopt-fiat/fiat-c/clang/curve25519/mul/fiat_curve25519_carry_mul_clang.asm";
-    let clang_obj = "src/cryptopt-fiat/fiat-c/clang/curve25519/mul/fiat_curve25519_carry_mul_clang.o";
-    let clang_lib = "src/cryptopt-fiat/fiat-c/clang/curve25519/mul/libfiat_curve25519_carry_mul_clang.a";
+    let clang_asm =
+        "src/cryptopt-fiat/fiat-c/clang/curve25519/mul/fiat_curve25519_carry_mul_clang.asm";
+    let clang_obj =
+        "src/cryptopt-fiat/fiat-c/clang/curve25519/mul/fiat_curve25519_carry_mul_clang.o";
+    let clang_lib =
+        "src/cryptopt-fiat/fiat-c/clang/curve25519/mul/libfiat_curve25519_carry_mul_clang.a";
 
     // Generate Intel-syntax assembly using Clang, then assemble and archive
     assert!(Command::new("clang")
@@ -984,10 +989,28 @@ fn build_cryptopt_fiat_curve25519_generated() {
         "0x18000000000000"
     );
 
+    // Enhanced CryptOpt assembly variant (manual tweaks)
+    let enhanced_mul_asm = "src/cryptopt-fiat/enhanced/fiat_curve25519_carry_mul/x1.asm";
+    let enhanced_mul_obj = "src/cryptopt-fiat/enhanced/fiat_curve25519_carry_mul/x1.o";
+    let enhanced_mul_lib =
+        "src/cryptopt-fiat/enhanced/fiat_curve25519_carry_mul/libfiat_curve25519_carry_mul_enhanced.a";
+    assert!(Command::new("nasm")
+        .args(&["-f", "elf64", enhanced_mul_asm, "-o", enhanced_mul_obj])
+        .status()
+        .unwrap()
+        .success());
+    assert!(Command::new("ar")
+        .args(&["rcs", enhanced_mul_lib, enhanced_mul_obj])
+        .status()
+        .unwrap()
+        .success());
+
     // ---------- SQUARE ----------
     // GCC baseline for carry_square
-    let gcc_square_asm = "src/cryptopt-fiat/fiat-c/gcc/curve25519/square/fiat_curve25519_carry_square_gcc.asm";
-    let gcc_square_obj = "src/cryptopt-fiat/fiat-c/gcc/curve25519/square/fiat_curve25519_carry_square_gcc.o";
+    let gcc_square_asm =
+        "src/cryptopt-fiat/fiat-c/gcc/curve25519/square/fiat_curve25519_carry_square_gcc.asm";
+    let gcc_square_obj =
+        "src/cryptopt-fiat/fiat-c/gcc/curve25519/square/fiat_curve25519_carry_square_gcc.o";
     let gcc_square_lib =
         "src/cryptopt-fiat/fiat-c/gcc/curve25519/square/libfiat_curve25519_carry_square_gcc.a";
     assert!(Command::new("gcc")
@@ -1094,7 +1117,8 @@ fn build_cryptopt_fiat_curve25519_solinas() {
     // GCC baseline for mul
     let gcc_mul_asm =
         "src/cryptopt-fiat/fiat-c/gcc/curve25519_solinas/mul/fiat_curve25519_solinas_mul_gcc.asm";
-    let gcc_mul_obj = "src/cryptopt-fiat/fiat-c/gcc/curve25519_solinas/mul/fiat_curve25519_solinas_mul_gcc.o";
+    let gcc_mul_obj =
+        "src/cryptopt-fiat/fiat-c/gcc/curve25519_solinas/mul/fiat_curve25519_solinas_mul_gcc.o";
     let gcc_mul_lib =
         "src/cryptopt-fiat/fiat-c/gcc/curve25519_solinas/mul/libfiat_curve25519_solinas_mul_gcc.a";
     assert!(Command::new("gcc")
@@ -3843,11 +3867,18 @@ fn main() {
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/gcc/curve25519/square");
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/curve25519/square");
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/generated/fiat-amd64/fiat_curve25519_carry_square");
+    println!("cargo:rustc-link-search=native=src/cryptopt-fiat/enhanced/fiat_curve25519_carry_mul");
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/gcc/curve25519_solinas/mul");
-    println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/curve25519_solinas/mul");
+    println!(
+        "cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/curve25519_solinas/mul"
+    );
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/generated/fiat-amd64/fiat_curve25519_solinas_mul");
-    println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/gcc/curve25519_solinas/square");
-    println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/curve25519_solinas/square");
+    println!(
+        "cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/gcc/curve25519_solinas/square"
+    );
+    println!(
+        "cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/curve25519_solinas/square"
+    );
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/generated/fiat-amd64/fiat_curve25519_solinas_square");
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/gcc/p224/mul");
     println!("cargo:rustc-link-search=native=src/cryptopt-fiat/fiat-c/clang/p224/mul");
@@ -4058,6 +4089,7 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_CryptOpt");
     println!("cargo:rustc-link-lib=static=fiat_curve25519_carry_mul_gcc");
     println!("cargo:rustc-link-lib=static=fiat_curve25519_carry_mul_clang");
+    println!("cargo:rustc-link-lib=static=fiat_curve25519_carry_mul_enhanced");
     println!("cargo:rustc-link-lib=static=fiat_curve25519_carry_mul_ratio12750");
 
     // Fiat C Curve25519 (square)

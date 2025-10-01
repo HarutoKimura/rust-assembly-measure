@@ -1,4 +1,4 @@
-use core::arch::x86_64::{_mm_mfence, _rdtsc};
+use core::arch::x86_64::{_mm_lfence, _mm_mfence, _rdtsc};
 use rand::{seq::SliceRandom, thread_rng, Rng};
 
 use crate::curve_spec::BoundSpec;
@@ -36,7 +36,7 @@ pub fn calculate_median(mut samples: Vec<u64>) -> u64 {
 }
 
 fn measure_one_batch_u64_mul_precise(
-    func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
     out: &mut [u64],
     in0: &[u64],
     in1: &[u64],
@@ -73,6 +73,7 @@ fn measure_one_batch_u64_square(
 fn precise_rdtsc() -> u64 {
     unsafe {
         _mm_mfence();
+        _mm_lfence();
         _rdtsc()
     }
 }
@@ -80,9 +81,9 @@ fn precise_rdtsc() -> u64 {
 pub fn measure_u64_mul_functions_interleaved_enhanced(
     bounds: BoundSpec,
     size: usize,
-    llc_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
-    nasm_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
-    cryptopt_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    llc_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    nasm_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    cryptopt_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
     config: &MeasurementConfig,
     labels: (&str, &str, &str),
 ) -> (MeasurementStats, MeasurementStats, MeasurementStats) {
@@ -179,9 +180,13 @@ pub fn measure_u64_mul_functions_interleaved_enhanced(
             }
         }
 
-        let batch_max = gas_batches[b].max(nasm_batches[b]).max(crypt_batches[b]);
-        let next =
-            ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
+        let baseline_cycles = gas_batches[b];
+        let next = if baseline_cycles > 0 {
+            ((config.cycle_goal as f64 / baseline_cycles as f64) * batch_size as f64).ceil()
+                as usize
+        } else {
+            batch_size
+        };
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
@@ -197,6 +202,144 @@ pub fn measure_u64_mul_functions_interleaved_enhanced(
     let crypt_stats = MeasurementStats::from_measurements(&to_per_call(crypt_batches));
 
     (gas_stats, nasm_stats, crypt_stats)
+}
+
+pub fn measure_u64_mul_functions_interleaved_enhanced_four(
+    bounds: BoundSpec,
+    size: usize,
+    llc_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    nasm_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    enhanced_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    cryptopt_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    config: &MeasurementConfig,
+    labels: (&str, &str, &str, &str),
+) -> (
+    MeasurementStats,
+    MeasurementStats,
+    MeasurementStats,
+    MeasurementStats,
+) {
+    let mut rng = thread_rng();
+    let (label_llc, _, _, _) = labels;
+
+    let mut batch_size = config.initial_batch_size;
+    {
+        let in0 = generate_random_loose_input_u64(bounds, size);
+        let in1 = generate_random_loose_input_u64(bounds, size);
+        let mut out_g = vec![0u64; size];
+        let mut out_n = vec![0u64; size];
+        let mut out_e = vec![0u64; size];
+        let mut out_c = vec![0u64; size];
+        let calib_bs = batch_size;
+        let cg = measure_one_batch_u64_mul_precise(llc_func, &mut out_g, &in0, &in1, calib_bs);
+        let _ = measure_one_batch_u64_mul_precise(nasm_func, &mut out_n, &in0, &in1, calib_bs);
+        let _ = measure_one_batch_u64_mul_precise(enhanced_func, &mut out_e, &in0, &in1, calib_bs);
+        let _ = measure_one_batch_u64_mul_precise(cryptopt_func, &mut out_c, &in0, &in1, calib_bs);
+        batch_size = calculate_optimal_batch_size(
+            cg,
+            calib_bs,
+            config.cycle_goal,
+            config.min_batch_size,
+            config.max_batch_size,
+        );
+        let per_call_est = cg as f64 / calib_bs as f64;
+        println!(
+            "Calibrated shared batch size ({} ref): {} ({} batch cycles: {}, ~{:.2} cycles/call at bs={})",
+            label_llc,
+            batch_size,
+            label_llc,
+            cg,
+            per_call_est,
+            calib_bs
+        );
+    }
+
+    println!(
+        "Collecting {} batches with interleaved randomized order...",
+        config.num_batches
+    );
+
+    let mut gas_batches = vec![0u64; config.num_batches];
+    let mut nasm_batches = vec![0u64; config.num_batches];
+    let mut enhanced_batches = vec![0u64; config.num_batches];
+    let mut crypt_batches = vec![0u64; config.num_batches];
+    let mut used_bs = vec![0usize; config.num_batches];
+
+    for b in 0..config.num_batches {
+        let in0 = generate_random_loose_input_u64(bounds, size);
+        let in1 = generate_random_loose_input_u64(bounds, size);
+        let mut out_g = vec![0u64; size];
+        let mut out_n = vec![0u64; size];
+        let mut out_e = vec![0u64; size];
+        let mut out_c = vec![0u64; size];
+
+        let mut order = [0usize, 1usize, 2usize, 3usize];
+        order.shuffle(&mut rng);
+
+        used_bs[b] = batch_size;
+        for &which in &order {
+            match which {
+                0 => {
+                    gas_batches[b] = measure_one_batch_u64_mul_precise(
+                        llc_func, &mut out_g, &in0, &in1, batch_size,
+                    );
+                }
+                1 => {
+                    nasm_batches[b] = measure_one_batch_u64_mul_precise(
+                        nasm_func, &mut out_n, &in0, &in1, batch_size,
+                    );
+                }
+                2 => {
+                    enhanced_batches[b] = measure_one_batch_u64_mul_precise(
+                        enhanced_func,
+                        &mut out_e,
+                        &in0,
+                        &in1,
+                        batch_size,
+                    );
+                }
+                3 => {
+                    crypt_batches[b] = measure_one_batch_u64_mul_precise(
+                        cryptopt_func,
+                        &mut out_c,
+                        &in0,
+                        &in1,
+                        batch_size,
+                    );
+                }
+                _ => unreachable!(),
+            }
+        }
+
+        if std::env::var("CHECK_OUTPUTS").ok().as_deref() == Some("1") {
+            if out_g != out_n || out_g != out_e || out_g != out_c {
+                eprintln!("Output mismatch detected in batch {} (four mul)", b + 1);
+            }
+        }
+
+        let baseline_cycles = gas_batches[b];
+        let next = if baseline_cycles > 0 {
+            ((config.cycle_goal as f64 / baseline_cycles as f64) * batch_size as f64).ceil()
+                as usize
+        } else {
+            batch_size
+        };
+        batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
+    }
+
+    let to_per_call = |v: Vec<u64>| -> Vec<u64> {
+        v.iter()
+            .zip(&used_bs)
+            .map(|(&cycles, &bs)| cycles / bs as u64)
+            .collect()
+    };
+
+    let gas_stats = MeasurementStats::from_measurements(&to_per_call(gas_batches));
+    let nasm_stats = MeasurementStats::from_measurements(&to_per_call(nasm_batches));
+    let enhanced_stats = MeasurementStats::from_measurements(&to_per_call(enhanced_batches));
+    let crypt_stats = MeasurementStats::from_measurements(&to_per_call(crypt_batches));
+
+    (gas_stats, nasm_stats, enhanced_stats, crypt_stats)
 }
 
 pub fn measure_usize_mul_functions_interleaved_enhanced(
@@ -297,9 +440,13 @@ pub fn measure_usize_mul_functions_interleaved_enhanced(
             }
         }
 
-        let batch_max = gas_batches[b].max(nasm_batches[b]).max(crypt_batches[b]);
-        let next =
-            ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
+        let baseline_cycles = gas_batches[b];
+        let next = if baseline_cycles > 0 {
+            ((config.cycle_goal as f64 / baseline_cycles as f64) * batch_size as f64).ceil()
+                as usize
+        } else {
+            batch_size
+        };
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
@@ -344,11 +491,11 @@ fn measure_one_batch_usize_mul_precise(
 pub fn measure_u64_mul_functions_interleaved_enhanced_five(
     bounds: BoundSpec,
     size: usize,
-    llc_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
-    nasm_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
-    hand_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
-    hand_nasm_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
-    cryptopt_func: unsafe extern "C" fn(*const u64, *const u64, *const u64),
+    llc_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    nasm_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    hand_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    hand_nasm_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
+    cryptopt_func: unsafe extern "C" fn(*mut u64, *const u64, *const u64),
     config: &MeasurementConfig,
 ) -> (
     MeasurementStats,
@@ -578,9 +725,13 @@ pub fn measure_u64_square_functions_interleaved_enhanced(
             }
         }
 
-        let batch_max = gas_batches[b].max(nasm_batches[b]).max(crypt_batches[b]);
-        let next =
-            ((config.cycle_goal as f64 / batch_max as f64) * batch_size as f64).ceil() as usize;
+        let baseline_cycles = gas_batches[b];
+        let next = if baseline_cycles > 0 {
+            ((config.cycle_goal as f64 / baseline_cycles as f64) * batch_size as f64).ceil()
+                as usize
+        } else {
+            batch_size
+        };
         batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
     }
 
