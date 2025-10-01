@@ -41,6 +41,12 @@ pub enum Function {
         unsafe extern "C" fn(*mut u64, *const u64),
         unsafe extern "C" fn(*mut u64, *const u64),
     ),
+    U64SquareFour(
+        unsafe extern "C" fn(*mut u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64),
+        unsafe extern "C" fn(*mut u64, *const u64),
+    ),
     UsizeMul(
         unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
         unsafe extern "C" fn(*mut usize, usize, *const usize, usize, *const usize, usize),
@@ -81,7 +87,6 @@ impl FunctionLabels {
         }
     }
 
-    #[allow(dead_code)]
     pub const fn new4(
         display: (&'static str, &'static str, &'static str, &'static str),
         short: (&'static str, &'static str, &'static str, &'static str),
@@ -367,9 +372,10 @@ impl CurveType {
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul_enhanced,
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_mul,
                 ),
-                square: Some(Function::U64Square(
+                square: Some(Function::U64SquareFour(
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square_clang,
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square_gcc,
+                    openssl_curve25519::open_ssl_curve25519_hand_optmised_fe51_square,
                     cryptopt_fiat_curve25519_generated::fiat_curve25519_carry_square,
                 )),
                 mul_labels: FunctionLabels::new5(
@@ -382,10 +388,14 @@ impl CurveType {
                     ),
                     ("Clang", "GCC", "Hand", "Enhanced", "CryptOpt"),
                 ),
-                square_labels: baseline_labels(
-                    "Clang Baseline",
-                    "GCC Baseline",
-                    "CryptOpt Ratio12993",
+                square_labels: FunctionLabels::new4(
+                    (
+                        "Clang Baseline",
+                        "GCC Baseline",
+                        "OpenSSL Hand-Optimised",
+                        "CryptOpt Ratio12993",
+                    ),
+                    ("Clang", "GCC", "Hand", "CryptOpt"),
                 ),
             },
             CurveType::CryptoptFiatCurve25519Solinas => CurveSpec {

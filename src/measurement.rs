@@ -705,6 +705,104 @@ pub fn measure_u64_square_functions_interleaved_enhanced(
     (gas_stats, nasm_stats, crypt_stats)
 }
 
+pub fn measure_u64_square_functions_interleaved_enhanced_four(
+    bounds: BoundSpec,
+    size: usize,
+    funcs: [unsafe extern "C" fn(*mut u64, *const u64); 4],
+    config: &MeasurementConfig,
+    labels: (&str, &str, &str, &str),
+) -> (
+    MeasurementStats,
+    MeasurementStats,
+    MeasurementStats,
+    MeasurementStats,
+) {
+    let mut rng = thread_rng();
+    let (label_baseline, _, _, _) = labels;
+
+    let mut batch_size = config.initial_batch_size;
+    {
+        let input = generate_random_loose_input_u64(bounds, size);
+        let mut outs: Vec<Vec<u64>> = (0..4).map(|_| vec![0u64; size]).collect();
+        let calib_bs = batch_size;
+        let baseline_cycles =
+            measure_one_batch_u64_square(funcs[0], &mut outs[0], &input, calib_bs);
+        for idx in 1..4 {
+            let _ = measure_one_batch_u64_square(funcs[idx], &mut outs[idx], &input, calib_bs);
+        }
+        batch_size = calculate_optimal_batch_size(
+            baseline_cycles,
+            calib_bs,
+            config.cycle_goal,
+            config.min_batch_size,
+            config.max_batch_size,
+        );
+        let per_call_est = baseline_cycles as f64 / calib_bs as f64;
+        println!(
+            "Calibrated shared batch size ({} ref): {} ({} batch cycles: {}, ~{:.2} cycles/call at bs={})",
+            label_baseline, batch_size, label_baseline, baseline_cycles, per_call_est, calib_bs
+        );
+    }
+
+    println!(
+        "Collecting {} batches with interleaved randomized order...",
+        config.num_batches
+    );
+
+    let mut all_batches = vec![vec![0u64; config.num_batches]; 4];
+    let mut used_bs = vec![0usize; config.num_batches];
+
+    for b in 0..config.num_batches {
+        let input = generate_random_loose_input_u64(bounds, size);
+        let mut outputs: Vec<Vec<u64>> = (0..4).map(|_| vec![0u64; size]).collect();
+
+        let mut order = [0usize, 1usize, 2usize, 3usize];
+        order.shuffle(&mut rng);
+        used_bs[b] = batch_size;
+
+        for &which in &order {
+            all_batches[which][b] =
+                measure_one_batch_u64_square(funcs[which], &mut outputs[which], &input, batch_size);
+        }
+
+        if std::env::var("CHECK_OUTPUTS").ok().as_deref() == Some("1") {
+            for idx in 1..4 {
+                if outputs[0] != outputs[idx] {
+                    eprintln!("Output mismatch detected in batch {} (four square)", b + 1);
+                    break;
+                }
+            }
+        }
+
+        let baseline_cycles = all_batches[0][b];
+        let next = if baseline_cycles > 0 {
+            ((config.cycle_goal as f64 / baseline_cycles as f64) * batch_size as f64).ceil()
+                as usize
+        } else {
+            batch_size
+        };
+        batch_size = next.max(config.min_batch_size).min(config.max_batch_size);
+    }
+
+    let mut stats_vec = Vec::with_capacity(4);
+    for cycles in all_batches.into_iter() {
+        let per_call: Vec<u64> = cycles
+            .iter()
+            .zip(&used_bs)
+            .map(|(&total, &bs)| total / bs as u64)
+            .collect();
+        stats_vec.push(MeasurementStats::from_measurements(&per_call));
+    }
+
+    let mut iter = stats_vec.into_iter();
+    (
+        iter.next().unwrap(),
+        iter.next().unwrap(),
+        iter.next().unwrap(),
+        iter.next().unwrap(),
+    )
+}
+
 pub fn measure_u64_square_functions_interleaved_enhanced_five(
     bounds: BoundSpec,
     size: usize,

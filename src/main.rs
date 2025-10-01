@@ -12,6 +12,7 @@ use crate::measurement::{
     measure_u64_mul_functions_interleaved_enhanced_four,
     measure_u64_square_functions_interleaved_enhanced,
     measure_u64_square_functions_interleaved_enhanced_five,
+    measure_u64_square_functions_interleaved_enhanced_four,
     measure_usize_mul_functions_interleaved_enhanced,
 };
 use crate::precise_timing::{MeasurementConfig, MeasurementStats};
@@ -290,6 +291,29 @@ fn run_measurements(curve: CurveType, operation: &str, repeats: usize) {
                                 label_tuple,
                             );
                         record_run(labels, vec![gas_stats, nasm_stats, cryptopt_stats], run);
+                    }
+                    Function::U64SquareFour(llc_func, nasm_func, hand_func, cryptopt_func) => {
+                        let labels = curve.square_labels();
+                        let label_tuple = (
+                            labels.display(0),
+                            labels.display(1),
+                            labels.display(2),
+                            labels.display(3),
+                        );
+                        let functions = [llc_func, nasm_func, hand_func, cryptopt_func];
+                        let (baseline_stats, second_stats, third_stats, fourth_stats) =
+                            measure_u64_square_functions_interleaved_enhanced_four(
+                                bounds,
+                                size,
+                                functions,
+                                &config,
+                                label_tuple,
+                            );
+                        record_run(
+                            labels,
+                            vec![baseline_stats, second_stats, third_stats, fourth_stats],
+                            run,
+                        );
                     }
                     Function::U64SquareFive(
                         llc_func,
