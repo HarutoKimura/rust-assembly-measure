@@ -56,6 +56,42 @@ CARGO_BINSEC_VALIDATE=1 cargo build
 CARGO_DUDECT_VALIDATE=1 cargo build
 ```
 
+### Dynamic API quickstart
+
+Build the shared library with the desired assembly implementation:
+
+```
+CARGO_DYNAMIC_TARGETS=src/rust/curve25519/llc/mul/rust_fiat_curve25519_carry_mul_vec.asm \
+cargo build --features dynamic-api --lib --release
+```
+
+Optionally include a C reference implementation compiled into the same DSO:
+
+```
+CARGO_BASELINE_C=src/cryptopt-fiat/fiat-c/wrappers/curve25519_64_mul_wrapper.c \
+CARGO_BASELINE_SYMBOL=fiat_curve25519_carry_mul_baseline \
+cargo build --features dynamic-api --lib --release
+```
+
+Verify that the expected symbols are exported:
+
+```
+nm -D target/release/librust_assembly_measure.so | grep -E 'rust_fiat_curve|fiat_curve'
+```
+
+Run a one-shot comparison directly from the CLI:
+
+```
+cargo run --features dynamic-api -- --dynamic \
+  src/rust/curve25519/llc/mul/rust_fiat_curve25519_carry_mul_vec.asm \
+  src/cryptopt-fiat/fiat-c/clang/curve25519/mul/fiat_curve25519_carry_mul_clang.asm \
+  --batch-size 500 --batches 31 --cpu 3
+```
+
+This will compile both implementations into DSOs, measure them with identical runtime settings, and print the median cycles per call.
+
+See `examples/load_and_call.rs` for a small loader that calls into the resulting `.so` using the runtime API.
+
 ### Benchmarking (Reproducible)
 
 #### 1) Prepare environment (recommended)

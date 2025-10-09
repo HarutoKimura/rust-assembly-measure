@@ -1,4 +1,8 @@
+#[cfg(all(feature = "dynamic-api", target_arch = "x86_64"))]
+use rust_assembly_measure::dynamic_cli;
 use std::env;
+#[cfg(all(feature = "dynamic-api", target_arch = "x86_64"))]
+use std::process;
 
 mod curve_spec;
 mod ffi;
@@ -18,12 +22,30 @@ use crate::measurement::{
 use crate::precise_timing::{MeasurementConfig, MeasurementStats};
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+
+    #[cfg(all(feature = "dynamic-api", target_arch = "x86_64"))]
+    {
+        if let Some(result) = dynamic_cli::maybe_run_dynamic(&args[1..]) {
+            match result {
+                Ok(()) => return,
+                Err(err) => {
+                    eprintln!("dynamic measurement failed: {err}");
+                    process::exit(1);
+                }
+            }
+        }
+    }
+
+    run_legacy(&args);
+}
+
+fn run_legacy(args: &[String]) {
     // Enable output verification by default unless explicitly disabled.
     if env::var("CHECK_OUTPUTS").is_err() {
         env::set_var("CHECK_OUTPUTS", "1");
     }
 
-    let args: Vec<String> = env::args().collect();
     if args.len() < 3 || args.len() > 4 {
         print_usage();
         return;

@@ -4,5 +4,16 @@ version = "0.1.0"
 edition = "2021"
 build = "build.rs"
 
+[lib]
+name = "rust_assembly_measure"
+crate-type = ["cdylib", "rlib"]
+
+[features]
+default = []
+dynamic-api = ["dep:anyhow", "dep:libloading", "dep:libc"]
+
 [dependencies]
 rand = "0.8.5"
+anyhow = { path = "vendor/anyhow", optional = true }
+libloading = { path = "vendor/libloading", optional = true }
+libc = { version = "0.2", optional = true }

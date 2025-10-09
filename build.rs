@@ -1,5 +1,7 @@
+use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::io::Write;
+use std::path::PathBuf;
 use std::process::Command;
 
 // -----------------------------------------------------------------------------
@@ -12,6 +14,543 @@ include!("binsec_integration_new.rs");
 
 // -----------------------------------------------------------------------------
 // Build functions for each curve
+
+fn dynamic_target_specs() -> Vec<String> {
+    std::env::var("CARGO_DYNAMIC_TARGETS")
+        .ok()
+        .map(|raw| {
+            raw.split(',')
+                .map(|s| s.trim())
+                .filter(|s| !s.is_empty())
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default()
+}
+
+struct DynamicTarget {
+    asm_path: PathBuf,
+    symbol: String,
+    signature: FunctionSignature,
+}
+
+#[derive(Clone, Copy)]
+enum FunctionSignature {
+    U64Mul,
+    U64Square,
+}
+
+struct WrapperSpec {
+    public_symbol: String,
+    internal_symbol: String,
+    signature: FunctionSignature,
+}
+
+fn compile_dynamic_targets(specs: &[String]) -> Result<Vec<WrapperSpec>, String> {
+    println!("cargo:rerun-if-env-changed=CARGO_DYNAMIC_TARGETS");
+
+    let mut targets = Vec::new();
+    for spec in specs {
+        targets.push(parse_dynamic_target(spec)?);
+    }
+
+    let mut wrappers = Vec::new();
+    for target in &targets {
+        println!(
+            "cargo:warning=Building dynamic target from {} (symbol {})",
+            target.asm_path.display(),
+            target.symbol
+        );
+        let obj_path = compile_asm_file(&target.asm_path)?;
+        let internal_symbol = format!("{}__asm_impl", target.symbol);
+        rename_symbol_in_object(&obj_path, &target.symbol, &internal_symbol)?;
+        register_link_object(&obj_path)?;
+        println!(
+            "cargo:rustc-link-arg=-Wl,--export-dynamic-symbol={}",
+            target.symbol
+        );
+        wrappers.push(WrapperSpec {
+            public_symbol: target.symbol.clone(),
+            internal_symbol,
+            signature: target.signature,
+        });
+    }
+
+    Ok(wrappers)
+}
+
+struct BaselineTarget {
+    source: PathBuf,
+    symbol: String,
+    signature: FunctionSignature,
+}
+
+fn resolve_baseline_target() -> Result<Option<BaselineTarget>, String> {
+    println!("cargo:rerun-if-env-changed=CARGO_BASELINE_C");
+    println!("cargo:rerun-if-env-changed=CARGO_BASELINE_SYMBOL");
+    println!("cargo:rerun-if-env-changed=CARGO_BASELINE_SIGNATURE");
+
+    let Some(raw_path) = std::env::var_os("CARGO_BASELINE_C") else {
+        return Ok(None);
+    };
+
+    let mut c_path = PathBuf::from(raw_path);
+    if !c_path.is_absolute() {
+        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+            .map_err(|e| format!("Unable to read CARGO_MANIFEST_DIR: {e}"))?;
+        c_path = std::path::Path::new(&manifest_dir).join(c_path);
+    }
+
+    if !c_path.exists() {
+        return Err(format!(
+            "Baseline C source '{}' does not exist",
+            c_path.display()
+        ));
+    }
+
+    let symbol = std::env::var("CARGO_BASELINE_SYMBOL")
+        .map(|s| s.trim().to_string())
+        .unwrap_or_else(|_| {
+            c_path
+                .file_stem()
+                .and_then(|stem| stem.to_str())
+                .map(|s| s.to_string())
+                .unwrap_or_default()
+        });
+
+    if symbol.is_empty() {
+        return Err(format!(
+            "Could not infer baseline symbol name from '{}'; set CARGO_BASELINE_SYMBOL",
+            c_path.display()
+        ));
+    }
+
+    let signature_override = std::env::var("CARGO_BASELINE_SIGNATURE").ok();
+    let signature = parse_signature(signature_override.as_deref(), &c_path)?;
+
+    Ok(Some(BaselineTarget {
+        source: c_path,
+        symbol,
+        signature,
+    }))
+}
+
+fn compile_baseline_target(
+    target: &BaselineTarget,
+    wrappers: &mut Vec<WrapperSpec>,
+) -> Result<(), String> {
+    println!(
+        "cargo:warning=Building baseline from {} (symbol {})",
+        target.source.display(),
+        target.symbol
+    );
+
+    let obj_path = compile_c_file(&target.source)?;
+    let internal_symbol = format!("{}__baseline_impl", target.symbol);
+    rename_symbol_in_object(&obj_path, &target.symbol, &internal_symbol)?;
+    register_link_object(&obj_path)?;
+    println!(
+        "cargo:rustc-link-arg=-Wl,--export-dynamic-symbol={}",
+        target.symbol
+    );
+
+    wrappers.push(WrapperSpec {
+        public_symbol: target.symbol.clone(),
+        internal_symbol,
+        signature: target.signature,
+    });
+
+    Ok(())
+}
+
+fn parse_dynamic_target(spec: &str) -> Result<DynamicTarget, String> {
+    let mut parts = spec.splitn(3, "::");
+    let path_part = parts
+        .next()
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| "Empty target specification".to_string())?;
+    let symbol_override = parts
+        .next()
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string());
+    let signature = parts
+        .next()
+        .filter(|s| !s.is_empty())
+        .map(|s| s.to_string());
+
+    let asm_path = resolve_asm_path(path_part)?;
+    let symbol = if let Some(name) = symbol_override {
+        name
+    } else {
+        infer_symbol_from_asm(&asm_path).ok_or_else(|| {
+            format!(
+                "Failed to infer export symbol from {}. Add '::symbol_name' to the spec.",
+                asm_path.display()
+            )
+        })?
+    };
+
+    let signature = parse_signature(signature.as_deref(), &asm_path)?;
+
+    Ok(DynamicTarget {
+        asm_path,
+        symbol,
+        signature,
+    })
+}
+
+fn parse_signature(
+    input: Option<&str>,
+    asm_path: &std::path::Path,
+) -> Result<FunctionSignature, String> {
+    if let Some(explicit) = input {
+        match explicit.trim().to_ascii_lowercase().as_str() {
+            "mul_u64" | "u64_mul" | "mul64" => return Ok(FunctionSignature::U64Mul),
+            "square_u64" | "u64_square" | "square64" => return Ok(FunctionSignature::U64Square),
+            other => {
+                return Err(format!(
+                    "Unknown signature '{other}'. Supported values: mul_u64, square_u64"
+                ))
+            }
+        }
+    }
+
+    let lowered = asm_path.display().to_string().to_ascii_lowercase();
+    if lowered.contains("/mul/") || lowered.contains("\\mul\\") {
+        return Ok(FunctionSignature::U64Mul);
+    }
+    if lowered.contains("/square/") || lowered.contains("\\square\\") {
+        return Ok(FunctionSignature::U64Square);
+    }
+
+    if let Some(name) = asm_path.file_name().and_then(|n| n.to_str()) {
+        let lowered_name = name.to_ascii_lowercase();
+        if lowered_name.contains("square") {
+            return Ok(FunctionSignature::U64Square);
+        }
+        if lowered_name.contains("mul") {
+            return Ok(FunctionSignature::U64Mul);
+        }
+    }
+
+    Err(format!(
+        "Unable to infer function signature for {}. Append '::mul_u64' or '::square_u64' to the spec.",
+        asm_path.display()
+    ))
+}
+
+fn infer_symbol_from_asm(path: &std::path::Path) -> Option<String> {
+    let contents = fs::read_to_string(path).ok()?;
+    for raw_line in contents.lines() {
+        let line = raw_line.trim();
+        if line.is_empty() {
+            continue;
+        }
+
+        let line = line
+            .split(|c| c == '#' || c == ';')
+            .next()
+            .unwrap_or(line)
+            .trim();
+
+        if line.is_empty() {
+            continue;
+        }
+
+        if line.starts_with(".globl") || line.starts_with(".global") {
+            let mut parts = line.split_whitespace();
+            parts.next(); // skip directive
+            if let Some(symbol) = parts.next() {
+                return Some(symbol.trim().to_string());
+            }
+        } else if line.starts_with("global ") || line.starts_with("GLOBAL ") {
+            let mut remainder = line[6..].trim();
+            if let Some(pos) =
+                remainder.find(|c: char| c == ' ' || c == '\t' || c == ',' || c == ':')
+            {
+                remainder = remainder[..pos].trim();
+            }
+            if !remainder.is_empty() {
+                return Some(remainder.to_string());
+            }
+        }
+    }
+
+    None
+}
+
+fn rename_symbol_in_object(
+    obj_path: &std::path::Path,
+    original: &str,
+    replacement: &str,
+) -> Result<(), String> {
+    if original == replacement {
+        return Ok(());
+    }
+
+    let obj_owned = obj_path
+        .to_str()
+        .ok_or_else(|| format!("Non-UTF-8 path encountered: {}", obj_path.display()))?
+        .to_string();
+    let mapping = format!("{}={}", original, replacement);
+    let status = Command::new("objcopy")
+        .args(&["--redefine-sym", mapping.as_str(), obj_owned.as_str()])
+        .status()
+        .map_err(|e| format!("Failed to spawn objcopy: {e}"))?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        Err(format!(
+            "objcopy failed while renaming {original} -> {replacement} (status {:?})",
+            status.code()
+        ))
+    }
+}
+
+fn emit_wrapper_file(wrappers: &[WrapperSpec]) -> Result<(), String> {
+    let out_dir = std::env::var("OUT_DIR")
+        .map_err(|e| format!("Unable to read OUT_DIR for wrapper generation: {e}"))?;
+    let destination = std::path::Path::new(&out_dir).join("dynamic_wrappers.rs");
+    let mut file = File::create(&destination)
+        .map_err(|e| format!("Failed to create {}: {e}", destination.display()))?;
+
+    writeln!(
+        file,
+        "// Auto-generated wrappers to keep assembly symbols exported in dynamic mode"
+    )
+    .map_err(|e| format!("Failed to write to {}: {e}", destination.display()))?;
+
+    for wrapper in wrappers {
+        match wrapper.signature {
+            FunctionSignature::U64Mul => {
+                writeln!(
+                    file,
+                    "#[no_mangle]\npub unsafe extern \"C\" fn {public}(out: *mut u64, arg1: *const u64, arg2: *const u64) {{\n    extern \"C\" {{\n        fn {internal}(out: *mut u64, arg1: *const u64, arg2: *const u64);\n    }}\n    {internal}(out, arg1, arg2);\n}}\n",
+                    public = wrapper.public_symbol,
+                    internal = wrapper.internal_symbol
+                )
+                .map_err(|e| format!("Failed to write wrapper for {}: {e}", wrapper.public_symbol))?;
+            }
+            FunctionSignature::U64Square => {
+                writeln!(
+                    file,
+                    "#[no_mangle]\npub unsafe extern \"C\" fn {public}(out: *mut u64, arg1: *const u64) {{\n    extern \"C\" {{\n        fn {internal}(out: *mut u64, arg1: *const u64);\n    }}\n    {internal}(out, arg1);\n}}\n",
+                    public = wrapper.public_symbol,
+                    internal = wrapper.internal_symbol
+                )
+                .map_err(|e| format!("Failed to write wrapper for {}: {e}", wrapper.public_symbol))?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn resolve_asm_path(spec: &str) -> Result<PathBuf, String> {
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+        .map_err(|e| format!("Unable to read CARGO_MANIFEST_DIR: {e}"))?;
+    let manifest_path = std::path::Path::new(&manifest_dir);
+
+    let mut candidate = PathBuf::from(spec);
+    if !candidate.is_absolute() {
+        candidate = manifest_path.join(&candidate);
+    }
+    if candidate.exists() {
+        return Ok(candidate);
+    }
+
+    if !spec.ends_with(".asm") {
+        let mut alt = PathBuf::from(spec);
+        alt.set_extension("asm");
+        let alt_path = if alt.is_absolute() {
+            alt
+        } else {
+            manifest_path.join(&alt)
+        };
+        if alt_path.exists() {
+            return Ok(alt_path);
+        }
+    }
+
+    let filename = std::path::Path::new(spec)
+        .file_name()
+        .ok_or_else(|| format!("Unable to derive filename from spec '{spec}'"))?;
+    find_asm_in_src(filename)
+        .ok_or_else(|| format!("Could not locate assembly file matching '{spec}'"))
+}
+
+fn find_asm_in_src(name: &OsStr) -> Option<PathBuf> {
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").ok()?;
+    let search_root = std::path::Path::new(&manifest_dir).join("src");
+    let mut stack = vec![search_root];
+
+    while let Some(dir) = stack.pop() {
+        if let Ok(entries) = fs::read_dir(&dir) {
+            for entry in entries.flatten() {
+                let path = entry.path();
+                if path.is_dir() {
+                    stack.push(path);
+                } else if path.extension().and_then(|ext| ext.to_str()) == Some("asm") {
+                    if path.file_name().map(|n| n == name).unwrap_or(false) {
+                        return Some(path);
+                    }
+                }
+            }
+        }
+    }
+
+    None
+}
+
+fn dynamic_object_output_path(input: &std::path::Path, ext: &str) -> Result<PathBuf, String> {
+    let out_dir = std::env::var("OUT_DIR").map_err(|e| format!("Unable to read OUT_DIR: {e}"))?;
+    let base_out = std::path::Path::new(&out_dir).join("dynamic-objects");
+
+    let manifest_dir = std::env::var("CARGO_MANIFEST_DIR")
+        .map_err(|e| format!("Unable to read CARGO_MANIFEST_DIR: {e}"))?;
+    let manifest_path = std::path::Path::new(&manifest_dir);
+
+    let relative = input.strip_prefix(manifest_path).unwrap_or(input);
+
+    let mut destination = base_out.join(relative);
+    destination.set_extension(ext);
+    Ok(destination)
+}
+
+fn compile_asm_file(asm_path: &std::path::Path) -> Result<PathBuf, String> {
+    println!("cargo:rerun-if-changed={}", asm_path.display());
+
+    let obj_path = dynamic_object_output_path(asm_path, "o")?;
+
+    if let Some(parent) = obj_path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create directory {}: {e}", parent.display()))?;
+    }
+
+    let asm_owned = asm_path
+        .to_str()
+        .ok_or_else(|| format!("Non-UTF-8 path encountered: {}", asm_path.display()))?
+        .to_string();
+    let obj_owned = obj_path
+        .to_str()
+        .ok_or_else(|| format!("Non-UTF-8 path encountered: {}", obj_path.display()))?
+        .to_string();
+
+    let status = if is_nasm_source(asm_path) {
+        Command::new("nasm")
+            .args(&[
+                "-f",
+                "elf64",
+                "-DPIC",
+                asm_owned.as_str(),
+                "-o",
+                obj_owned.as_str(),
+            ])
+            .status()
+            .map_err(|e| format!("Failed to spawn nasm: {e}"))?
+    } else {
+        Command::new("clang")
+            .args(&["-c", "-fPIC", asm_owned.as_str(), "-o", obj_owned.as_str()])
+            .status()
+            .map_err(|e| format!("Failed to spawn clang: {e}"))?
+    };
+
+    if !status.success() {
+        return Err(format!(
+            "Compilation failed for {} with status {:?}",
+            asm_path.display(),
+            status.code()
+        ));
+    }
+
+    Ok(obj_path)
+}
+
+fn compile_c_file(c_path: &std::path::Path) -> Result<PathBuf, String> {
+    println!("cargo:rerun-if-changed={}", c_path.display());
+
+    let obj_path = dynamic_object_output_path(c_path, "o")?;
+
+    if let Some(parent) = obj_path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Failed to create directory {}: {e}", parent.display()))?;
+    }
+
+    let c_owned = c_path
+        .to_str()
+        .ok_or_else(|| format!("Non-UTF-8 path encountered: {}", c_path.display()))?
+        .to_string();
+    let obj_owned = obj_path
+        .to_str()
+        .ok_or_else(|| format!("Non-UTF-8 path encountered: {}", obj_path.display()))?
+        .to_string();
+
+    let status = Command::new("clang")
+        .args(&[
+            "-c",
+            "-fPIC",
+            "-O3",
+            "-march=native",
+            "-fno-semantic-interposition",
+            "-std=c11",
+            c_owned.as_str(),
+            "-o",
+            obj_owned.as_str(),
+        ])
+        .status()
+        .map_err(|e| format!("Failed to spawn clang: {e}"))?;
+
+    if !status.success() {
+        return Err(format!(
+            "Compilation failed for baseline C source {} with status {:?}",
+            c_path.display(),
+            status.code()
+        ));
+    }
+
+    Ok(obj_path)
+}
+
+fn register_link_object(obj_path: &std::path::Path) -> Result<(), String> {
+    let canonical = fs::canonicalize(obj_path).unwrap_or_else(|_| obj_path.to_path_buf());
+    println!("cargo:rustc-link-arg={}", canonical.display());
+    Ok(())
+}
+
+fn is_nasm_source(path: &std::path::Path) -> bool {
+    let lower = path.to_string_lossy().to_lowercase();
+    lower.contains("nasm") || lower.contains("cryptopt") || lower.contains("hand_opt")
+}
+
+fn run_dynamic_mode(specs: &[String]) -> Result<(), String> {
+    println!("cargo:rustc-check-cfg=cfg(dynamic_build)");
+    println!("cargo:rustc-cfg=dynamic_build");
+
+    let mut wrappers = compile_dynamic_targets(specs)?;
+    let baseline = resolve_baseline_target()?;
+
+    if specs.is_empty() && baseline.is_none() {
+        // Nothing to build for this invocation; still generate an empty wrapper module so that
+        // the include! in src/lib.rs succeeds.
+        emit_wrapper_file(&[])?;
+        return Ok(());
+    }
+
+    if let Some(ref baseline_target) = baseline {
+        compile_baseline_target(baseline_target, &mut wrappers)?;
+    }
+
+    println!("cargo:rustc-link-arg=-Wl,--export-dynamic");
+    println!("cargo:rustc-link-arg=-Wl,--no-gc-sections");
+    println!("cargo:rustc-link-arg=-Wl,-Bsymbolic");
+    println!("cargo:rustc-link-arg=-Wl,-z,now");
+    println!("cargo:rustc-link-arg=-Wl,-z,noexecstack");
+
+    emit_wrapper_file(&wrappers)?;
+
+    Ok(())
+}
 
 fn print_validation_header() {
     let dudect_enabled = std::env::var("CARGO_DUDECT_VALIDATE")
@@ -3839,6 +4378,26 @@ fn main() {
     // Print validation header if enabled
     print_validation_header();
 
+    let dynamic_specs = dynamic_target_specs();
+    let baseline_requested = std::env::var_os("CARGO_BASELINE_C").is_some();
+
+    let dynamic_feature = std::env::var_os("CARGO_FEATURE_DYNAMIC_API").is_some();
+
+    if dynamic_feature && (!dynamic_specs.is_empty() || baseline_requested) {
+        if let Err(err) = run_dynamic_mode(&dynamic_specs) {
+            panic!("Dynamic build failed: {err}");
+        }
+        return;
+    }
+
+    if dynamic_feature {
+        // Ensure the dynamic wrapper file exists even when we fall back to the legacy static build
+        // path (the include! in lib.rs expects it).
+        if let Err(err) = emit_wrapper_file(&[]) {
+            panic!("Failed to generate empty dynamic wrapper file: {err}");
+        }
+    }
+
     // Build all curves (both mul and square, if available)
     build_curve25519();
     build_p448();
@@ -4094,64 +4653,51 @@ fn main() {
     // Curve25519 (mul)
     println!("cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_mul_vec");
     println!("cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_mul_vec_nasm");
-    println!("cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_mul_CryptOpt");
-    // Curve25519 (square)
+    println!("cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_mul_CryptOpt"); // Curve25519 (square)
     println!("cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_square_vec");
     println!("cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_fiat_curve25519_carry_square_CryptOpt");
-
     // Curve25519-dalek (mul)
     println!("cargo:rustc-link-lib=static=curve25519_dalek_mul_vec");
     println!("cargo:rustc-link-lib=static=curve25519_dalek_mul_vec_nasm");
-    println!("cargo:rustc-link-lib=static=curve25519_dalek_mul_CryptOpt");
-    // Curve25519-dalek (square)
+    println!("cargo:rustc-link-lib=static=curve25519_dalek_mul_CryptOpt"); // Curve25519-dalek (square)
     println!("cargo:rustc-link-lib=static=curve25519_dalek_square_vec");
     println!("cargo:rustc-link-lib=static=curve25519_dalek_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=curve25519_dalek_square_CryptOpt");
-
     // P448 (mul)
     println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_mul_vec");
     println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_mul_vec_nasm");
-    println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_mul_CryptOpt");
-    // P448 (square)
+    println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_mul_CryptOpt"); // P448 (square)
     println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_square_vec");
     println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_fiat_p448_solinas_carry_square_CryptOpt");
-
     // Poly1305 (mul)
     println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_mul_vec");
     println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_mul_vec_nasm");
-    println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_mul_CryptOpt");
-    // Poly1305 (square)
+    println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_mul_CryptOpt"); // Poly1305 (square)
     println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_square_vec");
     println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_fiat_poly1305_carry_square_CryptOpt");
-
     // BLS12 (mul)
     println!("cargo:rustc-link-lib=static=bls12_mul_vec");
     println!("cargo:rustc-link-lib=static=bls12_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=bls12_mul_CryptOpt");
-
     // Secp256k1 Dettman (mul)
     println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_mul_vec");
     println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_mul_CryptOpt");
-
     // Secp256k1 Dettman (square)
     println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_square_vec");
     println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_fiat_secp256k1_dettman_square_CryptOpt");
-
     // Rust EC Secp256k1 (mul)
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_mul_inner_vec");
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_mul_inner_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_mul_inner_CryptOpt");
-
     // Rust EC Secp256k1 (square)
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square_vec");
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=rust_ec_secp256k1_square_CryptOpt");
-
     // Fiat C Curve25519 (mul)
     println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_vec");
     println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_mul_vec_nasm");
@@ -4160,12 +4706,10 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_curve25519_carry_mul_clang");
     println!("cargo:rustc-link-lib=static=fiat_curve25519_carry_mul_enhanced");
     println!("cargo:rustc-link-lib=static=fiat_curve25519_carry_mul_ratio12750");
-
     // Fiat C Curve25519 (square)
     println!("cargo:rustc-link-lib=static=fiat_curve25519_carry_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_curve25519_carry_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_curve25519_carry_square_ratio12993");
-
     // CryptOpt Fiat Curve25519 Solinas
     println!("cargo:rustc-link-lib=static=fiat_curve25519_solinas_mul_gcc");
     println!("cargo:rustc-link-lib=static=fiat_curve25519_solinas_mul_clang");
@@ -4173,7 +4717,6 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_curve25519_solinas_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_curve25519_solinas_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_curve25519_solinas_square_ratio15409");
-
     // CryptOpt Fiat P224
     println!("cargo:rustc-link-lib=static=fiat_p224_mul_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p224_mul_clang");
@@ -4181,7 +4724,6 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_p224_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p224_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_p224_square_ratio14731");
-
     // CryptOpt Fiat P256
     println!("cargo:rustc-link-lib=static=fiat_p256_mul_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p256_mul_clang");
@@ -4189,7 +4731,6 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_p256_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p256_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_p256_square_ratio17019");
-
     // CryptOpt Fiat P384
     println!("cargo:rustc-link-lib=static=fiat_p384_mul_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p384_mul_clang");
@@ -4197,7 +4738,6 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_p384_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p384_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_p384_square_ratio16784");
-
     // CryptOpt Fiat P434
     println!("cargo:rustc-link-lib=static=fiat_p434_mul_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p434_mul_clang");
@@ -4205,7 +4745,6 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_p434_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p434_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_p434_square_ratio18549");
-
     // CryptOpt Fiat P448 Solinas
     println!("cargo:rustc-link-lib=static=fiat_p448_solinas_carry_mul_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p448_solinas_carry_mul_clang");
@@ -4213,7 +4752,6 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_p448_solinas_carry_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p448_solinas_carry_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_p448_solinas_carry_square_ratio11436");
-
     // CryptOpt Fiat Poly1305
     println!("cargo:rustc-link-lib=static=fiat_poly1305_carry_mul_gcc");
     println!("cargo:rustc-link-lib=static=fiat_poly1305_carry_mul_clang");
@@ -4221,7 +4759,6 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_poly1305_carry_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_poly1305_carry_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_poly1305_carry_square_ratio12095");
-
     // CryptOpt Fiat Secp256k1 Dettman
     println!("cargo:rustc-link-lib=static=fiat_secp256k1_dettman_mul_gcc");
     println!("cargo:rustc-link-lib=static=fiat_secp256k1_dettman_mul_clang");
@@ -4229,7 +4766,6 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_secp256k1_dettman_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_secp256k1_dettman_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_secp256k1_dettman_square_ratio11258");
-
     // CryptOpt Fiat Secp256k1 Montgomery
     println!("cargo:rustc-link-lib=static=fiat_secp256k1_montgomery_mul_gcc");
     println!("cargo:rustc-link-lib=static=fiat_secp256k1_montgomery_mul_clang");
@@ -4237,7 +4773,6 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_secp256k1_montgomery_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_secp256k1_montgomery_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_secp256k1_montgomery_square_ratio17679");
-
     // CryptOpt Fiat P521
     println!("cargo:rustc-link-lib=static=fiat_p521_carry_mul_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p521_carry_mul_clang");
@@ -4245,69 +4780,56 @@ fn main() {
     println!("cargo:rustc-link-lib=static=fiat_p521_carry_square_gcc");
     println!("cargo:rustc-link-lib=static=fiat_p521_carry_square_clang");
     println!("cargo:rustc-link-lib=static=fiat_p521_carry_square_ratio15398");
-
     // Fiat C Curve25519 (square)
     println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_square_vec");
     println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_curve25519_carry_square_CryptOpt");
-
     // Fiat C Secp256k1 Dettman (mul)
     println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_mul_vec");
     println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_mul_CryptOpt");
-
     // Fiat C Secp256k1 Dettman (square)
     println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_square_vec");
     println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_secp256k1_dettman_square_CryptOpt");
-
     // Fiat C Poly1305 (mul)
     println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_mul_vec");
     println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_mul_CryptOpt");
-
     // Fiat C Poly1305 (square)
     println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_square_vec");
     println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_poly1305_carry_square_CryptOpt");
-
     // Fiat C P448 (mul)
     println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul_vec");
     println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_p448_carry_mul_CryptOpt");
-
     // Fiat C P448 (square)
     println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_vec");
     println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=fiat_c_p448_solinas_carry_square_CryptOpt");
-
     // OpenSSL Curve25519 (mul)
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_vec");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_hand_optimised");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_hand_optimised_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_mul_CryptOpt");
-
     // OpenSSL Curve25519 (square)
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_vec");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_hand_optimised");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_hand_optimised_nasm");
     println!("cargo:rustc-link-lib=static=openssl_curve25519_fe51_square_CryptOpt");
-
     // OpenSSL P256 hand-optimised (mul + square)
     println!("cargo:rustc-link-lib=static=openssl_p256_hand_optimised");
-
     // OpenSSL P448 (mul)
     println!("cargo:rustc-link-lib=static=openssl_p448_mul_vec");
     println!("cargo:rustc-link-lib=static=openssl_p448_mul_vec_nasm");
     println!("cargo:rustc-link-lib=static=openssl_p448_mul_CryptOpt");
-
     // OpenSSL P448 (square)
     println!("cargo:rustc-link-lib=static=openssl_p448_square_vec");
     println!("cargo:rustc-link-lib=static=openssl_p448_square_vec_nasm");
     println!("cargo:rustc-link-lib=static=openssl_p448_square_CryptOpt");
-
     // -------------------------------------------------------------------------
     // Re-run build.rs if any assembly files change
     println!("cargo:rerun-if-changed=src/rust/curve25519");
