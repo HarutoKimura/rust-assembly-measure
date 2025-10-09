@@ -37,9 +37,22 @@ fn main() {
         }
     }
 
+    #[cfg(not(dynamic_only))]
     run_legacy(&args);
+
+    #[cfg(dynamic_only)]
+    {
+        eprintln!("Error: This build was compiled with SKIP_LEGACY_BUILD=1 (dynamic-only mode).");
+        eprintln!("Only --dynamic mode is available.");
+        eprintln!("Usage: cargo run --features dynamic-api -- --dynamic <candidate> <baseline> [OPTIONS]");
+        eprintln!("\nTo use legacy mode, rebuild without SKIP_LEGACY_BUILD environment variable:");
+        eprintln!("  unset SKIP_LEGACY_BUILD");
+        eprintln!("  cargo build --release");
+        process::exit(1);
+    }
 }
 
+#[cfg(not(dynamic_only))]
 fn run_legacy(args: &[String]) {
     // Enable output verification by default unless explicitly disabled.
     if env::var("CHECK_OUTPUTS").is_err() {

@@ -15,6 +15,10 @@ const DEFAULT_MIN_BATCH_SIZE: usize = 10;
 const DEFAULT_MAX_BATCH_SIZE: usize = 5_000;
 const DEFAULT_BATCHES: usize = 31;
 
+// Default bound for input generation (Curve25519's LOOSE_BOUND from src/ffi.rs)
+// This is the most common bound and provides a safe default
+const DEFAULT_INPUT_BOUND: u64 = 0x18000000000000;
+
 pub fn maybe_run_dynamic(args: &[String]) -> Option<Result<()>> {
     if matches!(args.first().map(String::as_str), Some("--dynamic")) {
         Some(run_dynamic_measure(&args[1..]))
@@ -33,9 +37,10 @@ fn run_dynamic_measure(args: &[String]) -> Result<()> {
                --min-batch-size N     Minimum batch size (default: {})\n\
                --max-batch-size N     Maximum batch size (default: {})\n\
                --batches N            Number of batches (default: {})\n\
+               --input-bound N        Upper bound for random inputs (default: {:#x})\n\
                --cpu CORE             Pin to specific CPU core",
             DEFAULT_CYCLE_GOAL, DEFAULT_INITIAL_BATCH_SIZE, DEFAULT_MIN_BATCH_SIZE,
-            DEFAULT_MAX_BATCH_SIZE, DEFAULT_BATCHES
+            DEFAULT_MAX_BATCH_SIZE, DEFAULT_BATCHES, DEFAULT_INPUT_BOUND
         ));
     }
 
@@ -50,6 +55,7 @@ fn run_dynamic_measure(args: &[String]) -> Result<()> {
         nob: DEFAULT_BATCHES,
         cpu: None,
         use_perf: false,
+        input_bound: DEFAULT_INPUT_BOUND,
     };
 
     let mut idx = 0;
@@ -103,6 +109,20 @@ fn run_dynamic_measure(args: &[String]) -> Result<()> {
                 let core = usize::from_str(value)
                     .with_context(|| format!("failed to parse cpu core '{}'", value))?;
                 cfg.cpu = Some(core);
+            }
+            "--input-bound" => {
+                idx += 1;
+                let value = args
+                    .get(idx)
+                    .ok_or_else(|| anyhow!("--input-bound requires a value"))?;
+                // Support hex notation
+                cfg.input_bound = if value.starts_with("0x") || value.starts_with("0X") {
+                    u64::from_str_radix(&value[2..], 16)
+                        .with_context(|| format!("failed to parse input bound '{}'", value))?
+                } else {
+                    u64::from_str(value)
+                        .with_context(|| format!("failed to parse input bound '{}'", value))?
+                };
             }
             other if other.starts_with("--") => {
                 return Err(anyhow!("unrecognised flag '{other}'"));
@@ -361,8 +381,8 @@ fn report_results(cfg: &MeasureCfg, candidate_name: &str, baseline_name: &str, o
         out.calibrated_batch_size, cfg.nob
     );
     println!(
-        "  Configuration: cycle_goal={}, initial_batch_size={}",
-        cfg.cycle_goal, cfg.initial_batch_size
+        "  Configuration: cycle_goal={}, initial_batch_size={}, input_bound={:#x}",
+        cfg.cycle_goal, cfg.initial_batch_size, cfg.input_bound
     );
     let per_call_candidate = out.median_cycles_a as f64 / out.calibrated_batch_size as f64;
     let per_call_baseline = out.median_cycles_b as f64 / out.calibrated_batch_size as f64;

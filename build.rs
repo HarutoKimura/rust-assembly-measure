@@ -4375,6 +4375,9 @@ fn build_openssl_curve25519() {
 }
 
 fn main() {
+    // Tell Cargo about our custom cfg flag to suppress warnings
+    println!("cargo:rustc-check-cfg=cfg(dynamic_only)");
+    
     // Print validation header if enabled
     print_validation_header();
 
@@ -4382,7 +4385,16 @@ fn main() {
     let baseline_requested = std::env::var_os("CARGO_BASELINE_C").is_some();
 
     let dynamic_feature = std::env::var_os("CARGO_FEATURE_DYNAMIC_API").is_some();
+    
+    // Check if user wants to skip legacy .a builds (for faster dynamic-only builds)
+    // Set SKIP_LEGACY_BUILD=1 to skip all legacy .a compilation
+    let skip_legacy = std::env::var("SKIP_LEGACY_BUILD")
+        .ok()
+        .as_deref() == Some("1");
+    
+    println!("cargo:rerun-if-env-changed=SKIP_LEGACY_BUILD");
 
+    // Mode 1: Build-time dynamic compilation (with specific targets via CARGO_DYNAMIC_TARGETS)
     if dynamic_feature && (!dynamic_specs.is_empty() || baseline_requested) {
         if let Err(err) = run_dynamic_mode(&dynamic_specs) {
             panic!("Dynamic build failed: {err}");
@@ -4390,9 +4402,35 @@ fn main() {
         return;
     }
 
+    // Mode 2: Runtime dynamic-only (skip all legacy .a builds for fast iteration)
+    if dynamic_feature && skip_legacy {
+        println!("cargo:warning=╔════════════════════════════════════════════════════════════════╗");
+        println!("cargo:warning=║ SKIP_LEGACY_BUILD=1: Fast dynamic-only build mode             ║");
+        println!("cargo:warning=║ - Skipping all legacy .a static library builds                ║");
+        println!("cargo:warning=║ - Only runtime dynamic compilation available                   ║");
+        println!("cargo:warning=║ - Build time: ~30 seconds (vs ~5 minutes for full build)      ║");
+        println!("cargo:warning=╚════════════════════════════════════════════════════════════════╝");
+        println!("cargo:warning=");
+        println!("cargo:warning=Usage: cargo run --features dynamic-api -- --dynamic <candidate> <baseline>");
+        println!("cargo:warning=");
+        
+        // Set a cfg flag to disable legacy code paths in main.rs
+        println!("cargo:rustc-cfg=dynamic_only");
+        
+        // Ensure the dynamic wrapper file exists
+        if let Err(err) = emit_wrapper_file(&[]) {
+            panic!("Failed to generate empty dynamic wrapper file: {err}");
+        }
+        
+        return;  // Skip all legacy builds
+    }
+
+    // Mode 3: Legacy or Hybrid build (build all .a files)
     if dynamic_feature {
-        // Ensure the dynamic wrapper file exists even when we fall back to the legacy static build
-        // path (the include! in lib.rs expects it).
+        println!("cargo:warning=Building HYBRID mode: legacy (.a) + dynamic-api support");
+        println!("cargo:warning=Tip: Set SKIP_LEGACY_BUILD=1 to skip .a builds (faster)");
+        
+        // Ensure the dynamic wrapper file exists
         if let Err(err) = emit_wrapper_file(&[]) {
             panic!("Failed to generate empty dynamic wrapper file: {err}");
         }

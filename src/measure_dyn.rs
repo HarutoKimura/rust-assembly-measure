@@ -16,6 +16,7 @@ pub struct MeasureCfg {
     pub nob: usize,
     pub cpu: Option<usize>,
     pub use_perf: bool,
+    pub input_bound: u64,  // Bound for random input generation
 }
 
 pub struct MeasureOut {
