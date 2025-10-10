@@ -6,8 +6,7 @@
 //! loader and benchmarking helpers. Without the feature the crate exposes the
 //! original static measurement tooling.
 
-#[cfg(not(feature = "dynamic-api"))]
-pub mod curve_spec;
+pub mod curve_spec;  // Now available for both legacy and dynamic modes
 pub mod ffi;
 #[cfg(not(feature = "dynamic-api"))]
 pub mod measurement;
@@ -16,6 +15,8 @@ pub mod precise_timing;
 
 #[cfg(not(feature = "dynamic-api"))]
 pub use curve_spec::{CurveType, Function, FunctionLabels, ALL_CURVES};
+#[cfg(feature = "dynamic-api")]
+pub use curve_spec::{BoundSpec, CurveType};  // Export needed types for dynamic mode
 #[cfg(not(feature = "dynamic-api"))]
 pub use measurement::{
     calculate_median, measure_u64_mul_functions_interleaved_enhanced,

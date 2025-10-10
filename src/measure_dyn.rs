@@ -4,8 +4,9 @@ use std::io;
 use std::path::Path;
 
 use anyhow::{ensure, Context, Result};
-use rand::{seq::SliceRandom, thread_rng};
+use rand::{seq::SliceRandom, thread_rng, Rng};
 
+use crate::curve_spec::BoundSpec;
 use crate::dynload::DynFunc;
 
 pub struct MeasureCfg {
@@ -16,7 +17,9 @@ pub struct MeasureCfg {
     pub nob: usize,
     pub cpu: Option<usize>,
     pub use_perf: bool,
-    pub input_bound: u64,  // Bound for random input generation
+    pub input_bound: u64,  // For display/backward compat (legacy single bound)
+    pub bounds: BoundSpec,  // Actual bounds used for input generation
+    pub field_size: usize,  // Number of limbs in the field element
 }
 
 pub struct MeasureOut {
@@ -192,4 +195,21 @@ fn pin_current_thread(cpu: usize) -> Result<()> {
         }
     }
     Ok(())
+}
+
+/// Generate random bounded inputs matching legacy behavior
+/// This matches generate_random_loose_input_u64 from src/measurement.rs
+pub fn generate_random_bounded_u64(bounds: BoundSpec, size: usize) -> Vec<u64> {
+    let mut rng = thread_rng();
+    match bounds {
+        BoundSpec::Uniform(bound) => (0..size).map(|_| rng.gen_range(0..=bound)).collect(),
+        BoundSpec::PerLimb(limbs) => {
+            let mut result = Vec::with_capacity(size);
+            for i in 0..size {
+                let bound = limbs.get(i).copied().unwrap_or(u64::MAX);
+                result.push(rng.gen_range(0..=bound));
+            }
+            result
+        }
+    }
 }

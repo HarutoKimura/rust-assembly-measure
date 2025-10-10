@@ -5,7 +5,8 @@ use std::str::FromStr;
 
 use anyhow::{anyhow, Context, Result};
 
-use crate::measure_dyn::{measure_pair, MeasureCfg, MeasureOut};
+use crate::curve_spec::{BoundSpec, CurveType};
+use crate::measure_dyn::{generate_random_bounded_u64, measure_pair, MeasureCfg, MeasureOut};
 use crate::runtime_build::{build_shared_object, parse_target_spec, FunctionSignature};
 
 // Default configuration matching legacy method (src/main.rs:113-119)
@@ -38,7 +39,11 @@ fn run_dynamic_measure(args: &[String]) -> Result<()> {
                --max-batch-size N     Maximum batch size (default: {})\n\
                --batches N            Number of batches (default: {})\n\
                --input-bound N        Upper bound for random inputs (default: {:#x})\n\
-               --cpu CORE             Pin to specific CPU core",
+               --curve CURVE_NAME     Use bounds/size from a known curve spec\n\
+               --cpu CORE             Pin to specific CPU core\n\
+             \n\
+             Note: --curve takes precedence over --input-bound. Available curves:\n\
+               curve25519, p448, poly1305, secp256k1_dettman, etc.",
             DEFAULT_CYCLE_GOAL, DEFAULT_INITIAL_BATCH_SIZE, DEFAULT_MIN_BATCH_SIZE,
             DEFAULT_MAX_BATCH_SIZE, DEFAULT_BATCHES, DEFAULT_INPUT_BOUND
         ));
@@ -56,6 +61,8 @@ fn run_dynamic_measure(args: &[String]) -> Result<()> {
         cpu: None,
         use_perf: false,
         input_bound: DEFAULT_INPUT_BOUND,
+        bounds: BoundSpec::Uniform(DEFAULT_INPUT_BOUND),
+        field_size: 16,  // Default max size
     };
 
     let mut idx = 0;
@@ -123,6 +130,23 @@ fn run_dynamic_measure(args: &[String]) -> Result<()> {
                     u64::from_str(value)
                         .with_context(|| format!("failed to parse input bound '{}'", value))?
                 };
+                cfg.bounds = BoundSpec::Uniform(cfg.input_bound);
+            }
+            "--curve" => {
+                idx += 1;
+                let curve_name = args
+                    .get(idx)
+                    .ok_or_else(|| anyhow!("--curve requires a value"))?;
+                let curve = CurveType::from_name(curve_name)
+                    .ok_or_else(|| anyhow!("unknown curve '{}'", curve_name))?;
+                cfg.bounds = curve.bounds();
+                cfg.field_size = curve.size();
+                // Update input_bound for display purposes (use first bound if PerLimb)
+                cfg.input_bound = match cfg.bounds {
+                    BoundSpec::Uniform(b) => b,
+                    BoundSpec::PerLimb(limbs) => limbs.first().copied().unwrap_or(DEFAULT_INPUT_BOUND),
+                };
+                println!("Using curve '{}' with size={} limbs", curve_name, cfg.field_size);
             }
             other if other.starts_with("--") => {
                 return Err(anyhow!("unrecognised flag '{other}'"));
@@ -175,14 +199,20 @@ fn measure_mul_pair(
     baseline: &crate::runtime_build::BuildArtifacts,
     cfg: &MeasureCfg,
 ) -> Result<()> {
-    use rand::{thread_rng, Rng};
     type MulFn = unsafe extern "C" fn(*mut u64, *const u64, *const u64);
 
     let so_candidate = candidate.so_path.as_path();
     let so_baseline = baseline.so_path.as_path();
+    let field_size = cfg.field_size;
 
     // Output verification before measurement (matches legacy behavior)
     println!("Verifying both functions produce identical outputs...");
+    println!("  Using field size: {} limbs", field_size);
+    match cfg.bounds {
+        BoundSpec::Uniform(b) => println!("  Using uniform bound: {:#x}", b),
+        BoundSpec::PerLimb(limbs) => println!("  Using per-limb bounds: {:?}", &limbs[..field_size.min(limbs.len())]),
+    }
+    
     let lib_a = unsafe { libloading::Library::new(so_candidate) }
         .map_err(|e| anyhow!("loading candidate library for verification: {}", e))?;
     let lib_b = unsafe { libloading::Library::new(so_baseline) }
@@ -200,15 +230,14 @@ fn measure_mul_pair(
                 .as_ptr()
         );
         
-        let mut rng = thread_rng();
         let mut mismatches = 0;
         const VERIFICATION_SAMPLES: usize = 100;
         
         for _ in 0..VERIFICATION_SAMPLES {
-            let lhs: [u64; 16] = core::array::from_fn(|_| rng.gen());
-            let rhs: [u64; 16] = core::array::from_fn(|_| rng.gen());
-            let mut out_a = [0u64; 16];
-            let mut out_b = [0u64; 16];
+            let lhs = generate_random_bounded_u64(cfg.bounds, field_size);
+            let rhs = generate_random_bounded_u64(cfg.bounds, field_size);
+            let mut out_a = vec![0u64; field_size];
+            let mut out_b = vec![0u64; field_size];
             
             func_a(out_a.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
             func_b(out_b.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
@@ -217,8 +246,8 @@ fn measure_mul_pair(
                 mismatches += 1;
                 if mismatches == 1 {
                     eprintln!("⚠️  Output mismatch detected!");
-                    eprintln!("  Candidate output: {:?}", &out_a[..4]);
-                    eprintln!("  Baseline output:  {:?}", &out_b[..4]);
+                    eprintln!("  Candidate output: {:?}", &out_a[..field_size.min(4)]);
+                    eprintln!("  Baseline output:  {:?}", &out_b[..field_size.min(4)]);
                 }
             }
         }
@@ -241,22 +270,21 @@ fn measure_mul_pair(
             baseline.symbol.as_bytes(),
             cfg,
             |ptr| {
-                // Warmup with fixed inputs
+                // Warmup with fixed inputs (all ones, within bounds)
                 let func: MulFn = std::mem::transmute(ptr);
-                let mut out = [0u64; 16];
-                let lhs = [1u64; 16];
-                let rhs = [2u64; 16];
+                let mut out = vec![0u64; field_size];
+                let lhs = vec![1u64; field_size];
+                let rhs = vec![2u64; field_size];
                 func(out.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
             },
             |ptr, bs| {
-                // Measurement with random inputs (matches legacy behavior)
+                // Measurement with random bounded inputs (matches legacy behavior)
                 let func: MulFn = std::mem::transmute(ptr);
-                let mut rng = thread_rng();
-                let mut out = [0u64; 16];
+                let mut out = vec![0u64; field_size];
                 
-                // Generate random inputs for this batch
-                let lhs: [u64; 16] = core::array::from_fn(|_| rng.gen());
-                let rhs: [u64; 16] = core::array::from_fn(|_| rng.gen());
+                // Generate random bounded inputs for this batch
+                let lhs = generate_random_bounded_u64(cfg.bounds, field_size);
+                let rhs = generate_random_bounded_u64(cfg.bounds, field_size);
                 
                 for _ in 0..bs {
                     func(out.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
@@ -279,14 +307,20 @@ fn measure_square_pair(
     baseline: &crate::runtime_build::BuildArtifacts,
     cfg: &MeasureCfg,
 ) -> Result<()> {
-    use rand::{thread_rng, Rng};
     type SquareFn = unsafe extern "C" fn(*mut u64, *const u64);
 
     let so_candidate = candidate.so_path.as_path();
     let so_baseline = baseline.so_path.as_path();
+    let field_size = cfg.field_size;
 
     // Output verification before measurement (matches legacy behavior)
     println!("Verifying both functions produce identical outputs...");
+    println!("  Using field size: {} limbs", field_size);
+    match cfg.bounds {
+        BoundSpec::Uniform(b) => println!("  Using uniform bound: {:#x}", b),
+        BoundSpec::PerLimb(limbs) => println!("  Using per-limb bounds: {:?}", &limbs[..field_size.min(limbs.len())]),
+    }
+    
     let lib_a = unsafe { libloading::Library::new(so_candidate) }
         .map_err(|e| anyhow!("loading candidate library for verification: {}", e))?;
     let lib_b = unsafe { libloading::Library::new(so_baseline) }
@@ -304,14 +338,13 @@ fn measure_square_pair(
                 .as_ptr()
         );
         
-        let mut rng = thread_rng();
         let mut mismatches = 0;
         const VERIFICATION_SAMPLES: usize = 100;
         
         for _ in 0..VERIFICATION_SAMPLES {
-            let input: [u64; 16] = core::array::from_fn(|_| rng.gen());
-            let mut out_a = [0u64; 16];
-            let mut out_b = [0u64; 16];
+            let input = generate_random_bounded_u64(cfg.bounds, field_size);
+            let mut out_a = vec![0u64; field_size];
+            let mut out_b = vec![0u64; field_size];
             
             func_a(out_a.as_mut_ptr(), input.as_ptr());
             func_b(out_b.as_mut_ptr(), input.as_ptr());
@@ -320,8 +353,8 @@ fn measure_square_pair(
                 mismatches += 1;
                 if mismatches == 1 {
                     eprintln!("⚠️  Output mismatch detected!");
-                    eprintln!("  Candidate output: {:?}", &out_a[..4]);
-                    eprintln!("  Baseline output:  {:?}", &out_b[..4]);
+                    eprintln!("  Candidate output: {:?}", &out_a[..field_size.min(4)]);
+                    eprintln!("  Baseline output:  {:?}", &out_b[..field_size.min(4)]);
                 }
             }
         }
@@ -344,20 +377,19 @@ fn measure_square_pair(
             baseline.symbol.as_bytes(),
             cfg,
             |ptr| {
-                // Warmup with fixed inputs
+                // Warmup with fixed inputs (all ones, within bounds)
                 let func: SquareFn = std::mem::transmute(ptr);
-                let mut out = [0u64; 16];
-                let input = [1u64; 16];
+                let mut out = vec![0u64; field_size];
+                let input = vec![1u64; field_size];
                 func(out.as_mut_ptr(), input.as_ptr());
             },
             |ptr, bs| {
-                // Measurement with random inputs (matches legacy behavior)
+                // Measurement with random bounded inputs (matches legacy behavior)
                 let func: SquareFn = std::mem::transmute(ptr);
-                let mut rng = thread_rng();
-                let mut out = [0u64; 16];
+                let mut out = vec![0u64; field_size];
                 
-                // Generate random inputs for this batch
-                let input: [u64; 16] = core::array::from_fn(|_| rng.gen());
+                // Generate random bounded inputs for this batch
+                let input = generate_random_bounded_u64(cfg.bounds, field_size);
                 
                 for _ in 0..bs {
                     func(out.as_mut_ptr(), input.as_ptr());
@@ -394,10 +426,10 @@ fn report_results(cfg: &MeasureCfg, candidate_name: &str, baseline_name: &str, o
         "  Baseline  ({}): {:.2} cycles/call (median batch {})",
         baseline_name, per_call_baseline, out.median_cycles_b
     );
-    let speedup = (per_call_baseline - per_call_candidate) / per_call_baseline * 100.0;
-    println!(
-        "  Speedup: {:.2}% (ratio baseline/candidate: {:.3})",
-        speedup,
-        per_call_baseline / per_call_candidate
-    );
+    
+    // Calculate ratio like CryptOpt: baseline_cycles / candidate_cycles
+    // Ratio > 1.0 means candidate is faster than baseline
+    // Ratio < 1.0 means candidate is slower than baseline
+    let ratio = per_call_baseline / per_call_candidate;
+    println!("  Ratio (baseline/candidate): {:.5}", ratio);
 }
