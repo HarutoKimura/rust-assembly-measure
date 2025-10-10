@@ -29,6 +29,13 @@ pub fn maybe_run_dynamic(args: &[String]) -> Option<Result<()>> {
 }
 
 fn run_dynamic_measure(args: &[String]) -> Result<()> {
+    use std::env;
+    
+    // Enable output verification by default (matches legacy behavior)
+    if env::var("CHECK_OUTPUTS").is_err() {
+        env::set_var("CHECK_OUTPUTS", "1");
+    }
+    
     if args.len() < 2 {
         return Err(anyhow!(
             "dynamic mode expects: --dynamic <candidate> <baseline> [OPTIONS]\n\
@@ -199,104 +206,36 @@ fn measure_mul_pair(
     baseline: &crate::runtime_build::BuildArtifacts,
     cfg: &MeasureCfg,
 ) -> Result<()> {
+    use std::env;
     type MulFn = unsafe extern "C" fn(*mut u64, *const u64, *const u64);
 
     let so_candidate = candidate.so_path.as_path();
     let so_baseline = baseline.so_path.as_path();
     let field_size = cfg.field_size;
 
-    // Output verification before measurement (matches legacy behavior)
-    println!("Verifying both functions produce identical outputs...");
-    println!("  Using field size: {} limbs", field_size);
+    // Check if output verification is enabled (matches legacy behavior)
+    let check_outputs = env::var("CHECK_OUTPUTS").ok().as_deref() == Some("1");
+    
+    println!("Configuration:");
+    println!("  Field size: {} limbs", field_size);
     match cfg.bounds {
-        BoundSpec::Uniform(b) => println!("  Using uniform bound: {:#x}", b),
-        BoundSpec::PerLimb(limbs) => println!("  Using per-limb bounds: {:?}", &limbs[..field_size.min(limbs.len())]),
+        BoundSpec::Uniform(b) => println!("  Uniform bound: {:#x}", b),
+        BoundSpec::PerLimb(limbs) => println!("  Per-limb bounds: {:?}", &limbs[..field_size.min(limbs.len())]),
     }
-    
-    let lib_a = unsafe { libloading::Library::new(so_candidate) }
-        .map_err(|e| anyhow!("loading candidate library for verification: {}", e))?;
-    let lib_b = unsafe { libloading::Library::new(so_baseline) }
-        .map_err(|e| anyhow!("loading baseline library for verification: {}", e))?;
-    
-    let verified = unsafe {
-        let func_a: MulFn = std::mem::transmute(
-            lib_a.get::<MulFn>(candidate.symbol.as_bytes())
-                .map_err(|e| anyhow!("getting candidate symbol for verification: {}", e))?
-                .as_ptr()
-        );
-        let func_b: MulFn = std::mem::transmute(
-            lib_b.get::<MulFn>(baseline.symbol.as_bytes())
-                .map_err(|e| anyhow!("getting baseline symbol for verification: {}", e))?
-                .as_ptr()
-        );
-        
-        let mut mismatches = 0;
-        const VERIFICATION_SAMPLES: usize = 100;
-        
-        for _ in 0..VERIFICATION_SAMPLES {
-            let lhs = generate_random_bounded_u64(cfg.bounds, field_size);
-            let rhs = generate_random_bounded_u64(cfg.bounds, field_size);
-            let mut out_a = vec![0u64; field_size];
-            let mut out_b = vec![0u64; field_size];
-            
-            func_a(out_a.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
-            func_b(out_b.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
-            
-            if out_a != out_b {
-                mismatches += 1;
-                if mismatches == 1 {
-                    eprintln!("⚠️  Output mismatch detected!");
-                    eprintln!("  Candidate output: {:?}", &out_a[..field_size.min(4)]);
-                    eprintln!("  Baseline output:  {:?}", &out_b[..field_size.min(4)]);
-                }
-            }
-        }
-        
-        if mismatches > 0 {
-            eprintln!("❌ Found {} mismatches out of {} verification samples", mismatches, VERIFICATION_SAMPLES);
-            eprintln!("   WARNING: Functions produce different results - measurements may be invalid!");
-        } else {
-            println!("✅ Output verification passed ({} samples)", VERIFICATION_SAMPLES);
-        }
-        
-        mismatches == 0
-    };
+    println!("  Output verification: {}", if check_outputs { "enabled (CHECK_OUTPUTS=1)" } else { "disabled" });
 
     let result: MeasureOut = unsafe {
-        measure_pair::<MulFn, MulFn>(
+        measure_pair_with_verification::<MulFn>(
             so_candidate,
             candidate.symbol.as_bytes(),
             so_baseline,
             baseline.symbol.as_bytes(),
             cfg,
-            |ptr| {
-                // Warmup with fixed inputs (all ones, within bounds)
-                let func: MulFn = std::mem::transmute(ptr);
-                let mut out = vec![0u64; field_size];
-                let lhs = vec![1u64; field_size];
-                let rhs = vec![2u64; field_size];
-                func(out.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
-            },
-            |ptr, bs| {
-                // Measurement with random bounded inputs (matches legacy behavior)
-                let func: MulFn = std::mem::transmute(ptr);
-                let mut out = vec![0u64; field_size];
-                
-                // Generate random bounded inputs for this batch
-                let lhs = generate_random_bounded_u64(cfg.bounds, field_size);
-                let rhs = generate_random_bounded_u64(cfg.bounds, field_size);
-                
-                for _ in 0..bs {
-                    func(out.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
-                }
-            },
+            field_size,
+            check_outputs,
         )?
     };
 
-    if !verified {
-        eprintln!("\n⚠️  WARNING: Measurement completed but output verification failed!");
-        eprintln!("    The functions produce different results - comparison may be invalid.");
-    }
 
     report_results(cfg, &candidate.symbol, &baseline.symbol, result);
     Ok(())
@@ -405,6 +344,152 @@ fn measure_square_pair(
 
     report_results(cfg, &candidate.symbol, &baseline.symbol, result);
     Ok(())
+}
+
+/// Measure mul pair with per-batch output verification
+unsafe fn measure_pair_with_verification<F>(
+    so_candidate: &std::path::Path,
+    sym_candidate: &[u8],
+    so_baseline: &std::path::Path,
+    sym_baseline: &[u8],
+    cfg: &MeasureCfg,
+    field_size: usize,
+    check_outputs: bool,
+) -> Result<MeasureOut>
+where
+    F: Copy,
+{
+    type MulFn = unsafe extern "C" fn(*mut u64, *const u64, *const u64);
+    
+    let lib_a = libloading::Library::new(so_candidate)
+        .map_err(|e| anyhow!("loading candidate library: {}", e))?;
+    let lib_b = libloading::Library::new(so_baseline)
+        .map_err(|e| anyhow!("loading baseline library: {}", e))?;
+    
+    let func_a: MulFn = std::mem::transmute(
+        lib_a.get::<MulFn>(sym_candidate)
+            .map_err(|e| anyhow!("getting candidate symbol: {}", e))?
+            .as_ptr()
+    );
+    let func_b: MulFn = std::mem::transmute(
+        lib_b.get::<MulFn>(sym_baseline)
+            .map_err(|e| anyhow!("getting baseline symbol: {}", e))?
+            .as_ptr()
+    );
+    
+    // Warmup (matches legacy calibration phase)
+    let lhs = vec![1u64; field_size];
+    let rhs = vec![2u64; field_size];
+    let mut out_a = vec![0u64; field_size];
+    let mut out_b = vec![0u64; field_size];
+    func_a(out_a.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
+    func_b(out_b.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
+    
+    println!("Functions loaded and warmed up successfully");
+
+    // Calibration phase
+    let batch_size = {
+        let calib_bs = cfg.initial_batch_size;
+        let lhs = generate_random_bounded_u64(cfg.bounds, field_size);
+        let rhs = generate_random_bounded_u64(cfg.bounds, field_size);
+        let mut out = vec![0u64; field_size];
+        
+        let start = crate::measure_dyn::read_tsc();
+        for _ in 0..calib_bs {
+            func_a(out.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
+        }
+        unsafe { std::arch::x86_64::_mm_mfence(); }
+        let calib_cycles = crate::measure_dyn::read_tsc().saturating_sub(start);
+        
+        let calibrated = crate::measure_dyn::calculate_optimal_batch_size(
+            calib_cycles,
+            calib_bs,
+            cfg.cycle_goal,
+            cfg.min_batch_size,
+            cfg.max_batch_size,
+        );
+        
+        let per_call_est = calib_cycles as f64 / calib_bs as f64;
+        println!(
+            "Calibrated batch size (candidate ref): {} (~{:.2} cycles/call at initial bs={})",
+            calibrated, per_call_est, calib_bs
+        );
+        println!(
+            "  Calibration: {} cycles at batch_size={}, target cycle_goal={}",
+            calib_cycles, calib_bs, cfg.cycle_goal
+        );
+        
+        calibrated
+    };
+
+    println!("Collecting {} batches with interleaved randomized order...", cfg.nob);
+
+    use rand::{seq::SliceRandom, thread_rng};
+    let mut rng = thread_rng();
+    let mut order = [true, false]; // true=candidate, false=baseline
+
+    let mut samples_a = Vec::with_capacity(cfg.nob);
+    let mut samples_b = Vec::with_capacity(cfg.nob);
+    let mut mismatches = 0;
+
+    for batch_idx in 0..cfg.nob {
+        // Generate random inputs for this batch
+        let lhs = generate_random_bounded_u64(cfg.bounds, field_size);
+        let rhs = generate_random_bounded_u64(cfg.bounds, field_size);
+        let mut out_a = vec![0u64; field_size];
+        let mut out_b = vec![0u64; field_size];
+        
+        order.shuffle(&mut rng);
+        
+        for &is_candidate in &order {
+            let start = crate::measure_dyn::read_tsc();
+            if is_candidate {
+                for _ in 0..batch_size {
+                    func_a(out_a.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
+                }
+            } else {
+                for _ in 0..batch_size {
+                    func_b(out_b.as_mut_ptr(), lhs.as_ptr(), rhs.as_ptr());
+                }
+            }
+            unsafe { std::arch::x86_64::_mm_mfence(); }
+            let elapsed = crate::measure_dyn::read_tsc().saturating_sub(start);
+            
+            if is_candidate {
+                samples_a.push(elapsed);
+            } else {
+                samples_b.push(elapsed);
+            }
+        }
+        
+        // Check outputs for this batch (matches legacy behavior)
+        if check_outputs && out_a != out_b {
+            eprintln!("⚠️  Output mismatch detected in batch {} (mul)", batch_idx + 1);
+            if mismatches == 0 {
+                eprintln!("  Candidate output: {:?}", &out_a[..field_size.min(4)]);
+                eprintln!("  Baseline output:  {:?}", &out_b[..field_size.min(4)]);
+            }
+            mismatches += 1;
+        }
+    }
+    
+    if check_outputs {
+        if mismatches > 0 {
+            eprintln!("\n❌ Found {} output mismatches out of {} batches", mismatches, cfg.nob);
+            eprintln!("   WARNING: Functions produce different results - measurements may be invalid!");
+        } else {
+            println!("✅ Output verification passed ({} batches checked)", cfg.nob);
+        }
+    }
+
+    let median_cycles_a = crate::measure_dyn::median(&mut samples_a);
+    let median_cycles_b = crate::measure_dyn::median(&mut samples_b);
+
+    Ok(MeasureOut {
+        median_cycles_a,
+        median_cycles_b,
+        calibrated_batch_size: batch_size,
+    })
 }
 
 fn report_results(cfg: &MeasureCfg, candidate_name: &str, baseline_name: &str, out: MeasureOut) {

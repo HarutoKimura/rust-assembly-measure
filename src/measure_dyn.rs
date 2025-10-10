@@ -140,7 +140,7 @@ pub unsafe fn measure_pair<A: Copy, B: Copy>(
     })
 }
 
-fn median(samples: &mut [u64]) -> u64 {
+pub fn median(samples: &mut [u64]) -> u64 {
     if samples.is_empty() {
         return 0;
     }
@@ -155,7 +155,7 @@ fn median(samples: &mut [u64]) -> u64 {
 
 /// Dynamic batch size calculation based on measured cycles
 /// Matches the implementation in src/precise_timing.rs::calculate_optimal_batch_size
-fn calculate_optimal_batch_size(
+pub fn calculate_optimal_batch_size(
     measured_cycles: u64,
     current_batch_size: usize,
     cycle_goal: u64,
@@ -176,7 +176,7 @@ fn calculate_optimal_batch_size(
 /// Matches the methodology in src/measurement.rs::precise_rdtsc()
 /// to ensure fair comparison between dynamic and static linking
 #[inline(always)]
-fn read_tsc() -> u64 {
+pub fn read_tsc() -> u64 {
     unsafe {
         core::arch::x86_64::_mm_mfence();  // Full memory fence (loads + stores)
         core::arch::x86_64::_mm_lfence();  // Load fence
