@@ -22,3 +22,15 @@ logs/
 *.yml
 *.pkl
 **/output_*/
+# Optional convenience files (not part of core project)
+Makefile
+quick-start-dynamic.sh
+
+# Work-in-progress documentation (redundant with core docs)
+BUILD_TIMES_EXPLAINED.md
+DYNAMIC_BUILD_MODES.md
+CURVE_BOUNDS_FEATURE.md
+DYNAMIC_VS_LEGACY_COMPARISON.md
+IMPLEMENTATION_COMPLETE.md
+INVESTIGATION_SUMMARY.md
+DYNAMIC_BATCH_CALIBRATION.md
