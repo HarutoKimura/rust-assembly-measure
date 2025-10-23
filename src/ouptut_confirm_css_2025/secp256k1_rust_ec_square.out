@@ -1,0 +1,657 @@
+Running benchmark on dedicated core 10...
+Measuring Secp256k1RustEc for operation 'square' with ENHANCED CryptOpt methodology...
+Features: Memory barriers, randomized batching, cycle-goal calibration, statistical analysis
+
+Enhanced Measurement Configuration:
+  Cycle Goal: 10000 cycles/batch
+  Number of Batches: 31
+  Warm-up Iterations: 20
+  Repeats: 100 (median-of-medians)
+  Features: Memory barriers, Fisher-Yates randomization, dynamic batch sizing
+
+=== Run 1/100 ===
+Calibrated shared batch size (GAS ref): 25 (GAS cycles: 78406)
+Collecting 31 batches with interleaved randomized order...
+Run 1 - GAS: 338 cycles, NASM: 329 cycles, CryptOpt: 274 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 2/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67648)
+Collecting 31 batches with interleaved randomized order...
+Run 2 - GAS: 338 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 3/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67690)
+Collecting 31 batches with interleaved randomized order...
+Run 3 - GAS: 338 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 4/100 ===
+Calibrated shared batch size (GAS ref): 24 (GAS cycles: 81516)
+Collecting 31 batches with interleaved randomized order...
+Run 4 - GAS: 338 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 5/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67612)
+Collecting 31 batches with interleaved randomized order...
+Run 5 - GAS: 338 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 6/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67870)
+Collecting 31 batches with interleaved randomized order...
+Run 6 - GAS: 338 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 7/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67664)
+Collecting 31 batches with interleaved randomized order...
+Run 7 - GAS: 338 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 8/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67712)
+Collecting 31 batches with interleaved randomized order...
+Run 8 - GAS: 337 cycles, NASM: 314 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 9/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67356)
+Collecting 31 batches with interleaved randomized order...
+Run 9 - GAS: 336 cycles, NASM: 314 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 10/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67376)
+Collecting 31 batches with interleaved randomized order...
+Run 10 - GAS: 337 cycles, NASM: 314 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 11/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67330)
+Collecting 31 batches with interleaved randomized order...
+Run 11 - GAS: 336 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 12/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67324)
+Collecting 31 batches with interleaved randomized order...
+Run 12 - GAS: 337 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 13/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67330)
+Collecting 31 batches with interleaved randomized order...
+Run 13 - GAS: 336 cycles, NASM: 330 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 14/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67284)
+Collecting 31 batches with interleaved randomized order...
+Run 14 - GAS: 337 cycles, NASM: 330 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 15/100 ===
+Calibrated shared batch size (GAS ref): 29 (GAS cycles: 67364)
+Collecting 31 batches with interleaved randomized order...
+Run 15 - GAS: 331 cycles, NASM: 331 cycles, CryptOpt: 274 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 16/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65932)
+Collecting 31 batches with interleaved randomized order...
+Run 16 - GAS: 330 cycles, NASM: 330 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 17/100 ===
+Calibrated shared batch size (GAS ref): 21 (GAS cycles: 91240)
+Collecting 31 batches with interleaved randomized order...
+Run 17 - GAS: 331 cycles, NASM: 335 cycles, CryptOpt: 274 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 18/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66024)
+Collecting 31 batches with interleaved randomized order...
+Run 18 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 19/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65978)
+Collecting 31 batches with interleaved randomized order...
+Run 19 - GAS: 329 cycles, NASM: 334 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 20/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66048)
+Collecting 31 batches with interleaved randomized order...
+Run 20 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 21/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65964)
+Collecting 31 batches with interleaved randomized order...
+Run 21 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 22/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66022)
+Collecting 31 batches with interleaved randomized order...
+Run 22 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 23/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65978)
+Collecting 31 batches with interleaved randomized order...
+Run 23 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 24/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66006)
+Collecting 31 batches with interleaved randomized order...
+Run 24 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 25/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65970)
+Collecting 31 batches with interleaved randomized order...
+Run 25 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 26/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66034)
+Collecting 31 batches with interleaved randomized order...
+Run 26 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 27/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66034)
+Collecting 31 batches with interleaved randomized order...
+Run 27 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 28/100 ===
+Calibrated shared batch size (GAS ref): 24 (GAS cycles: 82090)
+Collecting 31 batches with interleaved randomized order...
+Run 28 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 29/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65934)
+Collecting 31 batches with interleaved randomized order...
+Run 29 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 30/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65970)
+Collecting 31 batches with interleaved randomized order...
+Run 30 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 31/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66022)
+Collecting 31 batches with interleaved randomized order...
+Run 31 - GAS: 329 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 32/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65956)
+Collecting 31 batches with interleaved randomized order...
+Run 32 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 33/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66042)
+Collecting 31 batches with interleaved randomized order...
+Run 33 - GAS: 330 cycles, NASM: 334 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 34/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65930)
+Collecting 31 batches with interleaved randomized order...
+Run 34 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 35/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66058)
+Collecting 31 batches with interleaved randomized order...
+Run 35 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 36/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65954)
+Collecting 31 batches with interleaved randomized order...
+Run 36 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 37/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66034)
+Collecting 31 batches with interleaved randomized order...
+Run 37 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 38/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65988)
+Collecting 31 batches with interleaved randomized order...
+Run 38 - GAS: 329 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 39/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65944)
+Collecting 31 batches with interleaved randomized order...
+Run 39 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 40/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66022)
+Collecting 31 batches with interleaved randomized order...
+Run 40 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 41/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66012)
+Collecting 31 batches with interleaved randomized order...
+Run 41 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 42/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66062)
+Collecting 31 batches with interleaved randomized order...
+Run 42 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 43/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65942)
+Collecting 31 batches with interleaved randomized order...
+Run 43 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 44/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66036)
+Collecting 31 batches with interleaved randomized order...
+Run 44 - GAS: 330 cycles, NASM: 334 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 45/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65978)
+Collecting 31 batches with interleaved randomized order...
+Run 45 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 46/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66004)
+Collecting 31 batches with interleaved randomized order...
+Run 46 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 47/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65966)
+Collecting 31 batches with interleaved randomized order...
+Run 47 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 48/100 ===
+Calibrated shared batch size (GAS ref): 25 (GAS cycles: 77394)
+Collecting 31 batches with interleaved randomized order...
+Run 48 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 49/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65946)
+Collecting 31 batches with interleaved randomized order...
+Run 49 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 50/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65984)
+Collecting 31 batches with interleaved randomized order...
+Run 50 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 51/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66008)
+Collecting 31 batches with interleaved randomized order...
+Run 51 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 52/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65954)
+Collecting 31 batches with interleaved randomized order...
+Run 52 - GAS: 330 cycles, NASM: 334 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 53/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66028)
+Collecting 31 batches with interleaved randomized order...
+Run 53 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 54/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65946)
+Collecting 31 batches with interleaved randomized order...
+Run 54 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 55/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 66034)
+Collecting 31 batches with interleaved randomized order...
+Run 55 - GAS: 330 cycles, NASM: 334 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 56/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65936)
+Collecting 31 batches with interleaved randomized order...
+Run 56 - GAS: 330 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 57/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65744)
+Collecting 31 batches with interleaved randomized order...
+Run 57 - GAS: 328 cycles, NASM: 334 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 58/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65620)
+Collecting 31 batches with interleaved randomized order...
+Run 58 - GAS: 328 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 59/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65610)
+Collecting 31 batches with interleaved randomized order...
+Run 59 - GAS: 329 cycles, NASM: 334 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 60/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65678)
+Collecting 31 batches with interleaved randomized order...
+Run 60 - GAS: 328 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 61/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65604)
+Collecting 31 batches with interleaved randomized order...
+Run 61 - GAS: 329 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 62/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65724)
+Collecting 31 batches with interleaved randomized order...
+Run 62 - GAS: 329 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 63/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65694)
+Collecting 31 batches with interleaved randomized order...
+Run 63 - GAS: 328 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 64/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65688)
+Collecting 31 batches with interleaved randomized order...
+Run 64 - GAS: 328 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 65/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65652)
+Collecting 31 batches with interleaved randomized order...
+Run 65 - GAS: 328 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 66/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65700)
+Collecting 31 batches with interleaved randomized order...
+Run 66 - GAS: 328 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 67/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 65608)
+Collecting 31 batches with interleaved randomized order...
+Run 67 - GAS: 328 cycles, NASM: 335 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 68/100 ===
+Calibrated shared batch size (GAS ref): 26 (GAS cycles: 75290)
+Collecting 31 batches with interleaved randomized order...
+Run 68 - GAS: 325 cycles, NASM: 326 cycles, CryptOpt: 274 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 69/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64648)
+Collecting 31 batches with interleaved randomized order...
+Run 69 - GAS: 323 cycles, NASM: 325 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 70/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64664)
+Collecting 31 batches with interleaved randomized order...
+Run 70 - GAS: 324 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 71/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64720)
+Collecting 31 batches with interleaved randomized order...
+Run 71 - GAS: 324 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 72/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64682)
+Collecting 31 batches with interleaved randomized order...
+Run 72 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 73/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64694)
+Collecting 31 batches with interleaved randomized order...
+Run 73 - GAS: 323 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 74/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64662)
+Collecting 31 batches with interleaved randomized order...
+Run 74 - GAS: 324 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 75/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64724)
+Collecting 31 batches with interleaved randomized order...
+Run 75 - GAS: 323 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 76/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64630)
+Collecting 31 batches with interleaved randomized order...
+Run 76 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 77/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64760)
+Collecting 31 batches with interleaved randomized order...
+Run 77 - GAS: 323 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 78/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64666)
+Collecting 31 batches with interleaved randomized order...
+Run 78 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 79/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64658)
+Collecting 31 batches with interleaved randomized order...
+Run 79 - GAS: 324 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 80/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64656)
+Collecting 31 batches with interleaved randomized order...
+Run 80 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 81/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64652)
+Collecting 31 batches with interleaved randomized order...
+Run 81 - GAS: 323 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 82/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64712)
+Collecting 31 batches with interleaved randomized order...
+Run 82 - GAS: 323 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 83/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64648)
+Collecting 31 batches with interleaved randomized order...
+Run 83 - GAS: 323 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 84/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64744)
+Collecting 31 batches with interleaved randomized order...
+Run 84 - GAS: 323 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 85/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64620)
+Collecting 31 batches with interleaved randomized order...
+Run 85 - GAS: 324 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 86/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64752)
+Collecting 31 batches with interleaved randomized order...
+Run 86 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 87/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64644)
+Collecting 31 batches with interleaved randomized order...
+Run 87 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 88/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64704)
+Collecting 31 batches with interleaved randomized order...
+Run 88 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 89/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64662)
+Collecting 31 batches with interleaved randomized order...
+Run 89 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 90/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64620)
+Collecting 31 batches with interleaved randomized order...
+Run 90 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 91/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64758)
+Collecting 31 batches with interleaved randomized order...
+Run 91 - GAS: 324 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 92/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64630)
+Collecting 31 batches with interleaved randomized order...
+Run 92 - GAS: 324 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 93/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64736)
+Collecting 31 batches with interleaved randomized order...
+Run 93 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 94/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64664)
+Collecting 31 batches with interleaved randomized order...
+Run 94 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 95/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64708)
+Collecting 31 batches with interleaved randomized order...
+Run 95 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 96/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64706)
+Collecting 31 batches with interleaved randomized order...
+Run 96 - GAS: 324 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 97/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64700)
+Collecting 31 batches with interleaved randomized order...
+Run 97 - GAS: 323 cycles, NASM: 319 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 98/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64676)
+Collecting 31 batches with interleaved randomized order...
+Run 98 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 99/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64650)
+Collecting 31 batches with interleaved randomized order...
+Run 99 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 100/100 ===
+Calibrated shared batch size (GAS ref): 30 (GAS cycles: 64696)
+Collecting 31 batches with interleaved randomized order...
+Run 100 - GAS: 323 cycles, NASM: 318 cycles, CryptOpt: 273 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== FINAL ENHANCED MEASUREMENT REPORT ===
+Methodology: CryptOpt-style with memory barriers, randomized batching, and statistical analysis
+Measurement quality validation: Coefficient of variation tracking
+
+Median-of-Medians Results (100 runs):
+  GAS Format:     330 cycles
+  NASM Format:    334 cycles
+  CryptOpt Format: 273 cycles
+
+Relative Performance (median-of-medians):
+  CryptOpt vs GAS: +20.88% (273 vs 330 cycles)
+  CryptOpt vs NASM: +22.34% (273 vs 334 cycles)
+
+Measurement Stability Analysis:
+  GAS Format:     CV = 1.390% (Good (CV < 5%))
+  NASM Format:    CV = 2.480% (Good (CV < 5%))
+  CryptOpt Format: CV = 0.000% (Excellent (CV < 1%))
+
+Detailed Statistics (across 100 runs):
+  GAS Format:
+    Mean: 328.61 cycles
+    Median: 330 cycles
+    Std Dev: 4.57 cycles
+    95% CI: [327.71, 329.51] cycles
+  NASM Format:
+    Mean: 327.39 cycles
+    Median: 334 cycles
+    Std Dev: 8.12 cycles
+    95% CI: [325.80, 328.98] cycles
+  CryptOpt Format:
+    Mean: 273.00 cycles
+    Median: 273 cycles
+    Std Dev: 0.00 cycles
+    95% CI: [273.00, 273.00] cycles
+
+Statistical Significance Assessment:
+  CryptOpt is significantly faster than GAS (95% CI non-overlapping)
+  CryptOpt is significantly faster than NASM (95% CI non-overlapping)
+
+Note: This enhanced methodology addresses reviewer concerns about:
+  ✓ Memory barriers (mfence before rdtsc)
+  ✓ Randomized batch execution order (Fisher-Yates)
+  ✓ Proper warm-up procedures
+  ✓ Statistical analysis with coefficient of variation
+  ✓ Dynamic batch sizing based on cycle goals
+  • CPU pinning and frequency control: Use setup_benchmark_environment.sh

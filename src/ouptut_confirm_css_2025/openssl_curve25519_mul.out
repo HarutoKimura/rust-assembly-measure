@@ -1,0 +1,775 @@
+Running benchmark on dedicated core 10...
+Measuring OpenSSLCurve25519 for operation 'mul' with ENHANCED CryptOpt methodology...
+Features: Memory barriers, randomized batching, cycle-goal calibration, statistical analysis
+
+Enhanced Measurement Configuration:
+  Cycle Goal: 10000 cycles/batch
+  Number of Batches: 31
+  Warm-up Iterations: 20
+  Repeats: 100 (median-of-medians)
+  Features: Memory barriers, Fisher-Yates randomization, dynamic batch sizing
+
+=== Run 1/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33384, ~166.92 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 1 - GAS: 154 cycles, NASM: 153 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 2/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32538, ~162.69 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 2 - GAS: 154 cycles, NASM: 153 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 3/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32494, ~162.47 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 3 - GAS: 154 cycles, NASM: 153 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 4/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32450, ~162.25 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 4 - GAS: 154 cycles, NASM: 153 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 5/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32412, ~162.06 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 5 - GAS: 154 cycles, NASM: 153 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 6/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32412, ~162.06 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 6 - GAS: 154 cycles, NASM: 153 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 7/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32512, ~162.56 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 7 - GAS: 154 cycles, NASM: 153 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 8/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32518, ~162.59 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 8 - GAS: 154 cycles, NASM: 153 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 9/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 26 (max batch cycles: 76548, ~382.74 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 9 - GAS: 153 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 10/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32526, ~162.63 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 10 - GAS: 153 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 11/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32414, ~162.07 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 11 - GAS: 155 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 12/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32472, ~162.36 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 12 - GAS: 157 cycles, NASM: 155 cycles, Hand: 100 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 13/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32520, ~162.60 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 13 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 14/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32510, ~162.55 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 14 - GAS: 157 cycles, NASM: 155 cycles, Hand: 100 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 15/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32446, ~162.23 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 15 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 16/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32482, ~162.41 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 16 - GAS: 157 cycles, NASM: 155 cycles, Hand: 100 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 17/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32524, ~162.62 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 17 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 18/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32456, ~162.28 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 18 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 19/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32484, ~162.42 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 19 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 20/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32504, ~162.52 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 20 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 21/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32456, ~162.28 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 21 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 22/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32506, ~162.53 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 22 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 23/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32486, ~162.43 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 23 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 24/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32468, ~162.34 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 24 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 25/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32538, ~162.69 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 25 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 26/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32474, ~162.37 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 26 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 27/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32474, ~162.37 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 27 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 28/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32558, ~162.79 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 28 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 29/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32424, ~162.12 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 29 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 30/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32512, ~162.56 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 30 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 31/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32470, ~162.35 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 31 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 32/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32482, ~162.41 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 32 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 33/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32524, ~162.62 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 33 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 34/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 45 (max batch cycles: 43596, ~217.98 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 34 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 35/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32462, ~162.31 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 35 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 36/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32584, ~162.92 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 36 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 37/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32460, ~162.30 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 37 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 38/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32430, ~162.15 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 38 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 39/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32500, ~162.50 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 39 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 40/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32476, ~162.38 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 40 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 41/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32440, ~162.20 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 41 - GAS: 156 cycles, NASM: 155 cycles, Hand: 100 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 42/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32530, ~162.65 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 42 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 43/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32532, ~162.66 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 43 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 44/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32504, ~162.52 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 44 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 45/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32474, ~162.37 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 45 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 46/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32552, ~162.76 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 46 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 47/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32438, ~162.19 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 47 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 48/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32558, ~162.79 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 48 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 49/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32458, ~162.29 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 49 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 50/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32506, ~162.53 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 50 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 51/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32510, ~162.55 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 51 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 52/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32432, ~162.16 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 52 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 53/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32506, ~162.53 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 53 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 54/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32434, ~162.17 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 54 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 55/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32546, ~162.73 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 55 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 56/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32442, ~162.21 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 56 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 57/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32466, ~162.33 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 57 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 58/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32580, ~162.90 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 58 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 59/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32492, ~162.46 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 59 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 60/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32504, ~162.52 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 60 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 61/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32452, ~162.26 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 61 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 62/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32532, ~162.66 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 62 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 63/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32488, ~162.44 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 63 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 64/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32460, ~162.30 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 64 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 65/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32498, ~162.49 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 65 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 66/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32460, ~162.30 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 66 - GAS: 156 cycles, NASM: 155 cycles, Hand: 100 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 67/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32568, ~162.84 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 67 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 68/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 55 (max batch cycles: 36230, ~181.15 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 68 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 69/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32526, ~162.63 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 69 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 70/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32492, ~162.46 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 70 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 71/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32462, ~162.31 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 71 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 163 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 72/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 61 (max batch cycles: 32538, ~162.69 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 72 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 170 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Good (CV < 5%)
+
+=== Run 73/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 58 (max batch cycles: 34046, ~170.23 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 73 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 170 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 74/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 58 (max batch cycles: 34022, ~170.11 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 74 - GAS: 157 cycles, NASM: 155 cycles, Hand: 100 cycles, Hand-NASM: 103 cycles, CryptOpt: 170 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 75/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 58 (max batch cycles: 34032, ~170.16 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 75 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 171 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 76/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 60 (max batch cycles: 33306, ~166.53 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 76 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 77/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33346, ~166.73 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 77 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 78/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33404, ~167.02 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 78 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 79/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 60 (max batch cycles: 33316, ~166.58 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 79 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 80/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33388, ~166.94 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 80 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 81/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33370, ~166.85 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 81 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 82/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 60 (max batch cycles: 33330, ~166.65 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 82 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 83/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33390, ~166.95 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 83 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 84/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 60 (max batch cycles: 33330, ~166.65 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 84 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 85/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33412, ~167.06 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 85 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 86/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 60 (max batch cycles: 33324, ~166.62 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 86 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 87/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33382, ~166.91 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 87 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 88/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33660, ~168.30 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 88 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 89/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 60 (max batch cycles: 33326, ~166.63 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 89 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 90/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33402, ~167.01 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 90 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 91/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33392, ~166.96 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 91 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 92/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 60 (max batch cycles: 33320, ~166.60 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 92 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 93/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33408, ~167.04 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 93 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 94/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33338, ~166.69 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 94 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 95/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33340, ~166.70 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 95 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 96/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33400, ~167.00 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 96 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 97/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 60 (max batch cycles: 33308, ~166.54 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 97 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 98/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33358, ~166.79 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 98 - GAS: 156 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 99/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33410, ~167.05 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 99 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== Run 100/100 ===
+Global warm-up: warming up all functions...
+Calibrated shared batch size (max-of-impls): 59 (max batch cycles: 33350, ~166.75 cycles/call at bs=200)
+Collecting 31 batches with interleaved randomized order...
+Run 100 - GAS: 157 cycles, NASM: 155 cycles, Hand: 99 cycles, Hand-NASM: 103 cycles, CryptOpt: 167 cycles
+Quality - GAS: Excellent (CV < 1%), NASM: Excellent (CV < 1%), Hand: Excellent (CV < 1%), Hand-NASM: Excellent (CV < 1%), CryptOpt: Excellent (CV < 1%)
+
+=== FINAL ENHANCED MEASUREMENT REPORT ===
+Methodology: CryptOpt-style with memory barriers, randomized batching, and statistical analysis
+Measurement quality validation: Coefficient of variation tracking
+
+Median-of-Medians Results (100 runs):
+  GAS Format:     157 cycles
+  NASM Format:    155 cycles
+  Hand-optimised GAS: 99 cycles
+  Hand-optimised NASM: 103 cycles
+  CryptOpt Format: 163 cycles
+
+Relative Performance (median-of-medians):
+  CryptOpt vs GAS: -3.68% (163 vs 157 cycles)
+  CryptOpt vs NASM: -4.91% (163 vs 155 cycles)
+  CryptOpt vs Hand-GAS: -39.26% (163 vs 99 cycles)
+  CryptOpt vs Hand-NASM: -36.81% (163 vs 103 cycles)
+
+Measurement Stability Analysis:
+  GAS Format:     CV = 0.267% (Excellent (CV < 1%))
+  NASM Format:    CV = 0.000% (Excellent (CV < 1%))
+  CryptOpt Format: CV = 1.291% (Good (CV < 5%))
+  Hand-optimised GAS: CV = 0.000% (Excellent (CV < 1%))
+  Hand-optimised NASM: CV = 0.000% (Excellent (CV < 1%))
+
+Detailed Statistics (across 100 runs):
+  GAS Format:
+    Mean: 156.81 cycles
+    Median: 157 cycles
+    Std Dev: 0.42 cycles
+    95% CI: [156.72, 156.90] cycles
+  NASM Format:
+    Mean: 155.00 cycles
+    Median: 155 cycles
+    Std Dev: 0.00 cycles
+    95% CI: [155.00, 155.00] cycles
+  CryptOpt Format:
+    Mean: 164.33 cycles
+    Median: 163 cycles
+    Std Dev: 2.12 cycles
+    95% CI: [163.91, 164.75] cycles
+  Hand-optimised GAS:
+    Mean: 99.00 cycles
+    Median: 99 cycles
+    Std Dev: 0.00 cycles
+    95% CI: [99.00, 99.00] cycles
+  Hand-optimised NASM:
+    Mean: 103.00 cycles
+    Median: 103 cycles
+    Std Dev: 0.00 cycles
+    95% CI: [103.00, 103.00] cycles
+
+Statistical Significance Assessment:
+  GAS is significantly faster than CryptOpt (95% CI non-overlapping)
+  NASM is significantly faster than CryptOpt (95% CI non-overlapping)
+  Hand-optimised GAS is significantly faster than CryptOpt (95% CI non-overlapping)
+  Hand-optimised NASM is significantly faster than CryptOpt (95% CI non-overlapping)
+
+Note: This enhanced methodology addresses reviewer concerns about:
+  ✓ Memory barriers (mfence before rdtsc)
+  ✓ Randomized batch execution order (Fisher-Yates)
+  ✓ Proper warm-up procedures
+  ✓ Statistical analysis with coefficient of variation
+  ✓ Dynamic batch sizing based on cycle goals
+  • CPU pinning and frequency control: Use setup_benchmark_environment.sh

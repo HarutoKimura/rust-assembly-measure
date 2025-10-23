@@ -202,4 +202,4 @@ ret
 ; number of used evaluations: 180000
 ; Ratio (time for assembling + measure)/(total runtime for 180000 evals): 0.09577862959895768
 ; number reverted permutation / tried permutation: 71798 / 90103 =79.684%
-; number reverted decision / tried decision: 57749 / 89896 =64.240%
+; number reverted decision / tried decision: 57749 / 89896 =64.240%S
